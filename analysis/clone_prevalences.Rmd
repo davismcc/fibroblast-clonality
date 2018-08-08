@@ -1,0 +1,196 @@
+---
+title: "Clone prevalence analysis"
+author: "Davis J. McCarthy"
+output:
+  html_document:
+        toc: false
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: false
+        code_folding: hide
+---
+
+# Load libraries and data
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+# Load clone inference and cell assignment results
+
+Load the Canopy clone inference results and the cell assignment results from
+cardelino. 
+
+```{r}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites"
+fls <- list.files("data/sces")
+fls <- fls[grepl(params$callset, fls)]
+donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+
+cell_assign_list <- list()
+for (don in donors) {
+    cell_assign_list[[don]] <- readRDS(file.path("data/cell_assignment", 
+        paste0("cardelino_results.", don, ".", params$callset, ".rds")))
+    cat(paste("reading", don, "\n"))
+}
+canopy_list <- list()
+
+prev_list <- list()
+for (don in donors) {
+  tmp_df <- data_frame(
+    donor = don,
+    clone = rownames(cell_assign_list[[don]]$tree$P),
+    prev_canopy = cell_assign_list[[don]]$tree$P[, 1],
+    prev_cardelino = NA,
+    n_cells = length(cell_assign_list[[don]]$clone_assigned),
+    n_assigned = sum(cell_assign_list[[don]]$clone_assigned != "unassigned"),
+    prop_assigned = n_assigned / n_cells
+  )
+  for (i in seq_len(nrow(tmp_df))) {
+    tmp_df$prev_cardelino[i] <- (sum(
+      cell_assign_list[[don]]$clone_assigned == tmp_df$clone[i]) / 
+        tmp_df$n_assigned[i])
+  }
+  prev_list[[don]] <- tmp_df
+}
+df_prev <- do.call("rbind", prev_list)
+
+lm_eqn <- function(df) {
+    m <- lm(prev_cardelino ~ prev_canopy, df);
+    eq <- substitute(italic(r)^2~"="~r2, 
+         list(a = format(coef(m)[1], digits = 2), 
+              b = format(coef(m)[2], digits = 2), 
+             r2 = format(summary(m)$r.squared, digits = 3)))
+    as.character(as.expression(eq));                 
+}
+
+
+df_prev_nested <- df_prev %>%
+  group_by(clone) %>%
+  nest()
+
+r2_fun <- function(df) {
+  summary(lm(prev_cardelino ~ prev_canopy, data = df))$r.squared
+}
+
+df_prev_nested <- df_prev_nested %>%
+  dplyr::mutate(r2 = map(data, r2_fun))
+
+df_r2 <- df_prev_nested %>%
+  dplyr::select(clone, r2) %>%
+  unnest(r2)
+df_r2 <- df_r2 %>%
+  dplyr::mutate(lab = as.character(as.expression(substitute(italic(r)^2~"="~rr2, 
+         list(rr2 = format(r2, digits = 3))))))
+
+```
+
+# Plot clone prevalences
+
+Plot the estimated clone fractions from the cells assigned to a clone by 
+cardelino against the estimated clone fractions from Canopy. 
+
+```{r plot-prev, fig.height = 5, fig.width=7}
+ggplot(df_prev, aes(x = prev_canopy, y = prev_cardelino, shape = clone, 
+                    fill = prop_assigned)) +
+  geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
+  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
+  geom_point(size = 3) +
+  xlim(0, 1) + ylim(0, 1) +
+  geom_text(x = 0.9, y = 0, colour = "black", label = lm_eqn(df_prev), 
+            size = 5, parse = TRUE, data = df_prev[1,]) +
+  scale_fill_viridis(name = "fraction of\ncells assigned", limits = c(0, 1)) +
+  scale_shape_manual(values = 21:25) +
+  xlab("Estimated clone fraction (Canopy)") +
+  ylab("Estimated clone fraction (cardelino)")
+
+ggsave("figures/clone_prevalences/clone_prev_scatter.png", 
+       height = 5, width = 7)
+ggsave("figures/clone_prevalences/clone_prev_scatter.pdf", 
+       height = 5, width = 7)
+
+```
+
+We can also look at the same plot as above, but now faceted by the different 
+clones.
+
+```{r plot-prev-facet-clone, fig.height = 7, fig.width=9}
+ggplot(df_prev, aes(x = prev_canopy, y = prev_cardelino, shape = clone, 
+                    fill = prop_assigned)) +
+  geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
+  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
+  geom_point(size = 3) +
+  xlim(0, 1) + ylim(0, 1) +
+  facet_wrap(~clone) +
+  scale_fill_viridis(name = "fraction of\ncells assigned", limits = c(0, 1)) +
+  scale_shape_manual(values = 21:25) +
+  xlab("Estimated clone fraction (Canopy)") +
+  ylab("Estimated clone fraction (cardelino)")
+
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone.png", 
+       height = 7, width = 9)
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone.pdf", 
+       height = 7, width = 9)
+
+```
+
+Since there are so few donors with four clones we can also make a version of the 
+figure above with just clone1, clone2 and clone3.
+
+```{r plot-prev-facet-clone-3clones, fig.height = 4.5, fig.width=10.5}
+df_prev %>%
+  dplyr::filter(clone != "clone4") %>%
+  ggplot(aes(x = prev_canopy, y = prev_cardelino, shape = clone, 
+             fill = prop_assigned)) +
+  geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
+  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
+  geom_point(size = 3) +
+  xlim(0, 1) + ylim(0, 1) +
+  facet_wrap(~clone, nrow = 1) +
+  scale_fill_viridis(name = "fraction of\ncells assigned", limits = c(0, 1)) +
+  scale_shape_manual(values = 21:25) +
+  xlab("Estimated clone fraction (Canopy)") +
+  ylab("Estimated clone fraction (cardelino)")
+
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.png", 
+       height = 4.5, width = 10.5)
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf", 
+       height = 4.5, width = 10.5)
+
+```
+
+Also look at what happens if we filter out donors that have fewer than 75% of 
+cells assigned (`r length(unique(dplyr::filter(df_prev, prop_assigned > 0.75)$donor))` donors).
+
+```{r plot-prev-facet-clone-3clones-donorfilt, fig.height = 4.5, fig.width=10.5}
+df_prev %>%
+  dplyr::filter(clone != "clone4", prop_assigned > 0.75) %>%
+  ggplot(aes(x = prev_canopy, y = prev_cardelino, shape = clone, 
+             fill = prop_assigned)) +
+  geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
+  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
+  geom_point(size = 3) +
+  xlim(0, 1) + ylim(0, 1) +
+  facet_wrap(~clone, nrow = 1) +
+  scale_fill_viridis(name = "fraction of\ncells assigned", limits = c(0, 1)) +
+  scale_shape_manual(values = 21:25) +
+  xlab("Estimated clone fraction (Canopy)") +
+  ylab("Estimated clone fraction (cardelino)")
+
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_75pctassigned.png", 
+       height = 4.5, width = 10.5)
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_75pctassigned.pdf", 
+       height = 4.5, width = 10.5)
+
+```
+
+
+# Session info
+
+```{r sesh-info}
+devtools::session_info()
+```
