@@ -9,38 +9,23 @@
 <meta name="generator" content="pandoc" />
 
 
+<meta name="author" content="Davis J. McCarthy" />
 
 
-<title>Home</title>
+<title>Human dermal fibroblast clonality project</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
-<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/font-awesome-5.0.13/css/fa-svg-with-js.css" rel="stylesheet" />
 <script src="site_libs/font-awesome-5.0.13/js/fontawesome-all.min.js"></script>
 <script src="site_libs/font-awesome-5.0.13/js/fa-v4-shims.min.js"></script>
 
-<style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
-  pre:not([class]) {
-    background-color: white;
-  }
-</style>
-<script type="text/javascript">
-if (window.hljs) {
-  hljs.configure({languages: []});
-  hljs.initHighlightingOnLoad();
-  if (document.readyState && document.readyState === "complete") {
-    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
-  }
-}
-</script>
 
 
 
@@ -165,6 +150,14 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 
 
@@ -214,31 +207,61 @@ div.section {
 
 <div class="fluid-row" id="header">
 
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
 
 
-<h1 class="title toc-ignore">Home</h1>
+
+<h1 class="title toc-ignore">Human dermal fibroblast clonality project</h1>
+<h4 class="author"><em>Davis J. McCarthy</em></h4>
 
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-07</p>
+<p><strong>Last updated:</strong> 2018-08-08</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
-<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+<p><details> <summary> <strong style="color:red;">✖</strong> <strong>R Markdown file:</strong> uncommitted changes </summary> The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> 5fc189d </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/5a9a5ba35440c1bf7c0e840c760f1b1df28d88a7" target="_blank">5a9a5ba</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .Rproj.user/
 
 Untracked files:
+    Untracked:  analysis/analysis_for_joxm.Rmd
+    Untracked:  analysis/cell_assignment.Rmd
+    Untracked:  analysis/differential_expression.Rmd
+    Untracked:  analysis/mutated_genes.Rmd
+    Untracked:  data/canopy/
+    Untracked:  data/cell_assignment/
+    Untracked:  data/de_analysis_FTv62/
+    Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_neutrality.tsv
     Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
     Untracked:  data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz
+    Untracked:  data/human_H_v5p2.rdata
+    Untracked:  data/human_c2_v5p2.rdata
+    Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
+    Untracked:  data/sces/
+    Untracked:  docs/figure/
+    Untracked:  figures/
+
+Unstaged changes:
+    Modified:   analysis/_site.yml
+    Modified:   analysis/index.Rmd
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -269,10 +292,27 @@ Message
 <tbody>
 <tr>
 <td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/9856275b61ae27536bbfbe5740dcd0b6c7db6398/docs/index.html" target="_blank">9856275</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-07
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 Rmd
 </td>
 <td style="text-align:left;">
-5fc189d
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/5fc189d02e3f9e96d48b7056cb732d388c2b56cf/analysis/index.Rmd" target="_blank">5fc189d</a>
 </td>
 <td style="text-align:left;">
 davismcc
@@ -289,7 +329,14 @@ Start workflowr project.
 </ul>
 <p></details></p>
 <hr />
-<p>Welcome to my research website.</p>
+<div id="project-overview" class="section level2">
+<h2>Project overview?</h2>
+<p>This project investigates clonality in human dermal fibroblast cell populations in 32 cell lines from distinct donors, using bulk whole exome sequencing and single-cell RNA-sequencing data.</p>
+<p>Here are the results of our analyses. They were generated by rendering the <a href="https://github.com/davismcc/fibroblast-clonality/tree/master/analysis">R Markdown documents</a> into webpages.</p>
+<ol style="list-style-type: decimal">
+<li><a href="clone_prevalences.html">Analysis of clonal prevalences.</a></li>
+</ol>
+</div>
 
 <!-- Adjust MathJax settings so that all math formulae are shown using
 TeX fonts only; see

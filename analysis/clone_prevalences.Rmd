@@ -1,19 +1,12 @@
 ---
 title: "Clone prevalence analysis"
 author: "Davis J. McCarthy"
-output:
-  html_document:
-        toc: false
-        toc_float: true
-        theme: journal
-        highlight: pygments
-        number_sections: false
-        code_folding: hide
+site: workflowr::wflow_site
 ---
 
 ## Load libraries and data
 
-```{r setup, include=TRUE}
+```{r setup, include=TRUE, results='hide', message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(viridis)
@@ -21,7 +14,7 @@ library(cowplot)
 ```
 
 Load the Canopy clone inference results and the cell assignment results from
-cardelino. 
+cardelino for 32 donor fibroblast cell lines.
 
 ```{r}
 params <- list()
