@@ -11,17 +11,14 @@ output:
         code_folding: hide
 ---
 
-# Load libraries and data
+## Load libraries and data
 
-```{r setup, include=FALSE}
+```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(viridis)
 library(cowplot)
 ```
-
-
-# Load clone inference and cell assignment results
 
 Load the Canopy clone inference results and the cell assignment results from
 cardelino. 
@@ -91,7 +88,7 @@ df_r2 <- df_r2 %>%
 
 ```
 
-# Plot clone prevalences
+## Plot clone prevalences
 
 Plot the estimated clone fractions from the cells assigned to a clone by 
 cardelino against the estimated clone fractions from Canopy. 
@@ -190,9 +187,3 @@ ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_75pct
 
 ```
 
-
-# Session info
-
-```{r sesh-info}
-devtools::session_info()
-```
