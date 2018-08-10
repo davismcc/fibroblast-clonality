@@ -576,7 +576,7 @@ Again, we'll look specifically at the boxplots of the logFC values across
 categories. Positive logFC values indicate higher expression in the mutated 
 clone, and negative logFC values lower expression in the mutated clone.
 
-```{r, fig.height=9, fig.width=14}
+```{r, fig.height=9, fig.width=15}
 tmp5 <- mut_genes_df_allcells_filt %>%
     group_by(consequence_simplified) %>%
     summarise(med = median(logFC, na.rm = TRUE),
@@ -605,11 +605,11 @@ ggplot(aes(y = logFC, x = consequence_simplified, fill = consequence)) +
     theme(legend.position = "bottom")
 
 ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.png", 
-       height = 9, width = 14)
+       height = 9, width = 15)
 ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.pdf", 
-       height = 9, width = 14)
+       height = 9, width = 15)
 ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.svg", 
-       height = 9, width = 14)
+       height = 9, width = 15)
 ```
 
 On the evidence of the plot above it does not look like stricter filtering of 
@@ -955,7 +955,7 @@ ggplot(df_prolif_vars,
   scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
   scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
   guides(colour = FALSE, fill = FALSE) +
-  ggtitle("Variants in proliferation genes: all donors") +
+  ggtitle("Variants in cell cycle genes: all donors") +
   xlab("number of variants") + ylab("consequence") +
   theme_bw(16)
 ```
