@@ -60,24 +60,25 @@ lm_eqn <- function(df) {
     as.character(as.expression(eq));                 
 }
 
+## Fit weighted regressions
+fits <- df_prev %>%
+  group_by(clone) %>% 
+  do(fit = lm(prev_cardelino ~ prev_canopy, weights = prop_assigned, data = .))
 
-df_prev_nested <- df_prev %>%
-  group_by(clone) %>%
-  nest()
+fits_1grp <- df_prev %>%
+  do(fit = lm(prev_cardelino ~ prev_canopy, weights = prop_assigned, data = .))
 
-r2_fun <- function(df) {
-  summary(lm(prev_cardelino ~ prev_canopy, data = df))$r.squared
+le_lin_fit <- function(dat) {
+  the_fit <- lm(prev_cardelino ~ prev_canopy, weights = prop_assigned, dat)
+  setNames(data.frame(t(coef(the_fit))), c("x0", "x1"))
 }
 
-df_prev_nested <- df_prev_nested %>%
-  dplyr::mutate(r2 = map(data, r2_fun))
+fits_me <- df_prev %>%
+  group_by(clone) %>% 
+  do(le_lin_fit(.))
 
-df_r2 <- df_prev_nested %>%
-  dplyr::select(clone, r2) %>%
-  unnest(r2)
-df_r2 <- df_r2 %>%
-  dplyr::mutate(lab = as.character(as.expression(substitute(italic(r)^2~"="~rr2, 
-         list(rr2 = format(r2, digits = 3))))))
+fits_me_1grp <- df_prev %>%
+  do(le_lin_fit(.))
 
 ```
 
@@ -87,18 +88,25 @@ Plot the estimated clone fractions from the cells assigned to a clone by
 cardelino against the estimated clone fractions from Canopy. 
 
 ```{r plot-prev, fig.height = 5, fig.width=7}
-ggplot(df_prev, aes(x = prev_canopy, y = prev_cardelino, shape = clone, 
+fits_1grp %>%
+  broom::augment(fit) %>% 
+  inner_join(., df_prev) %>%
+ggplot(aes(x = prev_canopy, y = prev_cardelino, shape = clone, 
                     fill = prop_assigned)) +
   geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
-  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
+  geom_ribbon(aes(ymin = .fitted - 1.645 * .se.fit, ymax = .fitted + 1.645 * .se.fit),
+              fill = "gray70", alpha = 0.7) +
+  geom_abline(aes(intercept = x0, slope = x1), 
+              data = fits_me_1grp,
+              colour = "firebrick", size = 2) +
   geom_point(size = 3) +
   xlim(0, 1) + ylim(0, 1) +
   geom_text(x = 0.9, y = 0, colour = "black", label = lm_eqn(df_prev), 
             size = 5, parse = TRUE, data = df_prev[1,]) +
   scale_fill_viridis(name = "fraction of\ncells assigned", limits = c(0, 1)) +
   scale_shape_manual(values = 21:25) +
-  xlab("Estimated clone fraction (Canopy)") +
-  ylab("Estimated clone fraction (cardelino)")
+  xlab("Estimated clone prevalence (Canopy)") +
+  ylab("Assigned clone fraction (cardelino)")
 
 ggsave("figures/clone_prevalences/clone_prev_scatter.png", 
        height = 5, width = 7)
@@ -111,17 +119,23 @@ We can also look at the same plot as above, but now faceted by the different
 clones.
 
 ```{r plot-prev-facet-clone, fig.height = 7, fig.width=9}
-ggplot(df_prev, aes(x = prev_canopy, y = prev_cardelino, shape = clone, 
-                    fill = prop_assigned)) +
+fits %>%
+  broom::augment(fit) %>% 
+  inner_join(., df_prev) %>%
+  ggplot(aes(x = prev_canopy, y = prev_cardelino)) +
   geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
-  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
-  geom_point(size = 3) +
+  geom_ribbon(aes(ymin = .fitted - 1.645 * .se.fit, ymax = .fitted + 1.645 * .se.fit),
+              fill = "gray70", alpha = 0.7) +
+  geom_abline(aes(intercept = x0, slope = x1), 
+              data = fits_me,
+              colour = "firebrick", size = 2) +
+  geom_point(aes(fill = prop_assigned), size = 3, shape = 21) +
   xlim(0, 1) + ylim(0, 1) +
   facet_wrap(~clone) +
   scale_fill_viridis(name = "fraction of\ncells assigned", limits = c(0, 1)) +
   scale_shape_manual(values = 21:25) +
-  xlab("Estimated clone fraction (Canopy)") +
-  ylab("Estimated clone fraction (cardelino)")
+  xlab("Estimated clone prevalence (Canopy)") +
+  ylab("Assigned clone fraction (cardelino)")
 
 ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone.png", 
        height = 7, width = 9)
@@ -131,27 +145,35 @@ ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone.pdf",
 ```
 
 Since there are so few donors with four clones we can also make a version of the 
-figure above with just clone1, clone2 and clone3.
+figure above with just clone1, clone2 and clone3 and fitted a weighted 
+regression line, with points weighted by the fraction of cells assigned for the 
+donor.
 
-```{r plot-prev-facet-clone-3clones, fig.height = 4.5, fig.width=10.5}
-df_prev %>%
+```{r plot-prev-facet-clone-3clones, fig.height = 4.5, fig.width=8.5}
+fits %>%
+  broom::augment(fit) %>% 
+  inner_join(., df_prev) %>%
   dplyr::filter(clone != "clone4") %>%
-  ggplot(aes(x = prev_canopy, y = prev_cardelino, shape = clone, 
-             fill = prop_assigned)) +
+  ggplot(aes(x = prev_canopy, y = prev_cardelino, fill = prop_assigned)) +
   geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
-  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
-  geom_point(size = 3) +
+  geom_ribbon(aes(ymin = .fitted - 1.645 * .se.fit, ymax = .fitted + 1.645 * .se.fit),
+              fill = "gray70", alpha = 0.7) +
+  geom_abline(aes(intercept = x0, slope = x1), 
+              data = dplyr::filter(fits_me, clone != "clone4"),
+              colour = "firebrick", size = 2) +
+  geom_point(size = 3, shape = 21) +
   xlim(0, 1) + ylim(0, 1) +
   facet_wrap(~clone, nrow = 1) +
   scale_fill_viridis(name = "fraction of\ncells assigned", limits = c(0, 1)) +
   scale_shape_manual(values = 21:25) +
-  xlab("Estimated clone fraction (Canopy)") +
-  ylab("Estimated clone fraction (cardelino)")
+  xlab("Estimated clone prevalence (Canopy)") +
+  ylab("Assigned clone fraction (cardelino)") +
+  theme(axis.text = element_text(size = 9))
 
 ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.png", 
-       height = 4.5, width = 10.5)
+       height = 4.5, width = 8.5)
 ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf", 
-       height = 4.5, width = 10.5)
+       height = 4.5, width = 8.5)
 
 ```
 
@@ -170,8 +192,8 @@ df_prev %>%
   facet_wrap(~clone, nrow = 1) +
   scale_fill_viridis(name = "fraction of\ncells assigned", limits = c(0, 1)) +
   scale_shape_manual(values = 21:25) +
-  xlab("Estimated clone fraction (Canopy)") +
-  ylab("Estimated clone fraction (cardelino)")
+  xlab("Estimated clone prevalence (Canopy)") +
+  ylab("Assigned clone fraction (cardelino)")
 
 ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_75pctassigned.png", 
        height = 4.5, width = 10.5)

@@ -18,3 +18,5 @@ the [R Markdown documents](https://github.com/davismcc/fibroblast-clonality/tree
 
 1. [Analysis of clonal prevalences.](clone_prevalences.html)
 
+2. [Analysis of effects of somatic variants on cis gene expression.](mutated_genes.html)
+

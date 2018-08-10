@@ -4,6 +4,23 @@ author: "Davis J. McCarthy"
 site: workflowr::wflow_site
 ---
 
+## Introduction
+
+In this analysis, we look at the direct impact of somatic variants on the genes
+in which they are located. We combine information from the clonal trees about 
+which variants tag which clones and [VEP](http://www.ensembl.org/info/docs/tools/vep/index.html) functional 
+annotations about the expected consequence of each variant. For each gene with
+a somatic variant (and sufficient gene expression), we test for differential 
+expression between cells that have the mutation (based on clone assignment) and
+those that do not. We can then compare these "mutated gene" differential 
+expression results for variants with different categories of functional 
+annotation.
+
+Clonal trees were inferred with [Canopy](http://www.pnas.org/content/early/2016/08/26/1522203113) using variant
+allele frequency information from a set of strictly filtered somatic variants
+called from whole-exome sequencing data. We filtered somatic variants to only 
+include variants that had read coverage in at least one single-cell for the 
+relevant donor. Assignment of cells to clones was done with [cardelino](https://github.com/PMBio/cardelino).
 
 ## Load libraries and data
 
@@ -31,24 +48,19 @@ Load VEP consequence information.
 ```{r load-csq-data}
 vep_best <- read_tsv("data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
 colnames(vep_best)[1] <- "Uploaded_variation"
-vep_best
-
-sum(duplicated(vep_best[["Uploaded_variation"]]))
 ## deduplicate dataframe
 vep_best <- vep_best[!duplicated(vep_best[["Uploaded_variation"]]),]
-nrow(vep_best)
 ```
 
-We can look at the number of variants, aggregated across all donors, that fall
-into the different VEP annotation categories.
+There are `r nrow(vep_best)` variants, aggregated across all donors, and we can 
+check the number that fall into the different VEP annotation categories.
 
 ```{r}
 table(vep_best[["Consequence"]])
 ```
 
-Load bcftools/csq variant annotations.
-
-```{r}
+```{r, echo=FALSE, include=FALSE}
+#Load bcftools/csq variant annotations.
 csq_annos <- read_tsv("data/fdr10.annot.txt.gz", comment = "#", 
                       col_types = "cccciiiiidcccccc", col_names = FALSE)
 colnames(csq_annos) <- c(
@@ -84,22 +96,18 @@ exome_sites <- dplyr::mutate(
     exome_sites, 
     chrom = paste0("chr", gsub("chr", "", chrom)),
     var_id = paste0(chrom, ":", pos, "_", ref, "_", alt))
-sum(duplicated(exome_sites[["var_id"]]))
 ## deduplicate sites list
 exome_sites <- exome_sites[!duplicated(exome_sites[["var_id"]]),]
 ```
 
-Add consequences to exome sites.
+Add variant consequences annotations to exome sites.
 
 ```{r join-csq}
-head(exome_sites[["var_id"]])
-head(vep_best[["Uploaded_variation"]])
 vep_best[["var_id"]] <- paste0("chr", vep_best[["Uploaded_variation"]])
 vep_best[, c("var_id", "Location", "Consequence")]
 exome_sites <- inner_join(exome_sites, 
                            vep_best[, c("var_id", "Location", "Consequence")], 
                            by = "var_id")
-
 
 # com_vars <- intersect(exome_sites$var_id, csq_annos$var_id)
 # length(com_vars)
@@ -107,10 +115,7 @@ exome_sites <- inner_join(exome_sites,
 # mean(exome_sites$pos %in% csq_annos$Pos)
 ```
 
-Donors with good evidence for selection:
-- eofe, euts, fawm, feec, fikt, garx, joxm, melw, oicx, pipw, tixi, vass, wahn
-
-Load SCE objects.
+Load SingleCellExperiment objects with single-cell gene expression data.
 
 ```{r}
 params <- list()
@@ -118,14 +123,6 @@ params$callset <- "filt_lenient.cell_coverage_sites"
 fls <- list.files("data/sces")
 fls <- fls[grepl(params$callset, fls)]
 donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
-#donors <- c('bubh', 'ciwj', 'deyz', 'diku', 'eipl', 'eofe', 'euts', 'fawm', 
-#            'feec', 'fiaj', 'fikt', 'garx', 'gesg', 'gifk', 'hehd', 'heja', 
-#            'hipn', 'ieki', 'jogf', 'joxm', 'laey', 'lexy', 'melw', 'miaj', 
-#            'naju', 'nusw', 'oaaz', 'oaqd', 'oicx', 'oilg', 'pamv', 'pelm', 
-#            'pipw', 'puie', 'qayj', 'qolg', 'qonc', 'rozh', 'sebz', 'sehl', 
-#            'sohd', 'tixi', 'ualf', 'vabj', 'vass', 'vils', 'vuna', 'wahn', 
-#            'wetu', 'wuye', 'xugn', 'zihe', 'zoxy')
-length(donors)
 
 sce_unst_list <- list()
 for (don in donors) {
@@ -143,14 +140,14 @@ for (don in donors) {
                                         "total_counts_endogenous", "num_processed")])
 }
 assignments <- do.call("rbind", assignments_lst)
-mean(assignments$assigned != "unassigned")
-
 ```
 
 We have SCE objects (expression data and cell assignments) for 
-`r length(donors)` donors.
+`r length(donors)` donors, with `r round(100 * mean(assignments$assigned != "unassigned"))`% 
+of cells confidently assigned to a clone.
 
-Load DE results
+Finally, we load transcriptome-wide differential expression results computed 
+using the quasi-likelihood F test method in [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html).
 
 ```{r}
 de_res <- readRDS(paste0("data/de_analysis_FTv62/",
@@ -208,7 +205,6 @@ ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max),
     geom_point(size = 5) +
     geom_segment(aes(x = 0, y = Consequence, xend = n_vars, yend = Consequence)) +
     facet_wrap(~clone_presence) +
-#    scale_color_brewer(palette = "Set2") +
     scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
     guides(colour = FALSE) +
     ggtitle("Clone tagging variants by consequence class: all donors") +
@@ -312,6 +308,9 @@ dim(mut_genes_df_allcells)
 head(mut_genes_df_allcells)
 ```
 
+With this analysis, `r sum(!is.na(mut_genes_df_allcells$logFC))` could be 
+tested for DE between mutated and unmutated clones.
+
 We can recompute false discovery rates with IHW, simplify the VEP annotation
 categories (assigning all nonsense categories to "nonsense" and all splicing 
 categories to "splicing") and inspect the results.
@@ -331,7 +330,8 @@ mut_genes_df_allcells$consequence_simplified[
         c("splice_donor", "splice_acceptor", "splice_region")] <- "splicing"
 table(mut_genes_df_allcells$consequence_simplified)
 summary(mut_genes_df_allcells$FDR)
-dplyr::arrange(mut_genes_df_allcells, FDR) %>% dplyr::select(-location) %>% head(n = 20)
+dplyr::arrange(mut_genes_df_allcells, FDR) %>% dplyr::select(-location) %>% 
+  DT::datatable(., options = list(pageLength = 20))
 ```
 
 There are few variants with a significant difference in expression between 
@@ -393,29 +393,10 @@ ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_simple_vep_anno_allc
        height = 7, width = 10.5)  
 ```
 
+Let us check the median logFC values for each simplified VEP annotation 
+category and add boxplots for logFC to the volcano plots.
 
 ```{r, fig.height=7, fig.width=18}
-## add boxplot to volcano plot
-p <- dplyr::filter(mut_genes_df_allcells, !is.na(logFC)) %>%
-ggplot(aes(x = logFC, y = -log10(PValue), 
-                         fill = FDR < 0.2)) +
-    geom_point(colour = "gray40", pch = 21) +
-    geom_rug(sides = "b", alpha = 0.6) +
-    geom_vline(xintercept = 0, linetype = 2) +
-    # geom_boxplot(aes(y = logFC, group = consequence_simplified), 
-    #              outlier.size = 0, outlier.alpha = 0, fill = "wheat",
-    #              colour = "firebrick4", width = 0.2, size = 1) +
-    # geom_text_repel(show.legend = FALSE) +
-    scale_fill_manual(values = c("gray70", "firebrick"),
-                        label = c("N.S.", "FDR < 20%"), 
-                        name = "DE result") +
-    # facet_wrap(~consequence_simplified, ncol = 4) +
-    guides(alpha = FALSE) +    
-    theme_classic(20) +
-    theme(strip.background = element_rect(fill = "gray90"),
-          strip.text = element_text(size = 13),
-          legend.position = "right")
-
 tmp2 <- mut_genes_df_allcells %>%
     group_by(consequence_simplified) %>%
     summarise(med = median(logFC, na.rm = TRUE),
@@ -494,8 +475,10 @@ ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_vep_anno_allcells.
 ```
 
 We can also just look specifically at the boxplots of the logFC values across
-categories. Positive logFC values indicate higher expression in the mutated 
-clone, and negative logFC values lower expression in the mutated clone.
+categories, first looking at the median logFC values and results from a t-test 
+testing if the mean logFC value is different from zero. Positive logFC values 
+indicate higher expression in the mutated clone, and negative logFC values lower
+expression in the mutated clone.
 
 ```{r, fig.height=7, fig.width=10}
 tmp3 <- mut_genes_df_allcells %>%
@@ -533,10 +516,143 @@ ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_al
        height = 7, width = 10)
 ```
 
+## DE for mutated clone: stricter filtering
+
+In the analysis above, the minimum allowed clone size (i.e. group for DE 
+analysis) was 3 cells. Such potentially small group sizes could lead to noisy
+estimates of the logFC values that we looked at above. Let us repeat the above
+analysis but increasing the minimum number of cells for a group to 10 to try to
+obtain more accurate (on average) logFC estimates from the DE model.
+
+Run DE testing between mutated and un-mutated clones for a more strictly 
+filtered set of affected genes for each donor.
+
+```{r}
+mut_genes_df_allcells_filt_list <- list()
+for (don in names(de_res[["sce_list_unst"]])) {
+  cat("working on ", don, "\n")
+  sites_tmp <- sites_by_donor_gr[sites_by_donor_gr$donor_short_id == don]
+  ov_tmp <- findOverlaps(sce_de_list_gr[[don]], sites_tmp)
+  sce_tmp <- de_res[["sce_list_unst"]][[don]][queryHits(ov_tmp),]
+  sites_tmp <- sites_tmp[subjectHits(ov_tmp)]
+  sites_tmp$gene <- rownames(sce_tmp)
+  dge_tmp <- de_res[["dge_list"]][[don]]
+  dge_tmp <- dge_tmp[intersect(rownames(dge_tmp), sites_tmp$gene),]
+  base_design <- dge_tmp$design[, !grepl("assigned", colnames(dge_tmp$design))]
+  de_tbl_tmp <- data.frame(donor = don,
+                           gene = sites_tmp$gene, 
+                           hgnc_symbol = gsub(".*_", "", sites_tmp$gene),
+                           ensembl_gene_id = gsub("_.*", "", sites_tmp$gene),
+                           var_id = sites_tmp$var_id,
+                           location = sites_tmp$Location,
+                           consequence = sites_tmp$Consequence,
+                           clone_presence = sites_tmp$clone_presence,
+                           logFC = NA, logCPM = NA, F = NA, PValue = NA,
+                           comment = "", stringsAsFactors = FALSE)
+  for (i in seq_len(length(sites_tmp))) {
+    clones_tmp <- strsplit(sites_tmp$clone_presence[i], split = "&")[[1]]
+    mutatedclone <- as.numeric(sce_tmp$assigned %in% clones_tmp)
+    dsgn_tmp <- cbind(base_design, data.frame(mutatedclone))
+    if (sites_tmp$gene[i] %in% rownames(dge_tmp) && is.fullrank(dsgn_tmp)
+        && (sum(mutatedclone) > 9.5) && (sum(!mutatedclone) > 9.5)) {
+      qlfit_tmp <- glmQLFit(dge_tmp[sites_tmp$gene[i],], dsgn_tmp)
+      de_tmp <- glmQLFTest(qlfit_tmp, coef = ncol(dsgn_tmp))
+      de_tbl_tmp$logFC[i] <- de_tmp$table$logFC
+      de_tbl_tmp$logCPM[i] <- de_tmp$table$logCPM
+      de_tbl_tmp$F[i] <- de_tmp$table$F
+      de_tbl_tmp$PValue[i] <- de_tmp$table$PValue
+    }
+    if ((sum(mutatedclone) < 9.5) || (sum(!mutatedclone) < 9.5))
+      de_tbl_tmp$comment[i] <- "minimum group size < 10 cells"
+    if (!(sites_tmp$gene[i] %in% rownames(dge_tmp)))
+      de_tbl_tmp$comment[i] <- "gene did not pass DE filters"
+    if (!is.fullrank(dsgn_tmp))
+      de_tbl_tmp$comment[i] <- "insufficient cells assigned to clone"
+  }
+  mut_genes_df_allcells_filt_list[[don]] <- de_tbl_tmp
+}
+mut_genes_df_allcells_filt <- do.call("bind_rows", mut_genes_df_allcells_filt_list)
+```
+
+With this analysis, `r sum(!is.na(mut_genes_df_allcells_filt$logFC))` could be 
+tested for DE between mutated and unmutated clones (`r sum(!is.na(mut_genes_df_allcells$logFC)) -  sum(!is.na(mut_genes_df_allcells_filt$logFC))` fewer than with the lenient filtering above).
+
+We can recompute false discovery rates with IHW, simplify the VEP annotation
+categories (assigning all nonsense categories to "nonsense" and all splicing 
+categories to "splicing") and inspect the results.
+
+```{r}
+## add FDRs for genes tested here for DE
+ihw_res_all <- ihw(PValue ~ logCPM, data = mut_genes_df_allcells_filt, alpha = 0.2)
+mut_genes_df_allcells_filt$FDR <- adj_pvalues(ihw_res_all)
+## add simplified consequence categories
+mut_genes_df_allcells_filt$consequence_simplified <- 
+    mut_genes_df_allcells_filt$consequence
+mut_genes_df_allcells_filt$consequence_simplified[
+    mut_genes_df_allcells_filt$consequence_simplified %in% 
+        c("stop_retained", "start_lost", "stop_lost", "stop_gained")] <- "nonsense"
+mut_genes_df_allcells_filt$consequence_simplified[
+    mut_genes_df_allcells_filt$consequence_simplified %in% 
+        c("splice_donor", "splice_acceptor", "splice_region")] <- "splicing"
+table(mut_genes_df_allcells_filt$consequence_simplified)
+dplyr::arrange(mut_genes_df_allcells_filt, FDR) %>% 
+  dplyr::select(-location, donor, hgnc_symbol, var_id, consequence, FDR, PValue,
+                everything()) %>% 
+  DT::datatable(., options = list(pageLength = 20))
+```
+
+Again, we'll look specifically at the boxplots of the logFC values across
+categories. Positive logFC values indicate higher expression in the mutated 
+clone, and negative logFC values lower expression in the mutated clone.
+
+```{r, fig.height=9, fig.width=12}
+tmp5 <- mut_genes_df_allcells_filt %>%
+    group_by(consequence_simplified) %>%
+    summarise(med = median(logFC, na.rm = TRUE),
+              nvars = n()
+    )
+dplyr::arrange(tmp5, med)
+
+mut_genes_df_allcells_filt %>%
+    dplyr::filter(!is.na(logFC)) %>%
+    dplyr::mutate(consequence_simplified = factor(
+        consequence_simplified, 
+        levels(as.factor(consequence_simplified))[order(tmp5[["med"]])]),
+        de  = ifelse(FDR < 0.2, "FDR < 0.2", "FDR > 0.2")) %>%
+ggplot(aes(y = logFC, x = consequence_simplified, fill = consequence)) +
+    geom_hline(yintercept = 0, linetype = 1, colour = "black") +
+    ggbeeswarm::geom_quasirandom(colour = "gray40", pch = 21) +
+    geom_boxplot(outlier.size = 0, outlier.alpha = 0, fill = "wheat", alpha = 0.5,
+                 colour = "firebrick4", width = 0.2, size = 1) +
+    scale_x_discrete(expand = c(0.1, 0.1), name = "consequence") +
+    scale_y_continuous(expand = c(0.1, 0.1), name = "logFC") +
+    theme_ridges(20) +
+    coord_flip() +
+    theme(strip.background = element_rect(fill = "gray90")) +
+    guides(color = FALSE, point_color = FALSE) +
+    scale_fill_brewer(palette = "Paired") +
+    theme(legend.position = "bottom")
+
+ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.png", 
+       height = 9, width = 12)
+ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.pdf", 
+       height = 9, width = 12)
+ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.svg", 
+       height = 9, width = 12)
+```
+
+On the evidence of the plot above it does not look like stricter filtering of 
+variants fundmentally changes the results. It still does not look possible to 
+discern differences in the logFC distributions of mutated genes between 
+different annotation categories for variants.
+
+
 ## DE for mutated clone: fitting PCs
 
-Get DE results comparing mutated clone to all unmutated clones, fitting the 
-first couple of PCs in the model.
+We can also get DE results comparing mutated clone to all unmutated clones, 
+fitting the first couple of PCs in the model to see if this accounts for 
+unwanted variation and increases power to detect differences in expression 
+between mutated and unwanted clones for mutated genes.
 
 ```{r}
 ## run DE for mutated cells vs unmutated cells using existing DE results
@@ -597,9 +713,9 @@ mut_genes_df_allcells_PCreg$consequence_simplified[
     mut_genes_df_allcells_PCreg$consequence_simplified %in% 
         c("splice_donor", "splice_acceptor", "splice_region")] <- "splicing"
 table(mut_genes_df_allcells_PCreg$consequence_simplified)
-summary(mut_genes_df_allcells_PCreg$FDR)
-dplyr::arrange(mut_genes_df_allcells_PCreg, FDR) %>% dplyr::select(-location) %>% head(n = 20)
-# dplyr::arrange(mut_genes_df_allcells, FDR) %>% dplyr::select(-location) %>% head(n = 20)
+dplyr::arrange(mut_genes_df_allcells_PCreg, FDR) %>% 
+  dplyr::select(-location) %>% 
+   DT::datatable(., options = list(pageLength = 20))
 
 data_frame(PValue_default = mut_genes_df_allcells[["PValue"]],
            PValue_PCreg = mut_genes_df_allcells_PCreg[["PValue"]],
@@ -617,6 +733,10 @@ There is thus very little change in DE results when regressing out 5 PCs in thes
 DE models.
 
 ## DE for mutated clones: fiting cell cycle scores
+
+We can also check to see if accounting for cell cycle scores in the DE model 
+increases power to detect differential expression between mutated and unmutated
+clones for mutated genes.
 
 ```{r}
 ## run DE for mutated cells vs unmutated cells using existing DE results
@@ -677,9 +797,9 @@ mut_genes_df_allcells_CCreg$consequence_simplified[
 mut_genes_df_allcells_CCreg$consequence_simplified[
     mut_genes_df_allcells_CCreg$consequence_simplified %in% 
         c("splice_donor", "splice_acceptor", "splice_region")] <- "splicing"
-summary(mut_genes_df_allcells_CCreg$FDR)
-dplyr::arrange(mut_genes_df_allcells_CCreg, FDR) %>% dplyr::select(-location) %>% head(n = 20)
-# dplyr::arrange(mut_genes_df_allcells, FDR) %>% dplyr::select(-location) %>% head(n = 20)
+dplyr::arrange(mut_genes_df_allcells_CCreg, FDR) %>% 
+  dplyr::select(-location) %>% 
+   DT::datatable(., options = list(pageLength = 20))
 
 data_frame(PValue_default = mut_genes_df_allcells[["PValue"]],
            PValue_CCreg = mut_genes_df_allcells_CCreg[["PValue"]],
@@ -697,6 +817,14 @@ data_frame(PValue_default = mut_genes_df_allcells[["PValue"]],
 Accounting for cell cycle scores (inferred with cyclone) in the DE model does 
 not drastically change DE results, but perhaps does reduce power to find 
 differences in expression between mutated and unmutated clones.
+
+## Conclusions
+
+We find a small number of somatic variants to associate with differential 
+expression between mutated and unmutated cells/clones. Unfortunately, in this 
+set of variants and donors (with relatively small sample size in terms of 
+numbers of cells), we cannot make any claims about different effects on 
+expression of somatic variants with different functional annotations.
 
 
 
