@@ -40,6 +40,7 @@ library(ggforce)
 library(superheat)
 library(viridis)
 library(IHW)
+library(org.Hs.eg.db)
 library(cowplot)
 ```
 
@@ -197,36 +198,6 @@ sites_by_donor <- dplyr::mutate(sites_by_donor,
                                 Consequence = gsub("_variant", "", Consequence))
 ```
 
-```{r, fig.height=12, fig.width=14}
-sites_by_donor %>% group_by(Consequence, clone_presence) %>%
-    summarise(n_vars = n()) %>%
-ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max), 
-       colour = reorder(Consequence, n_vars, max))) +
-    geom_point(size = 5) +
-    geom_segment(aes(x = 0, y = Consequence, xend = n_vars, yend = Consequence)) +
-    facet_wrap(~clone_presence) +
-    scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
-    guides(colour = FALSE) +
-    ggtitle("Clone tagging variants by consequence class: all donors") +
-    xlab("number of variants") + ylab("consequence") +
-    theme_bw(16)
-```
-
-```{r, fig.height=16, fig.width=16}
-sites_by_donor %>% group_by(Consequence, donor_short_id) %>%
-    summarise(n_vars = n()) %>%
-ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max), 
-       colour = reorder(Consequence, n_vars, max))) +
-    geom_point(size = 5) +
-    geom_segment(aes(x = 0, y = Consequence, xend = n_vars, yend = Consequence)) +
-    facet_wrap(~donor_short_id) +
-#    scale_color_brewer(palette = "Set2") +
-    scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
-    guides(colour = FALSE) +
-    ggtitle("Clone tagging variants by consequence class: all donors") +
-    xlab("number of variants") + ylab("consequence") +
-    theme_bw(16)
-```
 
 ## Differential expression comparing mutated clone to all other clones
 
@@ -817,6 +788,214 @@ data_frame(PValue_default = mut_genes_df_allcells[["PValue"]],
 Accounting for cell cycle scores (inferred with cyclone) in the DE model does 
 not drastically change DE results, but perhaps does reduce power to find 
 differences in expression between mutated and unmutated clones.
+
+## Characterising mutations and mutated genes
+
+First, we can look at the number of variants annotated to the different VEP 
+categories and assigned to combinations of clones, aggregated across all donors.
+
+```{r, fig.height=12, fig.width=14}
+sites_by_donor %>% group_by(Consequence, clone_presence) %>%
+    summarise(n_vars = n()) %>%
+ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max), 
+       colour = reorder(Consequence, n_vars, max))) +
+    geom_point(size = 5) +
+    geom_segment(aes(x = 0, y = Consequence, xend = n_vars, yend = Consequence)) +
+    facet_wrap(~clone_presence) +
+    scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
+    guides(colour = FALSE) +
+    ggtitle("Clone tagging variants by consequence class: all donors") +
+    xlab("number of variants") + ylab("consequence") +
+    theme_bw(16)
+```
+
+We can also produce a similar plot, but showing the total number variants in 
+each annotation category for each donor separately.
+
+```{r, fig.height=16, fig.width=16}
+sites_by_donor %>% group_by(Consequence, donor_short_id) %>%
+    summarise(n_vars = n()) %>%
+ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max), 
+       colour = reorder(Consequence, n_vars, max))) +
+    geom_point(size = 5) +
+    geom_segment(aes(x = 0, y = Consequence, xend = n_vars, yend = Consequence)) +
+    facet_wrap(~donor_short_id) +
+#    scale_color_brewer(palette = "Set2") +
+    scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
+    guides(colour = FALSE) +
+    ggtitle("Clone tagging variants by consequence class: all donors") +
+    xlab("number of variants") + ylab("consequence") +
+    theme_bw(16)
+```
+
+### Genes with more than one mutation
+
+It's also of interest to know if there are genes with multiple mutations in a 
+donor.
+
+```{r}
+df_genes_multi_vars <- mut_genes_df_allcells %>%
+  dplyr::mutate(pos = as.numeric(gsub("chr.+:([0-9]+)_.*", "\\1", var_id))) %>%
+  group_by(donor, hgnc_symbol) %>%
+  summarise(n_variants_in_gene = n(),
+            max_dist_btw_vars = range(pos)[2] - range(pos)[1])
+df_genes_multi_vars %>%
+  dplyr::filter(n_variants_in_gene > 1.5, max_dist_btw_vars > 1.5)
+```
+
+There are only `r sum(df_genes_multi_vars$n_variants_in_gene > 1.5 & df_genes_multi_vars$max_dist_btw_vars > 1.5)` genes, across all donors, that 
+have more than one (non-dinucleotide) somatic variant.
+
+```{r}
+idx <- (df_genes_multi_vars$n_variants_in_gene > 1.5 &
+          df_genes_multi_vars$max_dist_btw_vars > 1.5)
+mut_genes_df_allcells %>%
+  dplyr::filter(donor %in% df_genes_multi_vars[["donor"]][idx], 
+               hgnc_symbol %in% df_genes_multi_vars[["hgnc_symbol"]][idx]) %>%
+  DT::datatable()
+```
+
+In the case of the *COL1A1* gene in `joxm`, there are two splicing variants
+(one a splice-acceptor variant and one a more general splice-region variant), 
+and cells in the mutated clones have significantly lower expression than the
+unmutated clones for this gene. For the remaining genes with more than one 
+somatic variant, there is no significant difference in gene expression between
+the mutated and unmutated clones. 
+
+### Mutations in cell cycle genes
+
+Given the results of the transcriptome-wide differential expression analyses, it
+would be interesting to know if cell cycle genes specifically harbour mutations. 
+To explore this, we first obtain the set of genes belonging to cell cycle gene 
+sets in the MSigDB c2 gene set collection.
+
+```{r}
+load(file.path("data/human_c2_v5p2.rdata"))
+
+cellcycle_entrezid <- Hs.c2[grep("CELL_CYCL", names(Hs.c2))] %>% 
+  unlist %>% unique
+mapped_genes <- mappedkeys(org.Hs.egSYMBOL)
+cellcycle_entrezid <- cellcycle_entrezid[cellcycle_entrezid %in% mapped_genes]
+xx <- unlist(as.list(org.Hs.egSYMBOL[cellcycle_entrezid]))
+xx <- sort(unique(xx))
+```
+
+This yields a list of `r length(xx)` genes annotated to be relevant to the cell
+cycle.
+
+Let us look at the number of variants used for clonal reconstruction (a 
+strictly filtered set) across VEP annotation categories that lie in cell cycle 
+genes.
+
+```{r, fig.height=18, fig.width=16}
+df_cc_vars <- mut_genes_df_allcells %>% 
+  dplyr::filter(hgnc_symbol %in% xx) %>%
+  group_by(donor, consequence_simplified) %>%
+  summarise(n_vars = n())
+df_cc_vars <- left_join(
+  expand.grid(donor = levels(as.factor(mut_genes_df_allcells$donor)),
+              consequence_simplified = levels(as.factor(
+                mut_genes_df_allcells$consequence_simplified))),
+  df_cc_vars)
+df_cc_vars[is.na(df_cc_vars)] <- 0
+
+ggplot(df_cc_vars, 
+       aes(x = n_vars, y = reorder(consequence_simplified, n_vars, max), 
+           colour = reorder(consequence_simplified, n_vars, max),
+           fill = reorder(consequence_simplified, n_vars, max))) +
+  geom_segment(aes(x = 0, y = consequence_simplified, xend = n_vars, 
+                   yend = consequence_simplified)) +
+  geom_point(size = 5, colour = "gray50", shape = 21) +
+  facet_wrap(~donor, ncol = 4) +
+  scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
+  scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
+  guides(colour = FALSE, fill = FALSE) +
+  ggtitle("Variants in proliferation genes: all donors") +
+  xlab("number of variants") + ylab("consequence") +
+  theme_bw(16)
+```
+
+
+### Mutations in proliferation genes
+
+We can also look at the load of mutations in genes annotated to MSigDB c2 
+proliferation gene sets.
+
+```{r}
+prolif_entrezid <- Hs.c2[grep("PROLIF", names(Hs.c2))] %>% 
+  unlist %>% unique
+prolif_entrezid <- prolif_entrezid[prolif_entrezid %in% mapped_genes]
+x2 <- unlist(as.list(org.Hs.egSYMBOL[prolif_entrezid]))
+x2 <- sort(unique(x2))
+```
+
+This yields a list of `r length(x2)` genes annotated to be relevant to the cell
+cycle.
+
+```{r, fig.height=18, fig.width=16}
+df_prolif_vars <- mut_genes_df_allcells %>% 
+  dplyr::filter(hgnc_symbol %in% x2) %>%
+  group_by(donor, consequence_simplified) %>%
+  summarise(n_vars = n())
+df_prolif_vars <- left_join(
+  expand.grid(donor = levels(as.factor(mut_genes_df_allcells$donor)),
+              consequence_simplified = levels(as.factor(
+                mut_genes_df_allcells$consequence_simplified))),
+  df_prolif_vars)
+df_prolif_vars[is.na(df_prolif_vars)] <- 0
+
+ggplot(df_prolif_vars, 
+       aes(x = n_vars, y = reorder(consequence_simplified, n_vars, max), 
+           colour = reorder(consequence_simplified, n_vars, max),
+           fill = reorder(consequence_simplified, n_vars, max))) +
+  geom_segment(aes(x = 0, y = consequence_simplified, xend = n_vars, 
+                   yend = consequence_simplified)) +
+  geom_point(size = 5, colour = "gray50", shape = 21) +
+  facet_wrap(~donor, ncol = 4) +
+  scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
+  scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
+  guides(colour = FALSE, fill = FALSE) +
+  ggtitle("Variants in proliferation genes: all donors") +
+  xlab("number of variants") + ylab("consequence") +
+  theme_bw(16)
+```
+
+Finally, create a data.frame that contains the counts of variants annotated to 
+different classes of genes and VEP classes, and save to file for use in other
+analyses.
+
+```{r}
+colnames(df_cc_vars) <- c("donor", "consequence", "n_vars_cellcycle_genes")
+colnames(df_prolif_vars) <- c("donor", "consequence", "n_vars_proliferation_genes")
+df_all_vars <- mut_genes_df_allcells %>% 
+  group_by(donor, consequence_simplified) %>%
+  summarise(n_vars_all_genes = n())
+df_all_vars <- left_join(
+  expand.grid(donor = levels(as.factor(mut_genes_df_allcells$donor)),
+              consequence_simplified = levels(as.factor(
+                mut_genes_df_allcells$consequence_simplified))),
+  df_all_vars)
+df_all_vars[is.na(df_all_vars)] <- 0
+colnames(df_all_vars) <- c("donor", "consequence", "n_vars_all_genes")
+
+df_nvars <- inner_join(inner_join(df_all_vars, df_cc_vars), df_prolif_vars) %>%
+  as_data_frame
+
+readr::write_tsv(df_nvars, "output/nvars_by_category_by_donor.tsv")
+
+df_nvars %>% 
+  DT::datatable(., options = list(pageLength = 20))
+```
+
+We can also look at the total mutational load for each of the donors.
+
+```{r}
+df_nvars %>%
+  group_by(donor) %>%
+  summarise(nvars = sum(n_vars_all_genes)) %>% print(n = Inf)
+```
+
+
 
 ## Conclusions
 
