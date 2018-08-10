@@ -308,8 +308,8 @@ dim(mut_genes_df_allcells)
 head(mut_genes_df_allcells)
 ```
 
-With this analysis, `r sum(!is.na(mut_genes_df_allcells$logFC))` could be 
-tested for DE between mutated and unmutated clones.
+With this analysis, `r sum(!is.na(mut_genes_df_allcells$logFC))` genes/variants 
+could be tested for DE between mutated and unmutated clones.
 
 We can recompute false discovery rates with IHW, simplify the VEP annotation
 categories (assigning all nonsense categories to "nonsense" and all splicing 
@@ -605,7 +605,7 @@ Again, we'll look specifically at the boxplots of the logFC values across
 categories. Positive logFC values indicate higher expression in the mutated 
 clone, and negative logFC values lower expression in the mutated clone.
 
-```{r, fig.height=9, fig.width=12}
+```{r, fig.height=9, fig.width=14}
 tmp5 <- mut_genes_df_allcells_filt %>%
     group_by(consequence_simplified) %>%
     summarise(med = median(logFC, na.rm = TRUE),
@@ -634,11 +634,11 @@ ggplot(aes(y = logFC, x = consequence_simplified, fill = consequence)) +
     theme(legend.position = "bottom")
 
 ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.png", 
-       height = 9, width = 12)
+       height = 9, width = 14)
 ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.pdf", 
-       height = 9, width = 12)
+       height = 9, width = 14)
 ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.svg", 
-       height = 9, width = 12)
+       height = 9, width = 14)
 ```
 
 On the evidence of the plot above it does not look like stricter filtering of 
