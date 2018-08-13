@@ -1,0 +1,134 @@
+---
+title: "Simulation analysis for all donors"
+author: "Yuanhua Huang & Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+## Load libraries and simulation results
+
+```{r load-libs}
+library(ggpubr)
+library(tidyverse)
+library(cardelino)
+library(viridis)
+library(cowplot)
+donors <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
+            "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
+            "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
+            "ualf", "vass", "vuna", "wahn", "wetu", "xugn", "zoxy", "vils")
+```
+
+
+
+### Load simulation results
+
+```{r}
+all_files <- paste0(donors, ".simulate.rds")
+assign_0 <- matrix(0, nrow = 500, ncol = length(donors))
+assign_1 <- matrix(0, nrow = 500, ncol = length(donors))
+prob_all <- matrix(0, nrow = 500, ncol = length(donors))
+
+for (i in seq_len(length(all_files))) {
+  afile <- all_files[i]
+  sim_dat <- readRDS(file.path("data", "simulations", afile))
+  assign_0[, i] <- get_prob_label(sim_dat$I_sim)
+  assign_1[, i] <- get_prob_label(sim_dat$prob_Gibbs)
+  prob_all[, i] <- get_prob_value(sim_dat$prob_Gibbs, mode = "best")
+}
+```
+
+### Load results from real data
+
+```{r}
+all_files <- paste0("cardelino_results.", donors, 
+                    ".filt_lenient.cell_coverage_sites.rds")
+n_sites <- rep(0, length(donors))
+n_clone <- rep(0, length(donors))
+recall_all <- rep(0, length(donors))
+for (i in seq_len(length(all_files))) {
+  afile <- all_files[i]
+  carde_dat <- readRDS(file.path("data", "cell_assignment", afile))
+  n_sites[i] <- nrow(carde_dat$D)
+  n_clone[i] <- ncol(carde_dat$prob_mat)
+  recall_all[i] <- mean(get_prob_value(carde_dat$prob_mat, mode = "best") > 0.5)
+}
+```
+
+Overall correlation in assignment rates (recall) from simulated and observed 
+data is `r round(cor(colMeans(prob_all > 0.5), recall_all), digits = 3)`.
+
+
+```{r}
+precision_simu <- rep(0, length(donors))
+for (i in seq_len(length(donors))) {
+  idx <- prob_all[, i] > 0.5
+  precision_simu[i] <- mean(assign_0[idx, i] == assign_1[idx, i])
+}
+
+df <- data.frame(donor = donors, n_sites = n_sites, n_clone = n_clone, 
+                 recall_real = recall_all, recall_simu = colMeans(prob_all > 0.5),
+                 precision_simu = precision_simu)
+```
+
+
+## Plot observed vs simulated assignment rates (recall)
+
+
+```{r}
+df %>%
+  dplyr::mutate(sites_per_clone = cut(n_sites / n_clone, 
+                                      breaks = c(0, 5, 10, 20, 40))) %>%
+  ggplot(
+         aes(x = recall_simu, y = recall_real, 
+             fill = sites_per_clone)) +
+  geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
+  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
+  geom_point(size = 3, shape = 21) +
+  xlim(0, 1) + ylim(0, 1) +
+  scale_fill_manual(name = "mean\n# variants\nper clone", 
+                    values = magma(5)[-1]) +
+  guides(colour = FALSE, group = FALSE) +
+  xlab("Assignment rate: simulated") +
+  ylab("Assignment rate: observed")
+
+ggsave("figures/simulations/assign_rate_obs_v_sim.png", 
+       height = 4.5, width = 5)
+ggsave("figures/simulations/assign_rate_obs_v_sim.pdf", 
+       height = 4.5, width = 5)
+
+```
+
+## Plot simulation precision-recall curve
+
+```{r}
+df %>%
+  dplyr::mutate(sites_per_clone = cut(n_sites / n_clone, 
+                                      breaks = c(0, 5, 10, 20, 40))) %>%
+  ggplot(
+         aes(x = recall_simu, y = precision_simu, 
+             fill = sites_per_clone)) +
+  geom_hline(yintercept = 0.85, colour = "gray40", linetype = 2) +
+  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
+  geom_point(size = 3, shape = 21) +
+  xlim(0, 1) + ylim(0, 1) +
+  scale_fill_manual(name = "mean\n# variants\nper clone", 
+                    values = magma(5)[-1]) +
+  guides(colour = FALSE, group = FALSE) +
+  xlab("Assignment rate (recall)") +
+  ylab("Precision")
+
+
+ggsave("figures/simulations/sim_precision_v_recall.png", 
+       height = 4.5, width = 5.5)
+ggsave("figures/simulations/sim_precision_v_recall.pdf", 
+       height = 4.5, width = 5.5)
+
+```
+
+## Clone statistics
+
+```{r}
+table(df$n_clone)
+summary(df$n_sites / df$n_clone)
+```
+

@@ -160,7 +160,7 @@ fits %>%
               fill = "gray70", alpha = 0.7) +
   geom_abline(aes(intercept = x0, slope = x1), 
               data = dplyr::filter(fits_me, clone != "clone4"),
-              colour = "firebrick", size = 2) +
+              colour = "firebrick", size = 1) +
   geom_point(size = 3, shape = 21) +
   xlim(0, 1) + ylim(0, 1) +
   facet_wrap(~clone, nrow = 1) +
