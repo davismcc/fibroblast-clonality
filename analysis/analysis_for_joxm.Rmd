@@ -7,8 +7,9 @@ site: workflowr::wflow_site
 
 ## Load libraries and data
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.height = 10, fig.width = 14)
 library(tidyverse)
 library(scater)
 library(ggridges)
@@ -26,6 +27,7 @@ library(IHW)
 library(viridis)
 library(ggthemes)
 library(superheat)
+options(stringsAsFactors = FALSE)
 ```
 
 Load MSigDB gene sets.
@@ -476,6 +478,7 @@ between clones. The summary below shows the number of significant and
 non-significant genes at a Benjamini-Hochberg FDR threshold of 10%.
 
 ```{r summary-de}
+knitr::opts_chunk$set(fig.height = 6, fig.width = 8)
 summary(decideTests(de_res$qlf_list$joxm, p.value = 0.1))
 ```
 
