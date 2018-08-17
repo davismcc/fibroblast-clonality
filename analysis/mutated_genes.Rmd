@@ -498,7 +498,7 @@ obtain more accurate (on average) logFC estimates from the DE model.
 Run DE testing between mutated and un-mutated clones for a more strictly 
 filtered set of affected genes for each line.
 
-```{r}
+```{r mut-genes-calc-strict}
 mut_genes_df_allcells_filt_list <- list()
 for (don in names(de_res[["sce_list_unst"]])) {
   cat("working on ", don, "\n")
@@ -552,7 +552,7 @@ We can recompute false discovery rates with IHW, simplify the VEP annotation
 categories (assigning all nonsense categories to "nonsense" and all splicing 
 categories to "splicing") and inspect the results.
 
-```{r}
+```{r fdrs}
 ## add FDRs for genes tested here for DE
 ihw_res_all <- ihw(PValue ~ logCPM, data = mut_genes_df_allcells_filt, alpha = 0.2)
 mut_genes_df_allcells_filt$FDR <- adj_pvalues(ihw_res_all)
@@ -576,7 +576,7 @@ Again, we'll look specifically at the boxplots of the logFC values across
 categories. Positive logFC values indicate higher expression in the mutated 
 clone, and negative logFC values lower expression in the mutated clone.
 
-```{r, fig.height=9, fig.width=15}
+```{r logfc-box-simple, fig.height=9, fig.width=15}
 tmp5 <- mut_genes_df_allcells_filt %>%
     group_by(consequence_simplified) %>%
     summarise(med = median(logFC, na.rm = TRUE),
@@ -625,7 +625,7 @@ fitting the first couple of PCs in the model to see if this accounts for
 unwanted variation and increases power to detect differences in expression 
 between mutated and unwanted clones for mutated genes.
 
-```{r}
+```{r mut-genes-fit-pcs}
 ## run DE for mutated cells vs unmutated cells using existing DE results
 ## fitting PCs as covariates in DE model
 mut_genes_df_allcells_list_PCreg <- list()
@@ -703,19 +703,19 @@ data_frame(PValue_default = mut_genes_df_allcells[["PValue"]],
 There is thus very little change in DE results when regressing out 5 PCs in these
 DE models.
 
-## DE for mutated clones: fiting cell cycle scores
+## DE for mutated clones: fitting cell cycle scores
 
 We can also check to see if accounting for cell cycle scores in the DE model 
 increases power to detect differential expression between mutated and unmutated
 clones for mutated genes.
 
-```{r}
+```{r mut-genes-fit-cc}
 ## run DE for mutated cells vs unmutated cells using existing DE results
 ## fitting PCs as covariates in DE model
 mut_genes_df_allcells_list_CCreg <- list()
 for (don in names(de_res[["sce_list_unst"]])) {
     cat("working on ", don, "\n")
-    sites_tmp <- sites_by_line_gr[sites_by_line_gr$line_short_id == don]
+    sites_tmp <- sites_by_line_gr[sites_by_line_gr$donor_short_id == don]
     ov_tmp <- findOverlaps(sce_de_list_gr[[don]], sites_tmp)
     sce_tmp <- de_res[["sce_list_unst"]][[don]][queryHits(ov_tmp),]
     sites_tmp <- sites_tmp[subjectHits(ov_tmp)]
