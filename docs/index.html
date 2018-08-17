@@ -223,30 +223,32 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-08</p>
+<p><strong>Last updated:</strong> 2018-08-17</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
-<p><details> <summary> <strong style="color:red;">✖</strong> <strong>R Markdown file:</strong> uncommitted changes </summary> The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/5a9a5ba35440c1bf7c0e840c760f1b1df28d88a7" target="_blank">5a9a5ba</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/6b5f8c7f63ef4bdadbbcd677045c0fd4e3a53080" target="_blank">6b5f8c7</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
+    Ignored:    .DS_Store
     Ignored:    .Rproj.user/
 
 Untracked files:
-    Untracked:  analysis/analysis_for_joxm.Rmd
-    Untracked:  analysis/cell_assignment.Rmd
-    Untracked:  analysis/differential_expression.Rmd
-    Untracked:  analysis/mutated_genes.Rmd
+    Untracked:  CITATION
+    Untracked:  LICENSE
+    Untracked:  code/analysis_for_garx.Rmd
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
     Untracked:  data/de_analysis_FTv62/
     Untracked:  data/donor_info_070818.txt
     Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/fdr10.annot.txt.gz
     Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
     Untracked:  data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz
     Untracked:  data/human_H_v5p2.rdata
@@ -256,12 +258,15 @@ Untracked files:
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
+    Untracked:  data/simulations/
+    Untracked:  data/variance_components/
     Untracked:  docs/figure/
     Untracked:  figures/
-
-Unstaged changes:
-    Modified:   analysis/_site.yml
-    Modified:   analysis/index.Rmd
+    Untracked:  output/differential_expression/
+    Untracked:  output/donor_specific/
+    Untracked:  output/nvars_by_category_by_donor.tsv
+    Untracked:  output/nvars_by_category_by_line.tsv
+    Untracked:  output/variance_components/
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -290,6 +295,74 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/6b5f8c7f63ef4bdadbbcd677045c0fd4e3a53080/analysis/index.Rmd" target="_blank">6b5f8c7</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-17
+</td>
+<td style="text-align:left;">
+Updating organisational pages.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/1cbadbd5daa31e27ceca5199282f1ffde36c006c/analysis/index.Rmd" target="_blank">1cbadbd</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-10
+</td>
+<td style="text-align:left;">
+Updating analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/2531565c0eba92e0f84ae80d0f22c5b3cb420d3b/docs/index.html" target="_blank">2531565</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-08
+</td>
+<td style="text-align:left;">
+Tweaking clone prevalences
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/7397e0056507adf3b524c8613894152284582480/analysis/index.Rmd" target="_blank">7397e00</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-08
+</td>
+<td style="text-align:left;">
+Updating stylez and tweaking Rmds
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -330,12 +403,31 @@ Start workflowr project.
 <p></details></p>
 <hr />
 <div id="project-overview" class="section level2">
-<h2>Project overview?</h2>
-<p>This project investigates clonality in human dermal fibroblast cell populations in 32 cell lines from distinct donors, using bulk whole exome sequencing and single-cell RNA-sequencing data.</p>
-<p>Here are the results of our analyses. They were generated by rendering the <a href="https://github.com/davismcc/fibroblast-clonality/tree/master/analysis">R Markdown documents</a> into webpages.</p>
+<h2>Project overview</h2>
+<p>This project investigates clonality in human dermal fibroblast cell populations in 32 cell lines from distinct donors, using bulk whole-exome sequencing and single-cell RNA-sequencing data.</p>
+<p><strong>Key findings:</strong></p>
+<ul>
+<li>A novel approach for integrating DNA-seq and single-cell RNA-seq data to reconstruct clonal substructure and single-cell transcriptomes.</li>
+<li>A new computational method, <a href="github.com/PMBio/cardelino">cardelino</a>, to map single-cell RNA-seq profiles to clones.</li>
+<li>Evidence for non-neutral evolution of clonal populations in human fibroblasts.</li>
+<li>Proliferation and cell cycle pathways are commonly distorted in mutated clonal populations, with implications for cancer and ageing.</li>
+</ul>
+<p>For a richer overview, see the <a href="about.html">About</a> page.</p>
+</div>
+<div id="analyses" class="section level2">
+<h2>Analyses</h2>
+<p>Here we present the reproducible the results of our analyses. They were generated by rendering the <a href="https://github.com/davismcc/fibroblast-clonality/tree/master/analysis">R Markdown documents</a> into webpages.</p>
+<p>The results presented in the paper were produced with these analyses.</p>
 <ol style="list-style-type: decimal">
-<li><a href="clone_prevalences.html">Analysis of clonal prevalences.</a></li>
+<li><p><a href="simulation_donors.html">Simulation results.</a></p></li>
+<li><p><a href="clone_prevalences.html">Analysis of clonal prevalences.</a></p></li>
+<li><p><a href="analysis_for_joxm.html">Analysis for the example cell line <em>joxm</em>.</a></p></li>
+<li><p><a href="variance_components.html">Variance components analysis.</a></p></li>
+<li><p><a href="differential_expression.html">Differential expression analysis.</a></p></li>
+<li><p><a href="mutated_genes.html">Analysis of effects of somatic variants on cis gene expression.</a></p></li>
 </ol>
+<hr />
+<p><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
 </div>
 
 <!-- Adjust MathJax settings so that all math formulae are shown using

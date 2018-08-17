@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Davis J. McCarthy" />
+
+
+<title>Analysis for joxm</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/font-awesome-5.0.13/css/fa-svg-with-js.css" rel="stylesheet" />
+<script src="site_libs/font-awesome-5.0.13/js/fontawesome-all.min.js"></script>
+<script src="site_libs/font-awesome-5.0.13/js/fa-v4-shims.min.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+div.sourceCode {
+  overflow-x: visible;
+}
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">fibroblast-clonality</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Analysis for joxm</h1>
+<h4 class="author"><em>Davis J. McCarthy</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-08-17</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180807)</code> </summary></p>
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/8135bb3bec559ac88aaf677d30516d1459f933e4" target="_blank">8135bb3</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rproj.user/
+
+Untracked files:
+    Untracked:  analysis/differential_expression.Rmd
+    Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  data/canopy/
+    Untracked:  data/cell_assignment/
+    Untracked:  data/de_analysis_FTv62/
+    Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/fdr10.annot.txt.gz
+    Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
+    Untracked:  data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz
+    Untracked:  data/human_H_v5p2.rdata
+    Untracked:  data/human_c2_v5p2.rdata
+    Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
+    Untracked:  data/sces/
+    Untracked:  data/simulations/
+    Untracked:  data/variance_components/
+    Untracked:  docs/figure/
+    Untracked:  figures/
+    Untracked:  output/donor_specific/
+    Untracked:  output/garx/
+    Untracked:  output/nvars_by_category_by_donor.tsv
+    Untracked:  output/nvars_by_category_by_line.tsv
+    Untracked:  output/variance_components/
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/8135bb3bec559ac88aaf677d30516d1459f933e4/analysis/analysis_for_joxm.Rmd" target="_blank">8135bb3</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-17
+</td>
+<td style="text-align:left;">
+Tidying up output
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/523aee407904c47138386b476a83ff9cc3a2a349/analysis/analysis_for_joxm.Rmd" target="_blank">523aee4</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-17
+</td>
+<td style="text-align:left;">
+Adding analysis for joxm
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<div id="load-libraries-and-data" class="section level2">
+<h2>Load libraries and data</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>, <span class="dt">warning =</span> <span class="ot">FALSE</span>, <span class="dt">message =</span> <span class="ot">FALSE</span>,
+                      <span class="dt">fig.height =</span> <span class="dv">10</span>, <span class="dt">fig.width =</span> <span class="dv">14</span>)
+<span class="kw">library</span>(tidyverse)
+<span class="kw">library</span>(scater)
+<span class="kw">library</span>(ggridges)
+<span class="kw">library</span>(GenomicRanges)
+<span class="kw">library</span>(RColorBrewer)
+<span class="kw">library</span>(edgeR)
+<span class="kw">library</span>(ggrepel)
+<span class="kw">library</span>(rlang)
+<span class="kw">library</span>(limma)
+<span class="kw">library</span>(org.Hs.eg.db)
+<span class="kw">library</span>(ggforce)
+<span class="kw">library</span>(cardelino)
+<span class="kw">library</span>(cowplot)
+<span class="kw">library</span>(IHW)
+<span class="kw">library</span>(viridis)
+<span class="kw">library</span>(ggthemes)
+<span class="kw">library</span>(superheat)
+<span class="kw">options</span>(<span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)</code></pre></div>
+<p>Load MSigDB gene sets.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">load</span>(<span class="st">&quot;data/human_c6_v5p2.rdata&quot;</span>)
+<span class="kw">load</span>(<span class="st">&quot;data/human_H_v5p2.rdata&quot;</span>)
+<span class="kw">load</span>(<span class="st">&quot;data/human_c2_v5p2.rdata&quot;</span>)</code></pre></div>
+<p>Load VEP consequence information.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">vep_best &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt&quot;</span>)
+<span class="kw">colnames</span>(vep_best)[<span class="dv">1</span>] &lt;-<span class="st"> &quot;Uploaded_variation&quot;</span>
+## deduplicate dataframe
+vep_best &lt;-<span class="st"> </span>vep_best[<span class="op">!</span><span class="kw">duplicated</span>(vep_best[[<span class="st">&quot;Uploaded_variation&quot;</span>]]),]</code></pre></div>
+<p>Load somatic variant sites from whole-exome sequencing data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exome_sites &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz&quot;</span>,
+    <span class="dt">col_types =</span> <span class="st">&quot;ciccdcciiiiccccccccddcdcll&quot;</span>, <span class="dt">comment =</span> <span class="st">&quot;#&quot;</span>,
+    <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
+exome_sites &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(
+    exome_sites, 
+    <span class="dt">chrom =</span> <span class="kw">paste0</span>(<span class="st">&quot;chr&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;chr&quot;</span>, <span class="st">&quot;&quot;</span>, chrom)),
+    <span class="dt">var_id =</span> <span class="kw">paste0</span>(chrom, <span class="st">&quot;:&quot;</span>, pos, <span class="st">&quot;_&quot;</span>, ref, <span class="st">&quot;_&quot;</span>, alt))
+## deduplicate sites list
+exome_sites &lt;-<span class="st"> </span>exome_sites[<span class="op">!</span><span class="kw">duplicated</span>(exome_sites[[<span class="st">&quot;var_id&quot;</span>]]),]</code></pre></div>
+<p>Add consequences to exome sites.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">vep_best[[<span class="st">&quot;var_id&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;chr&quot;</span>, vep_best[[<span class="st">&quot;Uploaded_variation&quot;</span>]])
+exome_sites &lt;-<span class="st"> </span><span class="kw">inner_join</span>(exome_sites, 
+                           vep_best[, <span class="kw">c</span>(<span class="st">&quot;var_id&quot;</span>, <span class="st">&quot;Location&quot;</span>, <span class="st">&quot;Consequence&quot;</span>)], 
+                           <span class="dt">by =</span> <span class="st">&quot;var_id&quot;</span>)</code></pre></div>
+<p>Load cell-clone assignment results for this donor.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cell_assign_joxm &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">file.path</span>(<span class="st">&quot;data/cell_assignment&quot;</span>, 
+        <span class="kw">paste0</span>(<span class="st">&quot;cardelino_results.joxm.filt_lenient.cell_coverage_sites.rds&quot;</span>)))</code></pre></div>
+<p>Load SCE objects.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">params &lt;-<span class="st"> </span><span class="kw">list</span>()
+params<span class="op">$</span>callset &lt;-<span class="st"> &quot;filt_lenient.cell_coverage_sites&quot;</span>
+fls &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&quot;data/sces&quot;</span>)
+fls &lt;-<span class="st"> </span>fls[<span class="kw">grepl</span>(params<span class="op">$</span>callset, fls)]
+donors &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;.*ce_([a-z]+)_.*&quot;</span>, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">1&quot;</span>, fls)
+
+sce_unst_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+    sce_unst_list[[don]] &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">file.path</span>(<span class="st">&quot;data/sces&quot;</span>, 
+        <span class="kw">paste0</span>(<span class="st">&quot;sce_&quot;</span>, don, <span class="st">&quot;_with_clone_assignments.&quot;</span>, params<span class="op">$</span>callset, <span class="st">&quot;.rds&quot;</span>)))
+    <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">&quot;reading&quot;</span>, don, <span class="st">&quot;:   &quot;</span>, <span class="kw">ncol</span>(sce_unst_list[[don]]), <span class="st">&quot;cells.</span><span class="ch">\n</span><span class="st">&quot;</span>))
+}</code></pre></div>
+<pre><code>reading euts :    79 cells.
+reading fawm :    53 cells.
+reading feec :    75 cells.
+reading fikt :    39 cells.
+reading garx :    70 cells.
+reading gesg :    105 cells.
+reading heja :    50 cells.
+reading hipn :    62 cells.
+reading ieki :    58 cells.
+reading joxm :    79 cells.
+reading kuco :    48 cells.
+reading laey :    55 cells.
+reading lexy :    63 cells.
+reading naju :    44 cells.
+reading nusw :    60 cells.
+reading oaaz :    38 cells.
+reading oilg :    90 cells.
+reading pipw :    107 cells.
+reading puie :    41 cells.
+reading qayj :    97 cells.
+reading qolg :    36 cells.
+reading qonc :    58 cells.
+reading rozh :    91 cells.
+reading sehl :    30 cells.
+reading ualf :    89 cells.
+reading vass :    37 cells.
+reading vils :    37 cells.
+reading vuna :    71 cells.
+reading wahn :    82 cells.
+reading wetu :    77 cells.
+reading xugn :    35 cells.
+reading zoxy :    88 cells.</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">assignments_lst &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+    assignments_lst[[don]] &lt;-<span class="st"> </span><span class="kw">as_data_frame</span>(
+        <span class="kw">colData</span>(sce_unst_list[[don]])[, 
+                                      <span class="kw">c</span>(<span class="st">&quot;donor_short_id&quot;</span>, <span class="st">&quot;highest_prob&quot;</span>, 
+                                        <span class="st">&quot;assigned&quot;</span>, <span class="st">&quot;total_features&quot;</span>,
+                                        <span class="st">&quot;total_counts_endogenous&quot;</span>, <span class="st">&quot;num_processed&quot;</span>)])
+}
+assignments &lt;-<span class="st"> </span><span class="kw">do.call</span>(<span class="st">&quot;rbind&quot;</span>, assignments_lst)</code></pre></div>
+<p>Load the SCE object for <code>joxm</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sce_joxm &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">&quot;data/sces/sce_joxm_with_clone_assignments.filt_lenient.cell_coverage_sites.rds&quot;</span>)
+sce_joxm</code></pre></div>
+<pre><code>class: SingleCellExperiment 
+dim: 13225 79 
+metadata(1): log.exprs.offset
+assays(2): counts logcounts
+rownames(13225): ENSG00000000003_TSPAN6 ENSG00000000419_DPM1 ...
+  ERCC-00170_NA ERCC-00171_NA
+rowData names(11): ensembl_transcript_id ensembl_gene_id ...
+  is_feature_control high_var_gene
+colnames(79): 22259_2#169 22259_2#173 ... 22666_2#70 22666_2#71
+colData names(128): salmon_version samp_type ... nvars_cloneid
+  clone_apk2
+reducedDimNames(0):
+spikeNames(1): ERCC</code></pre>
+<p>We can check cell assignments for this donor.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(sce_joxm<span class="op">$</span>assigned)</code></pre></div>
+<pre><code>
+    clone1     clone2     clone3 unassigned 
+        45         25          7          2 </code></pre>
+<p>Load DE results (obtained using the <em>edgeR</em> quasi-likelihood F test and the camera method from the <em>limma</em> package).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">de_res &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">&quot;data/de_analysis_FTv62/filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds&quot;</span>)</code></pre></div>
+</div>
+<div id="tree-and-probability-heatmap" class="section level2">
+<h2>Tree and probability heatmap</h2>
+<p>We can plot the clonal tree inferred with <em>Canopy</em> for this donor along with the cell-clone assignment results from <em>cardelino</em>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">plot_tree &lt;-<span class="st"> </span><span class="cf">function</span>(tree, <span class="dt">orient=</span><span class="st">&quot;h&quot;</span>) {
+  node_total &lt;-<span class="st"> </span><span class="kw">max</span>(tree<span class="op">$</span>edge)
+  node_shown &lt;-<span class="st"> </span><span class="kw">length</span>(tree<span class="op">$</span>P[, <span class="dv">1</span>])
+  node_hidden &lt;-<span class="st"> </span>node_total <span class="op">-</span><span class="st"> </span>node_shown
+  
+  prevalence &lt;-<span class="st"> </span><span class="kw">c</span>(tree<span class="op">$</span>P[, <span class="dv">1</span>]<span class="op">*</span><span class="dv">100</span>, <span class="kw">rep</span>(<span class="dv">0</span>, node_hidden))
+  <span class="co"># node_size &lt;- c(rep(20, node_shown), rep(0, node_hidden))</span>
+  
+  mut_ids &lt;-<span class="st"> </span><span class="dv">0</span>
+  mut_id_all &lt;-<span class="st"> </span>tree<span class="op">$</span>Z <span class="op">%*%</span><span class="st"> </span>(<span class="dv">2</span><span class="op">**</span><span class="kw">seq</span>(<span class="kw">ncol</span>(tree<span class="op">$</span>Z),<span class="dv">1</span>))
+  mut_id_all &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="kw">length</span>(<span class="kw">unique</span>(mut_id_all)),<span class="dv">1</span>)[<span class="kw">as.factor</span>(mut_id_all)]
+  
+  branch_ids &lt;-<span class="st"> </span><span class="ot">NULL</span>
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(node_total)) {
+    <span class="cf">if</span> (i <span class="op">&lt;=</span><span class="st"> </span>node_shown) {
+      tree<span class="op">$</span>tip.label[i] =<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;C&quot;</span>, i, <span class="st">&quot;: &quot;</span>, <span class="kw">round</span>(prevalence[i], <span class="dt">digits =</span> <span class="dv">0</span>),
+                                 <span class="st">&quot;%&quot;</span>)
+    }
+    mut_num =<span class="st"> </span><span class="kw">sum</span>(tree<span class="op">$</span>sna[,<span class="dv">3</span>] <span class="op">==</span><span class="st"> </span>i)
+    <span class="cf">if</span> (mut_num <span class="op">==</span><span class="st"> </span><span class="dv">0</span>) {
+      <span class="cf">if</span> (i <span class="op">==</span><span class="st"> </span>node_shown <span class="op">+</span><span class="st"> </span><span class="dv">1</span>) {branch_ids =<span class="st"> </span><span class="kw">c</span>(branch_ids, <span class="st">&quot;Root&quot;</span>)}
+      <span class="cf">else</span>{branch_ids =<span class="st"> </span><span class="kw">c</span>(branch_ids, <span class="st">&quot;&quot;</span>)} <span class="co">#NA</span>
+    }
+    <span class="cf">else</span> {
+      vaf &lt;-<span class="st"> </span><span class="kw">mean</span>(tree<span class="op">$</span>VAF[tree<span class="op">$</span>sna[,<span class="dv">3</span>] <span class="op">==</span><span class="st"> </span>i])
+      mut_ids &lt;-<span class="st"> </span>mut_ids <span class="op">+</span><span class="st"> </span><span class="dv">1</span>
+      mut_ids &lt;-<span class="st"> </span><span class="kw">mean</span>(mut_id_all[tree<span class="op">$</span>sna[,<span class="dv">3</span>] <span class="op">==</span><span class="st"> </span>i])
+      branch_ids &lt;-<span class="st"> </span><span class="kw">c</span>(branch_ids, <span class="kw">paste0</span>(mut_num, <span class="st">&quot; mutations&quot;</span>))
+    }
+  }
+  pt &lt;-<span class="st"> </span>ggtree<span class="op">::</span><span class="kw">ggtree</span>(tree)
+  pt &lt;-<span class="st"> </span>pt <span class="op">+</span><span class="st"> </span>ggplot2<span class="op">::</span><span class="kw">geom_label</span>(ggplot2<span class="op">::</span><span class="kw">aes_string</span>(<span class="dt">x =</span> <span class="st">&quot;branch&quot;</span>), 
+                                 <span class="dt">label =</span> branch_ids, <span class="dt">color =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">6</span>)
+  pt &lt;-<span class="st"> </span>pt <span class="op">+</span><span class="st"> </span>ggplot2<span class="op">::</span><span class="kw">xlim</span>(<span class="op">-</span><span class="dv">0</span>, node_hidden <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span>) <span class="op">+</span><span class="st"> </span>ggplot2<span class="op">::</span><span class="kw">ylim</span>(<span class="fl">0.8</span>, node_shown <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span>) <span class="co">#the degree may not be 3</span>
+  <span class="cf">if</span> (orient <span class="op">==</span><span class="st"> &quot;v&quot;</span>) {
+    pt &lt;-<span class="st"> </span>pt <span class="op">+</span><span class="st"> </span>ggtree<span class="op">::</span><span class="kw">geom_tiplab</span>(<span class="dt">hjust =</span> <span class="fl">0.39</span>, <span class="dt">vjust =</span> <span class="fl">1.0</span>, <span class="dt">size =</span> <span class="dv">6</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">        </span>ggplot2<span class="op">::</span><span class="kw">scale_x_reverse</span>() <span class="op">+</span><span class="st"> </span>ggplot2<span class="op">::</span><span class="kw">coord_flip</span>() 
+  } <span class="cf">else</span> {
+    pt &lt;-<span class="st"> </span>pt <span class="op">+</span><span class="st"> </span>ggtree<span class="op">::</span><span class="kw">geom_tiplab</span>(<span class="dt">hjust =</span> <span class="fl">0.0</span>, <span class="dt">vjust =</span> <span class="fl">0.5</span>, <span class="dt">size =</span> <span class="dv">6</span>)
+  }
+  pt
+}</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">snv_label &lt;-<span class="st"> </span>cardelino<span class="op">:::</span><span class="kw">mut.label</span>(cell_assign_joxm<span class="op">$</span>tree)
+
+fig_tree &lt;-<span class="st"> </span><span class="kw">plot_tree</span>(cell_assign_joxm<span class="op">$</span>full_tree, <span class="dt">orient =</span> <span class="st">&quot;v&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Clonal tree&quot;</span>) <span class="op">+</span>
+<span class="st">    </span>cardelino<span class="op">:::</span><span class="kw">heatmap.theme</span>(<span class="dt">size =</span> <span class="dv">16</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_blank</span>(), <span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">20</span>))
+
+prob_to_plot &lt;-<span class="st"> </span>cell_assign_joxm<span class="op">$</span>prob_mat[
+    <span class="kw">colnames</span>(sce_joxm)[sce_joxm<span class="op">$</span>well_condition <span class="op">==</span><span class="st"> &quot;unstimulated&quot;</span>], ]
+hc &lt;-<span class="st"> </span><span class="kw">hclust</span>(<span class="kw">dist</span>(prob_to_plot))
+
+clone_ids &lt;-<span class="st"> </span><span class="kw">colnames</span>(prob_to_plot)
+clone_frac &lt;-<span class="st"> </span><span class="kw">colMeans</span>(prob_to_plot[matrixStats<span class="op">::</span><span class="kw">rowMaxs</span>(prob_to_plot) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>,])
+clone_perc &lt;-<span class="st"> </span><span class="kw">paste0</span>(clone_ids, <span class="st">&quot;: &quot;</span>, 
+                          <span class="kw">round</span>(clone_frac<span class="op">*</span><span class="dv">100</span>, <span class="dt">digits =</span> <span class="dv">1</span>), <span class="st">&quot;%&quot;</span>)
+
+<span class="kw">colnames</span>(prob_to_plot) &lt;-<span class="st"> </span>clone_perc
+nba.m &lt;-<span class="st"> </span><span class="kw">as_data_frame</span>(prob_to_plot[hc<span class="op">$</span>order,]) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">cell =</span> <span class="kw">rownames</span>(prob_to_plot[hc<span class="op">$</span>order,])) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">gather</span>(<span class="dt">key =</span> <span class="st">&quot;clone&quot;</span>, <span class="dt">value =</span> <span class="st">&quot;prob&quot;</span>, <span class="op">-</span>cell)
+nba.m &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(nba.m, <span class="dt">cell =</span> <span class="kw">factor</span>(
+    cell, <span class="dt">levels =</span> <span class="kw">rownames</span>(prob_to_plot[hc<span class="op">$</span>order,])))
+fig_assign &lt;-<span class="st"> </span><span class="kw">ggplot</span>(nba.m, <span class="kw">aes</span>(clone, cell, <span class="dt">fill =</span> prob)) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">geom_tile</span>(<span class="dt">show.legend =</span> <span class="ot">TRUE</span>) <span class="op">+</span>
+<span class="st">    </span><span class="co"># scale_fill_gradient(low = &quot;white&quot;, high = &quot;firebrick4&quot;,</span>
+<span class="st">    </span><span class="co">#                     name = &quot;posterior probability of assignment&quot;) +</span>
+<span class="st">    </span>scico<span class="op">::</span><span class="kw">scale_fill_scico</span>(<span class="dt">palette =</span> <span class="st">&quot;oleron&quot;</span>, <span class="dt">direction =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="kw">paste</span>(<span class="st">&quot;Single cells&quot;</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span>cardelino<span class="op">:::</span><span class="kw">heatmap.theme</span>(<span class="dt">size =</span> <span class="dv">16</span>) <span class="op">+</span><span class="st"> </span><span class="co">#cardelino:::pub.theme() +</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">20</span>), <span class="dt">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,
+          <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">12</span>), <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.05</span>, <span class="st">&quot;npc&quot;</span>))
+
+<span class="kw">plot_grid</span>(fig_tree, fig_assign, <span class="dt">nrow =</span> <span class="dv">2</span>, <span class="dt">rel_heights =</span> <span class="kw">c</span>(<span class="fl">0.46</span>, <span class="fl">0.52</span>))</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/plot-tree-1.png" width="1344" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_tree_probmat.png&quot;</span>, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="fl">7.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_tree_probmat.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="fl">7.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_tree_probmat.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="fl">7.5</span>)
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_tree_probmat_wide.png&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">10</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_tree_probmat_wide.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">10</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_tree_probmat_wide.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">10</span>)</code></pre></div>
+</div>
+<div id="analysis-of-direct-effects-of-variants-on-gene-expression" class="section level2">
+<h2>Analysis of direct effects of variants on gene expression</h2>
+<p>Load SCE object and cell assignment results.</p>
+<p>First, plot the VEP consequences of somatic variants in this donor used to infer the clonal tree.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">joxm_config &lt;-<span class="st"> </span><span class="kw">as_data_frame</span>(cell_assign_joxm<span class="op">$</span>full_tree<span class="op">$</span>Z)
+joxm_config[[<span class="st">&quot;var_id&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">rownames</span>(cell_assign_joxm<span class="op">$</span>full_tree<span class="op">$</span>Z)
+exome_sites_joxm &lt;-<span class="st"> </span><span class="kw">inner_join</span>(exome_sites, joxm_config)
+exome_sites_joxm[[<span class="st">&quot;clone_presence&quot;</span>]] &lt;-<span class="st"> &quot;&quot;</span>
+<span class="cf">for</span> (cln <span class="cf">in</span> <span class="kw">colnames</span>(cell_assign_joxm<span class="op">$</span>full_tree<span class="op">$</span>Z)[<span class="op">-</span><span class="dv">1</span>]) {
+    exome_sites_joxm[[<span class="st">&quot;clone_presence&quot;</span>]][
+        <span class="kw">as.logical</span>(exome_sites_joxm[[cln]])] &lt;-<span class="st"> </span><span class="kw">paste</span>(
+            exome_sites_joxm[[<span class="st">&quot;clone_presence&quot;</span>]][
+                <span class="kw">as.logical</span>(exome_sites_joxm[[cln]])], cln, <span class="dt">sep =</span> <span class="st">&quot;&amp;&quot;</span>)
+}
+exome_sites_joxm[[<span class="st">&quot;clone_presence&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;^&amp;&quot;</span>, <span class="st">&quot;&quot;</span>,
+                                        exome_sites_joxm[[<span class="st">&quot;clone_presence&quot;</span>]])
+
+exome_sites_joxm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(Consequence, clone_presence) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_vars =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> n_vars, <span class="dt">y =</span> <span class="kw">reorder</span>(Consequence, n_vars, max), 
+       <span class="dt">colour =</span> <span class="kw">reorder</span>(Consequence, n_vars, max))) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">y =</span> Consequence, <span class="dt">xend =</span> n_vars, <span class="dt">yend =</span> Consequence)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">facet_wrap</span>(<span class="op">~</span>clone_presence) <span class="op">+</span>
+<span class="co">#    scale_color_brewer(palette = &quot;Set2&quot;) +</span>
+<span class="st">    </span><span class="kw">scale_color_manual</span>(<span class="dt">values =</span> <span class="kw">colorRampPalette</span>(<span class="kw">brewer.pal</span>(<span class="dv">8</span>, <span class="st">&quot;Accent&quot;</span>))(<span class="dv">12</span>)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">guides</span>(<span class="dt">colour =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;joxm clone tagging variants by consequence class&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;number of variants&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;consequence&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_bw</span>(<span class="dv">16</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/load-sce-canopy-1.png" width="1344" style="display: block; margin: auto;" /></p>
+<p>Look at expression of genes with mutations.</p>
+<p>Organise data for analysis.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## filter out any remaining ERCC genes
+sce_joxm &lt;-<span class="st"> </span>sce_joxm[<span class="op">!</span><span class="kw">rowData</span>(sce_joxm)<span class="op">$</span>is_feature_control,]
+sce_joxm_gr &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(<span class="kw">rowData</span>(sce_joxm),
+                                   <span class="dt">start.field =</span> <span class="st">&quot;start_position&quot;</span>,
+                                   <span class="dt">end.field =</span> <span class="st">&quot;end_position&quot;</span>,
+                                   <span class="dt">keep.extra.columns =</span> <span class="ot">TRUE</span>)
+exome_sites_joxm[[<span class="st">&quot;chrom&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;chr&quot;</span>, <span class="st">&quot;&quot;</span>, exome_sites_joxm[[<span class="st">&quot;chrom&quot;</span>]])
+exome_sites_joxm_gr &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(exome_sites_joxm,
+                                   <span class="dt">start.field =</span> <span class="st">&quot;pos&quot;</span>,
+                                   <span class="dt">end.field =</span> <span class="st">&quot;pos&quot;</span>,
+                                   <span class="dt">keep.extra.columns =</span> <span class="ot">TRUE</span>)
+<span class="co"># find overlaps</span>
+ov_joxm &lt;-<span class="st"> </span><span class="kw">findOverlaps</span>(sce_joxm_gr, exome_sites_joxm_gr)
+tmp_cols &lt;-<span class="st"> </span><span class="kw">colnames</span>(<span class="kw">mcols</span>(exome_sites_joxm_gr))
+tmp_cols &lt;-<span class="st"> </span>tmp_cols[<span class="kw">grepl</span>(<span class="st">&quot;clone&quot;</span>, tmp_cols)]
+tmp_cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Consequence&quot;</span>, tmp_cols, <span class="st">&quot;var_id&quot;</span>)
+mut_genes_exprs_joxm &lt;-<span class="st"> </span><span class="kw">logcounts</span>(sce_joxm)[<span class="kw">queryHits</span>(ov_joxm),]
+mut_genes_df_joxm &lt;-<span class="st"> </span><span class="kw">as_data_frame</span>(mut_genes_exprs_joxm)
+mut_genes_df_joxm[[<span class="st">&quot;gene&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">rownames</span>(mut_genes_exprs_joxm)
+mut_genes_df_joxm &lt;-<span class="st"> </span><span class="kw">bind_cols</span>(mut_genes_df_joxm,
+                          <span class="kw">as_data_frame</span>(
+                              exome_sites_joxm_gr[
+                                  <span class="kw">subjectHits</span>(ov_joxm)])[, tmp_cols]
+)</code></pre></div>
+<div id="de-comparing-mutated-clone-to-all-other-clones" class="section level3">
+<h3>DE comparing mutated clone to all other clones</h3>
+<p>Get DE results comparing mutated clone to all unmutated clones.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cell_assign_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+    cell_assign_list[[don]] &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">file.path</span>(<span class="st">&quot;data/cell_assignment&quot;</span>, 
+        <span class="kw">paste0</span>(<span class="st">&quot;cardelino_results.&quot;</span>, don, <span class="st">&quot;.&quot;</span>, params<span class="op">$</span>callset, <span class="st">&quot;.rds&quot;</span>)))
+    <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">&quot;reading&quot;</span>, don, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>))
+}   </code></pre></div>
+<pre><code>reading euts 
+reading fawm 
+reading feec 
+reading fikt 
+reading garx 
+reading gesg 
+reading heja 
+reading hipn 
+reading ieki 
+reading joxm 
+reading kuco 
+reading laey 
+reading lexy 
+reading naju 
+reading nusw 
+reading oaaz 
+reading oilg 
+reading pipw 
+reading puie 
+reading qayj 
+reading qolg 
+reading qonc 
+reading rozh 
+reading sehl 
+reading ualf 
+reading vass 
+reading vils 
+reading vuna 
+reading wahn 
+reading wetu 
+reading xugn 
+reading zoxy </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_sites_by_donor &lt;-<span class="st"> </span><span class="cf">function</span>(sites_df, sce_list, assign_list) {
+    <span class="cf">if</span> (<span class="op">!</span><span class="kw">identical</span>(<span class="kw">sort</span>(<span class="kw">names</span>(sce_list)), <span class="kw">sort</span>(<span class="kw">names</span>(assign_list))))
+        <span class="kw">stop</span>(<span class="st">&quot;donors do not match between sce_list and assign_list.&quot;</span>)
+    sites_by_donor &lt;-<span class="st"> </span><span class="kw">list</span>()
+    <span class="cf">for</span> (don <span class="cf">in</span> <span class="kw">names</span>(sce_list)) {
+        config &lt;-<span class="st"> </span><span class="kw">as_data_frame</span>(assign_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z)
+        config[[<span class="st">&quot;var_id&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">rownames</span>(assign_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z)
+        sites_donor &lt;-<span class="st"> </span><span class="kw">inner_join</span>(sites_df, config)
+        sites_donor[[<span class="st">&quot;clone_presence&quot;</span>]] &lt;-<span class="st"> &quot;&quot;</span>
+        <span class="cf">for</span> (cln <span class="cf">in</span> <span class="kw">colnames</span>(assign_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z)[<span class="op">-</span><span class="dv">1</span>]) {
+            sites_donor[[<span class="st">&quot;clone_presence&quot;</span>]][
+                <span class="kw">as.logical</span>(sites_donor[[cln]])] &lt;-<span class="st"> </span><span class="kw">paste</span>(
+                    sites_donor[[<span class="st">&quot;clone_presence&quot;</span>]][
+                        <span class="kw">as.logical</span>(sites_donor[[cln]])], cln, <span class="dt">sep =</span> <span class="st">&quot;&amp;&quot;</span>)
+        }
+        sites_donor[[<span class="st">&quot;clone_presence&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;^&amp;&quot;</span>, <span class="st">&quot;&quot;</span>,
+                                                sites_donor[[<span class="st">&quot;clone_presence&quot;</span>]])
+        ## drop config columns as these won&#39;t match up between donors
+        keep_cols &lt;-<span class="st"> </span><span class="kw">grep</span>(<span class="st">&quot;^clone[0-9]$&quot;</span>, <span class="kw">colnames</span>(sites_donor), <span class="dt">invert =</span> <span class="ot">TRUE</span>)
+        sites_by_donor[[don]] &lt;-<span class="st"> </span>sites_donor[, keep_cols]
+    }
+    <span class="kw">do.call</span>(<span class="st">&quot;bind_rows&quot;</span>, sites_by_donor)
+}
+
+sites_by_donor &lt;-<span class="st"> </span><span class="kw">get_sites_by_donor</span>(exome_sites, sce_unst_list, cell_assign_list)
+
+sites_by_donor_gr &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(sites_by_donor,
+                                              <span class="dt">start.field =</span> <span class="st">&quot;pos&quot;</span>,
+                                              <span class="dt">end.field =</span> <span class="st">&quot;pos&quot;</span>,
+                                              <span class="dt">keep.extra.columns =</span> <span class="ot">TRUE</span>)
+
+## run DE for mutated cells vs unmutated cells using existing DE results
+## filter out any remaining ERCC genes
+<span class="cf">for</span> (don <span class="cf">in</span> <span class="kw">names</span>(de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]]))
+    de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[don]] &lt;-<span class="st"> </span>de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[don]][
+        <span class="op">!</span><span class="kw">rowData</span>(de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[don]])<span class="op">$</span>is_feature_control,]  
+sce_de_list_gr &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> <span class="kw">names</span>(de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]])) {
+    sce_de_list_gr[[don]] &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(
+        <span class="kw">rowData</span>(de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[don]]),
+        <span class="dt">start.field =</span> <span class="st">&quot;start_position&quot;</span>,
+        <span class="dt">end.field =</span> <span class="st">&quot;end_position&quot;</span>,
+        <span class="dt">keep.extra.columns =</span> <span class="ot">TRUE</span>)
+    <span class="kw">seqlevelsStyle</span>(sce_de_list_gr[[don]]) &lt;-<span class="st"> &quot;UCSC&quot;</span>
+}
+mut_genes_df_allcells_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> <span class="kw">names</span>(de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]])) {
+    <span class="kw">cat</span>(<span class="st">&quot;working on &quot;</span>, don, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+    sites_tmp &lt;-<span class="st"> </span>sites_by_donor_gr[sites_by_donor_gr<span class="op">$</span>donor_short_id <span class="op">==</span><span class="st"> </span>don]
+    ov_tmp &lt;-<span class="st"> </span><span class="kw">findOverlaps</span>(sce_de_list_gr[[don]], sites_tmp)
+    sce_tmp &lt;-<span class="st"> </span>de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[don]][<span class="kw">queryHits</span>(ov_tmp),]
+    sites_tmp &lt;-<span class="st"> </span>sites_tmp[<span class="kw">subjectHits</span>(ov_tmp)]
+    sites_tmp<span class="op">$</span>gene &lt;-<span class="st"> </span><span class="kw">rownames</span>(sce_tmp)
+    dge_tmp &lt;-<span class="st"> </span>de_res[[<span class="st">&quot;dge_list&quot;</span>]][[don]]
+    dge_tmp &lt;-<span class="st"> </span>dge_tmp[<span class="kw">intersect</span>(<span class="kw">rownames</span>(dge_tmp), sites_tmp<span class="op">$</span>gene),]
+    base_design &lt;-<span class="st"> </span>dge_tmp<span class="op">$</span>design[, <span class="op">!</span><span class="kw">grepl</span>(<span class="st">&quot;assigned&quot;</span>, <span class="kw">colnames</span>(dge_tmp<span class="op">$</span>design))]
+    de_tbl_tmp &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">donor =</span> don,
+                             <span class="dt">gene =</span> sites_tmp<span class="op">$</span>gene, 
+                             <span class="dt">hgnc_symbol =</span> <span class="kw">gsub</span>(<span class="st">&quot;.*_&quot;</span>, <span class="st">&quot;&quot;</span>, sites_tmp<span class="op">$</span>gene),
+                             <span class="dt">ensembl_gene_id =</span> <span class="kw">gsub</span>(<span class="st">&quot;_.*&quot;</span>, <span class="st">&quot;&quot;</span>, sites_tmp<span class="op">$</span>gene),
+                             <span class="dt">var_id =</span> sites_tmp<span class="op">$</span>var_id,
+                             <span class="dt">location =</span> sites_tmp<span class="op">$</span>Location,
+                             <span class="dt">consequence =</span> sites_tmp<span class="op">$</span>Consequence,
+                             <span class="dt">clone_presence =</span> sites_tmp<span class="op">$</span>clone_presence,
+                             <span class="dt">logFC =</span> <span class="ot">NA</span>, <span class="dt">logCPM =</span> <span class="ot">NA</span>, <span class="dt">F =</span> <span class="ot">NA</span>, <span class="dt">PValue =</span> <span class="ot">NA</span>,
+                             <span class="dt">comment =</span> <span class="st">&quot;&quot;</span>)
+    <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(sites_tmp))) {
+        clones_tmp &lt;-<span class="st"> </span><span class="kw">strsplit</span>(sites_tmp<span class="op">$</span>clone_presence[i], <span class="dt">split =</span> <span class="st">&quot;&amp;&quot;</span>)[[<span class="dv">1</span>]]
+        mutatedclone &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(sce_tmp<span class="op">$</span>assigned <span class="op">%in%</span><span class="st"> </span>clones_tmp)
+        dsgn_tmp &lt;-<span class="st"> </span><span class="kw">cbind</span>(base_design, <span class="kw">data.frame</span>(mutatedclone))
+        <span class="cf">if</span> (sites_tmp<span class="op">$</span>gene[i] <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(dge_tmp) <span class="op">&amp;&amp;</span><span class="st"> </span><span class="kw">is.fullrank</span>(dsgn_tmp)) {
+            qlfit_tmp &lt;-<span class="st"> </span><span class="kw">glmQLFit</span>(dge_tmp[sites_tmp<span class="op">$</span>gene[i],], dsgn_tmp)
+            de_tmp &lt;-<span class="st"> </span><span class="kw">glmQLFTest</span>(qlfit_tmp, <span class="dt">coef =</span> <span class="kw">ncol</span>(dsgn_tmp))
+            de_tbl_tmp<span class="op">$</span>logFC[i] &lt;-<span class="st"> </span>de_tmp<span class="op">$</span>table<span class="op">$</span>logFC
+            de_tbl_tmp<span class="op">$</span>logCPM[i] &lt;-<span class="st"> </span>de_tmp<span class="op">$</span>table<span class="op">$</span>logCPM
+            de_tbl_tmp<span class="op">$</span>F[i] &lt;-<span class="st"> </span>de_tmp<span class="op">$</span>table<span class="op">$</span>F
+            de_tbl_tmp<span class="op">$</span>PValue[i] &lt;-<span class="st"> </span>de_tmp<span class="op">$</span>table<span class="op">$</span>PValue
+        }
+        <span class="cf">if</span> (<span class="op">!</span>(sites_tmp<span class="op">$</span>gene[i] <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(dge_tmp)))
+            de_tbl_tmp<span class="op">$</span>comment[i] &lt;-<span class="st"> &quot;gene did not pass DE filters&quot;</span>
+        <span class="cf">if</span> (<span class="op">!</span><span class="kw">is.fullrank</span>(dsgn_tmp))
+            de_tbl_tmp<span class="op">$</span>comment[i] &lt;-<span class="st"> &quot;insufficient cells assigned to clone&quot;</span>
+    }
+    mut_genes_df_allcells_list[[don]] &lt;-<span class="st"> </span>de_tbl_tmp
+}</code></pre></div>
+<pre><code>working on  euts 
+working on  fawm 
+working on  feec 
+working on  fikt 
+working on  garx 
+working on  gesg 
+working on  heja 
+working on  hipn 
+working on  ieki 
+working on  joxm 
+working on  kuco 
+working on  laey 
+working on  lexy 
+working on  naju 
+working on  nusw 
+working on  oaaz 
+working on  oilg 
+working on  pipw 
+working on  puie 
+working on  qayj 
+working on  qolg 
+working on  qonc 
+working on  rozh 
+working on  sehl 
+working on  ualf 
+working on  vass 
+working on  vuna 
+working on  wahn 
+working on  wetu 
+working on  xugn 
+working on  zoxy </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mut_genes_df_allcells &lt;-<span class="st"> </span><span class="kw">do.call</span>(<span class="st">&quot;bind_rows&quot;</span>, mut_genes_df_allcells_list)
+## add FDRs for genes tested here for DE
+ihw_res_all &lt;-<span class="st"> </span><span class="kw">ihw</span>(PValue <span class="op">~</span><span class="st"> </span>logCPM, <span class="dt">data =</span> mut_genes_df_allcells, <span class="dt">alpha =</span> <span class="fl">0.2</span>)
+mut_genes_df_allcells<span class="op">$</span>FDR &lt;-<span class="st"> </span><span class="kw">adj_pvalues</span>(ihw_res_all)
+## add simplified consequence categories
+mut_genes_df_allcells<span class="op">$</span>consequence_simplified &lt;-<span class="st"> </span>
+<span class="st">    </span>mut_genes_df_allcells<span class="op">$</span>consequence
+mut_genes_df_allcells<span class="op">$</span>consequence_simplified[
+    mut_genes_df_allcells<span class="op">$</span>consequence_simplified <span class="op">%in%</span><span class="st"> </span>
+<span class="st">        </span><span class="kw">c</span>(<span class="st">&quot;stop_retained_variant&quot;</span>, <span class="st">&quot;start_lost&quot;</span>, <span class="st">&quot;stop_lost&quot;</span>, <span class="st">&quot;stop_gained&quot;</span>)] &lt;-<span class="st"> &quot;nonsense&quot;</span>
+mut_genes_df_allcells<span class="op">$</span>consequence_simplified[
+    mut_genes_df_allcells<span class="op">$</span>consequence_simplified <span class="op">%in%</span><span class="st"> </span>
+<span class="st">        </span><span class="kw">c</span>(<span class="st">&quot;splice_donor_variant&quot;</span>, <span class="st">&quot;splice_acceptor_variant&quot;</span>, <span class="st">&quot;splice_region_variant&quot;</span>)] &lt;-<span class="st"> &quot;splicing&quot;</span>
+<span class="co"># table(mut_genes_df_allcells$consequence_simplified)</span>
+<span class="co"># dplyr::arrange(mut_genes_df_allcells, FDR) %&gt;% dplyr::select(-location) %&gt;% head(n = 20)</span></code></pre></div>
+<p>For just the donor <code>joxm</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tmp4 &lt;-<span class="st"> </span>mut_genes_df_allcells <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(logFC), donor <span class="op">==</span><span class="st"> &quot;joxm&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">group_by</span>(consequence_simplified) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">med =</span> <span class="kw">median</span>(logFC, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>),
+              <span class="dt">nvars =</span> <span class="kw">n</span>())
+tmp4</code></pre></div>
+<pre><code># A tibble: 6 x 3
+  consequence_simplified                med nvars
+  &lt;chr&gt;                               &lt;dbl&gt; &lt;int&gt;
+1 5_prime_UTR_variant                 1.01      1
+2 intron_variant                     -0.620     2
+3 missense_variant                    0.161    68
+4 non_coding_transcript_exon_variant  0.504     3
+5 splicing                           -1.77      3
+6 synonymous_variant                  0.114    35</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_to_plot &lt;-<span class="st"> </span>mut_genes_df_allcells <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(logFC), donor <span class="op">==</span><span class="st"> &quot;joxm&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(
+        <span class="dt">FDR =</span> <span class="kw">p.adjust</span>(PValue, <span class="dt">method =</span> <span class="st">&quot;BH&quot;</span>),
+        <span class="dt">consequence_simplified =</span> <span class="kw">factor</span>(
+        consequence_simplified, 
+        <span class="kw">levels</span>(<span class="kw">as.factor</span>(consequence_simplified))[<span class="kw">order</span>(tmp4[[<span class="st">&quot;med&quot;</span>]])]),
+        <span class="dt">de  =</span> <span class="kw">ifelse</span>(FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.2</span>, <span class="st">&quot;FDR &lt; 0.2&quot;</span>, <span class="st">&quot;FDR &gt; 0.2&quot;</span>))
+
+
+df_to_plot <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">select</span>(gene, hgnc_symbol, consequence, clone_presence, logFC, 
+                  F, FDR, PValue, ) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(FDR) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>(<span class="dt">n =</span> <span class="dv">20</span>)</code></pre></div>
+<pre><code>                     gene hgnc_symbol             consequence
+1  ENSG00000084764_MAPRE3      MAPRE3        missense_variant
+2  ENSG00000108821_COL1A1      COL1A1   splice_region_variant
+3  ENSG00000108821_COL1A1      COL1A1 splice_acceptor_variant
+4    ENSG00000101407_TTI1        TTI1      synonymous_variant
+5    ENSG00000101407_TTI1        TTI1      synonymous_variant
+6   ENSG00000129295_LRRC6       LRRC6        missense_variant
+7    ENSG00000070476_ZXDC        ZXDC      synonymous_variant
+8    ENSG00000130881_LRP3        LRP3      synonymous_variant
+9    ENSG00000130881_LRP3        LRP3        missense_variant
+10   ENSG00000113739_STC2        STC2        missense_variant
+11   ENSG00000113739_STC2        STC2      synonymous_variant
+12 ENSG00000120910_PPP3CC      PPP3CC        missense_variant
+13 ENSG00000120910_PPP3CC      PPP3CC        missense_variant
+14  ENSG00000148634_HERC4       HERC4        missense_variant
+15  ENSG00000149090_PAMR1       PAMR1        missense_variant
+16   ENSG00000164733_CTSB        CTSB        missense_variant
+17 ENSG00000171988_JMJD1C      JMJD1C        missense_variant
+18 ENSG00000152104_PTPN14      PTPN14        missense_variant
+19  ENSG00000107104_KANK1       KANK1      synonymous_variant
+20   ENSG00000155760_FZD7        FZD7      synonymous_variant
+   clone_presence      logFC         F         FDR       PValue
+1          clone3  3.8716568 23.039769 0.000747834 8.522327e-06
+2          clone3 -1.7740117 20.890355 0.000747834 2.003127e-05
+3          clone3 -1.7740117 20.890355 0.000747834 2.003127e-05
+4          clone3 -3.5639521  9.352689 0.062873349 3.231516e-03
+5          clone3 -3.5639521  9.352689 0.062873349 3.231516e-03
+6          clone3  4.0179032  9.427437 0.062873349 3.368215e-03
+7   clone2&amp;clone3  1.7524962  8.742413 0.076352392 4.772025e-03
+8          clone3 -4.3916456  7.142454 0.118301675 9.506385e-03
+9          clone3 -4.3916456  7.142454 0.118301675 9.506385e-03
+10         clone3 -2.1130626  5.420882 0.150671578 2.275029e-02
+11         clone3 -2.1130626  5.420882 0.150671578 2.275029e-02
+12         clone3 -3.8707756  5.760656 0.150671578 1.901363e-02
+13         clone3 -3.8707756  5.760656 0.150671578 1.901363e-02
+14         clone2  0.9169862  5.642177 0.150671578 2.023682e-02
+15         clone2  1.5886601  6.113726 0.150671578 1.581047e-02
+16         clone3  0.5893547  5.411016 0.150671578 2.286979e-02
+17         clone3 -4.7300117  6.367750 0.150671578 1.386136e-02
+18         clone3 -1.4639453  4.629869 0.216672611 3.482238e-02
+19         clone3 -2.2478896  4.044822 0.262086654 4.810464e-02
+20         clone3 -3.4765049  3.923814 0.262086654 5.148131e-02</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_to_plot <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(FDR) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">write_tsv</span>(<span class="st">&quot;output/donor_specific/joxm_mut_genes_de_results.tsv&quot;</span>)
+
+p_mutated_clone &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df_to_plot, <span class="kw">aes</span>(<span class="dt">y =</span> logFC, <span class="dt">x =</span> consequence_simplified)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_hline</span>(<span class="dt">yintercept =</span> <span class="dv">0</span>, <span class="dt">linetype =</span> <span class="dv">1</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_boxplot</span>(<span class="dt">outlier.size =</span> <span class="dv">0</span>, <span class="dt">outlier.alpha =</span> <span class="dv">0</span>, <span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>,
+                 <span class="dt">colour =</span> <span class="st">&quot;firebrick4&quot;</span>, <span class="dt">width =</span> <span class="fl">0.2</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">    </span>ggbeeswarm<span class="op">::</span><span class="kw">geom_quasirandom</span>(<span class="kw">aes</span>(<span class="dt">fill =</span> <span class="op">-</span><span class="kw">log10</span>(PValue)), 
+                                 <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">y =</span> <span class="op">-</span><span class="fl">0.25</span>, <span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">yend =</span> <span class="op">-</span><span class="dv">1</span>, <span class="dt">xend =</span> <span class="dv">0</span>), 
+                 <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;cm&quot;</span>))) <span class="op">+</span>
+<span class="st">    </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="dt">y =</span> <span class="op">-</span><span class="dv">3</span>, <span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">size =</span> <span class="dv">6</span>, <span class="dt">label =</span> <span class="st">&quot;lower in mutated clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">y =</span> <span class="fl">0.25</span>, <span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">yend =</span> <span class="dv">1</span>, <span class="dt">xend =</span> <span class="dv">0</span>), 
+                 <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;cm&quot;</span>))) <span class="op">+</span>
+<span class="st">    </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="dt">y =</span> <span class="dv">3</span>, <span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">size =</span> <span class="dv">6</span>, <span class="dt">label =</span> <span class="st">&quot;higher in mutated clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_x_discrete</span>(<span class="dt">expand =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, .<span class="dv">05</span>), <span class="dt">name =</span> <span class="st">&quot;consequence&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_y_continuous</span>(<span class="dt">expand =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>), <span class="dt">name =</span> <span class="st">&quot;logFC&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">expand_limits</span>(<span class="dt">x =</span> <span class="kw">c</span>(<span class="op">-</span><span class="fl">0.75</span>, <span class="dv">8</span>)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_ridges</span>(<span class="dv">22</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;B&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;-log10(P)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>),
+          <span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">guides</span>(<span class="dt">color =</span> <span class="ot">FALSE</span>)
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_mutgenes_logfc-box_by_simple_vep_anno_allcells.png&quot;</span>, 
+      <span class="dt">plot =</span> p_mutated_clone, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">11.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_mutgenes_logfc-box_by_simple_vep_anno_allcells.pdf&quot;</span>, 
+       <span class="dt">plot =</span> p_mutated_clone, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">11.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_mutgenes_logfc-box_by_simple_vep_anno_allcells.svg&quot;</span>, 
+       <span class="dt">plot =</span> p_mutated_clone, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">11.5</span>)
+p_mutated_clone</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/de-mutated-joxm-1.png" width="1104" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="differential-expression-transcriptome-wide" class="section level2">
+<h2>Differential expression transcriptome-wide</h2>
+<p>First we can look for genes that have any significant difference in expression between clones. The summary below shows the number of significant and non-significant genes at a Benjamini-Hochberg FDR threshold of 10%.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">fig.height =</span> <span class="dv">6</span>, <span class="dt">fig.width =</span> <span class="dv">8</span>)
+<span class="kw">summary</span>(<span class="kw">decideTests</span>(de_res<span class="op">$</span>qlf_list<span class="op">$</span>joxm, <span class="dt">p.value =</span> <span class="fl">0.1</span>))</code></pre></div>
+<pre><code>       assignedclone2+assignedclone3
+NotSig                         10066
+Sig                              810</code></pre>
+<p>We can view the 10 genes with strongest evidence for differential expression across clones.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">topTags</span>(de_res<span class="op">$</span>qlf_list<span class="op">$</span>joxm)</code></pre></div>
+<pre><code>Coefficient:  assignedclone2 assignedclone3 
+                        logFC.assignedclone2 logFC.assignedclone3
+ENSG00000205542_TMSB4X            -0.3023108           -5.8522620
+ENSG00000124508_BTN2A2            -0.2459654            4.1365436
+ENSG00000158882_TOMM40L           -0.2505807            6.2110289
+ENSG00000146776_ATXN7L1            5.8270769            3.3529992
+ENSG00000026652_AGPAT4             2.3275355            5.8438114
+ENSG00000215271_HOMEZ              4.2253817            2.6162565
+ENSG00000175395_ZNF25             -2.0965884            4.6776995
+ENSG00000135776_ABCB10             0.6052318            4.9791996
+ENSG00000095739_BAMBI              4.5209639           -0.3917716
+ENSG00000136158_SPRY2             -1.2067010            4.7697302
+                           logCPM        F       PValue          FDR
+ENSG00000205542_TMSB4X  12.477948 94.66521 1.436183e-22 1.561992e-18
+ENSG00000124508_BTN2A2   2.496792 47.80350 1.337387e-12 7.272710e-09
+ENSG00000158882_TOMM40L  3.335185 39.13535 2.791699e-12 1.012084e-08
+ENSG00000146776_ATXN7L1  3.835711 32.60187 2.696990e-11 7.333115e-08
+ENSG00000026652_AGPAT4   2.860028 33.33203 5.154075e-11 1.121114e-07
+ENSG00000215271_HOMEZ    2.859662 29.31946 1.837343e-10 3.024195e-07
+ENSG00000175395_ZNF25    3.172467 29.22302 1.946429e-10 3.024195e-07
+ENSG00000135776_ABCB10   2.677793 28.66313 2.878293e-10 3.913039e-07
+ENSG00000095739_BAMBI    3.003355 27.56289 7.356968e-10 8.890487e-07
+ENSG00000136158_SPRY2    2.678918 37.12940 9.180697e-10 9.984926e-07</code></pre>
+<p>We can check that the estimates of the biological coefficient of variation from the negative binomial model look sensible. Here they do, so we can expect sensible DE results.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotBCV</span>(de_res<span class="op">$</span>dge_list<span class="op">$</span>joxm)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/plot-bcv-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Likewise, a plot of the quasi-likelihood parameter against average gene expression looks smooth and sensible.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotQLDisp</span>(de_res<span class="op">$</span>qlf_list<span class="op">$</span>joxm)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/-lot-qld-1.png" width="768" style="display: block; margin: auto;" /></p>
+<div id="pairwise-comparisons-of-clones" class="section level3">
+<h3>Pairwise comparisons of clones</h3>
+<p>As well as looking for <em>any</em> difference in expression across clones, we can also inspect specific pairwise contrasts of clones for differential expression.</p>
+<p>For this donor, we are able to look at 3 pairwise contrasts.</p>
+<p>The output below shows the top 10 DE genes for pair of (testable) clones.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cntrsts &lt;-<span class="st"> </span><span class="kw">names</span>(de_res<span class="op">$</span>qlf_pairwise<span class="op">$</span>joxm)[<span class="op">-</span><span class="dv">1</span>]
+<span class="cf">for</span> (i <span class="cf">in</span> cntrsts) {
+  <span class="kw">print</span>(<span class="kw">topTags</span>(de_res<span class="op">$</span>qlf_pairwise<span class="op">$</span>joxm[[i]]))
+}</code></pre></div>
+<pre><code>Coefficient:  assignedclone2 
+                             logFC   logCPM        F       PValue
+ENSG00000146776_ATXN7L1   5.827077 3.835711 64.30472 4.498991e-12
+ENSG00000215271_HOMEZ     4.225382 2.859662 56.05503 5.364501e-11
+ENSG00000095739_BAMBI     4.520964 3.003355 46.60880 1.445218e-09
+ENSG00000165475_CRYL1     3.996486 3.059529 40.49459 8.888705e-09
+ENSG00000256977_LIMS3     3.135677 2.706958 39.83407 1.906565e-08
+ENSG00000159753_RLTPR     5.226381 3.755735 39.53017 6.256811e-08
+ENSG00000113368_LMNB1    -4.997582 3.942806 34.07096 1.117409e-07
+ENSG00000166896_XRCC6BP1  2.895536 2.624735 33.06210 1.296717e-07
+ENSG00000165752_STK32C   -5.481148 4.472443 32.52622 1.623309e-07
+ENSG00000197465_GYPE      2.990544 2.605616 32.66869 1.753971e-07
+                         ensembl_gene_id hgnc_symbol entrezid          FDR
+ENSG00000146776_ATXN7L1  ENSG00000146776     ATXN7L1   222255 4.893102e-08
+ENSG00000215271_HOMEZ    ENSG00000215271       HOMEZ    57594 2.917216e-07
+ENSG00000095739_BAMBI    ENSG00000095739       BAMBI    25805 5.239396e-06
+ENSG00000165475_CRYL1    ENSG00000165475       CRYL1    51084 2.416839e-05
+ENSG00000256977_LIMS3    ENSG00000256977       LIMS3    96626 4.147160e-05
+ENSG00000159753_RLTPR    ENSG00000159753       RLTPR   146206 1.134151e-04
+ENSG00000113368_LMNB1    ENSG00000113368       LMNB1     4001 1.736134e-04
+ENSG00000166896_XRCC6BP1 ENSG00000166896    XRCC6BP1    91419 1.762887e-04
+ENSG00000165752_STK32C   ENSG00000165752      STK32C   282974 1.781606e-04
+ENSG00000197465_GYPE     ENSG00000197465        GYPE     2996 1.781606e-04
+Coefficient:  assignedclone3 
+                             logFC    logCPM         F       PValue
+ENSG00000205542_TMSB4X   -5.852262 12.477948 189.21636 1.498701e-23
+ENSG00000026652_AGPAT4    5.843811  2.860028  66.34644 7.445621e-12
+ENSG00000158882_TOMM40L   6.211029  3.335185  60.60022 3.546620e-11
+ENSG00000124508_BTN2A2    4.136544  2.496792  63.33803 1.287895e-10
+ENSG00000135776_ABCB10    4.979200  2.677793  53.08658 1.428713e-10
+ENSG00000129048_ACKR4     8.019482  3.724983  64.39167 4.309404e-10
+ENSG00000173295_FAM86B3P  6.961215  3.304938  46.94436 9.910493e-10
+ENSG00000180787_ZFP3      5.590345  3.316930  47.51174 1.318667e-09
+ENSG00000136158_SPRY2     4.769730  2.678918  45.24647 5.038485e-08
+ENSG00000115274_INO80B    5.431696  3.962204  35.47870 5.321455e-08
+                         ensembl_gene_id hgnc_symbol entrezid          FDR
+ENSG00000205542_TMSB4X   ENSG00000205542      TMSB4X     7114 1.629988e-19
+ENSG00000026652_AGPAT4   ENSG00000026652      AGPAT4    56895 4.048928e-08
+ENSG00000158882_TOMM40L  ENSG00000158882     TOMM40L    84134 1.285768e-07
+ENSG00000124508_BTN2A2   ENSG00000124508      BTN2A2    10385 3.107736e-07
+ENSG00000135776_ABCB10   ENSG00000135776      ABCB10    23456 3.107736e-07
+ENSG00000129048_ACKR4    ENSG00000129048       ACKR4    51554 7.811513e-07
+ENSG00000173295_FAM86B3P ENSG00000173295    FAM86B3P   286042 1.539807e-06
+ENSG00000180787_ZFP3     ENSG00000180787        ZFP3   124961 1.792728e-06
+ENSG00000136158_SPRY2    ENSG00000136158       SPRY2    10253 5.787615e-05
+ENSG00000115274_INO80B   ENSG00000115274      INO80B    83444 5.787615e-05
+Coefficient:  -1*assignedclone2 1*assignedclone3 
+                            logFC    logCPM         F       PValue
+ENSG00000205542_TMSB4X  -5.549951 12.477948 172.64899 2.245791e-22
+ENSG00000175395_ZNF25    6.774288  3.172467  52.34814 1.715489e-10
+ENSG00000124508_BTN2A2   4.382509  2.496792  54.55918 1.066814e-09
+ENSG00000136158_SPRY2    5.976431  2.678918  60.70034 1.773587e-09
+ENSG00000158882_TOMM40L  6.461610  3.335185  43.62111 5.558774e-09
+ENSG00000039139_DNAH5    5.409017  3.274807  40.86835 1.009588e-08
+ENSG00000100084_HIRA     5.697154  3.117679  43.55610 1.971861e-08
+ENSG00000164099_PRSS12   5.657648  3.227355  36.02313 4.365453e-08
+ENSG00000148840_PPRC1    5.208851  2.900446  34.66077 1.144716e-07
+ENSG00000165752_STK32C   6.964619  4.472443  31.84313 2.096428e-07
+                        ensembl_gene_id hgnc_symbol entrezid          FDR
+ENSG00000205542_TMSB4X  ENSG00000205542      TMSB4X     7114 2.442523e-18
+ENSG00000175395_ZNF25   ENSG00000175395       ZNF25   219749 9.328827e-07
+ENSG00000124508_BTN2A2  ENSG00000124508      BTN2A2    10385 3.867555e-06
+ENSG00000136158_SPRY2   ENSG00000136158       SPRY2    10253 4.822382e-06
+ENSG00000158882_TOMM40L ENSG00000158882     TOMM40L    84134 1.209145e-05
+ENSG00000039139_DNAH5   ENSG00000039139       DNAH5     1767 1.830047e-05
+ENSG00000100084_HIRA    ENSG00000100084        HIRA     7290 3.063708e-05
+ENSG00000164099_PRSS12  ENSG00000164099      PRSS12     8492 5.934833e-05
+ENSG00000148840_PPRC1   ENSG00000148840       PPRC1    23082 1.383325e-04
+ENSG00000165752_STK32C  ENSG00000165752      STK32C   282974 2.280075e-04</code></pre>
+<p>Below we see the following plots for each pairwise comparison:</p>
+<ul>
+<li>A “mean-difference” plot: log-fold-change (between clones) vs average expression;</li>
+<li>A “volcano plot”: -log10(PValue) vs log-fold-change between clones.</li>
+</ul>
+<p>In the MD plots we see logFC distributions centred around zero as we would hope (gold line in plots shows lowess curve through points).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">for</span> (i <span class="cf">in</span> cntrsts) {
+  <span class="kw">plotMD</span>(de_res<span class="op">$</span>qlf_pairwise<span class="op">$</span>joxm[[i]], <span class="dt">p.value =</span> <span class="fl">0.1</span>)
+  <span class="kw">lines</span>(<span class="kw">lowess</span>(<span class="dt">x =</span> de_res<span class="op">$</span>qlf_pairwise<span class="op">$</span>joxm[[i]]<span class="op">$</span>table<span class="op">$</span>logCPM,
+               <span class="dt">y =</span> de_res<span class="op">$</span>qlf_pairwise<span class="op">$</span>joxm[[i]]<span class="op">$</span>table<span class="op">$</span>logFC), 
+        <span class="dt">col =</span> <span class="st">&quot;goldenrod3&quot;</span>, <span class="dt">lwd =</span> <span class="dv">4</span>)
+  
+  de_tab &lt;-<span class="st"> </span>de_res<span class="op">$</span>qlf_pairwise<span class="op">$</span>joxm[[i]]<span class="op">$</span>table
+  de_tab[[<span class="st">&quot;gene&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">rownames</span>(de_tab)
+  de_tab &lt;-<span class="st"> </span>de_tab <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">FDR =</span> <span class="kw">adj_pvalues</span>(<span class="kw">ihw</span>(PValue <span class="op">~</span><span class="st"> </span>logCPM, <span class="dt">alpha =</span> <span class="fl">0.1</span>)), 
+                  <span class="dt">sig =</span> FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.1</span>,
+                  <span class="dt">signed_F =</span> <span class="kw">sign</span>(logFC) <span class="op">*</span><span class="st"> </span>F) 
+  de_tab[[<span class="st">&quot;lab&quot;</span>]] &lt;-<span class="st"> &quot;&quot;</span>
+  int_genes_entrezid &lt;-<span class="st"> </span><span class="kw">c</span>(Hs.H<span class="op">$</span>HALLMARK_G2M_CHECKPOINT, Hs.H<span class="op">$</span>HALLMARK_E2F_TARGETS,
+                          Hs.c2<span class="op">$</span>ROSTY_CERVICAL_CANCER_PROLIFERATION_CLUSTER)
+  mm &lt;-<span class="st"> </span><span class="kw">match</span>(int_genes_entrezid, de_tab<span class="op">$</span>entrezid)
+  mm &lt;-<span class="st"> </span>mm[<span class="op">!</span><span class="kw">is.na</span>(mm)]
+  int_genes_hgnc &lt;-<span class="st"> </span>de_tab<span class="op">$</span>hgnc_symbol[mm]
+  int_genes_hgnc &lt;-<span class="st"> </span><span class="kw">c</span>(int_genes_hgnc, <span class="st">&quot;MYBL1&quot;</span>)
+  genes_to_label &lt;-<span class="st"> </span>(de_tab[[<span class="st">&quot;hgnc_symbol&quot;</span>]] <span class="op">%in%</span><span class="st"> </span>int_genes_hgnc <span class="op">&amp;</span>
+<span class="st">                       </span>de_tab[[<span class="st">&quot;FDR&quot;</span>]] <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.1</span>)
+  de_tab[[<span class="st">&quot;lab&quot;</span>]][genes_to_label] &lt;-
+<span class="st">    </span>de_tab[[<span class="st">&quot;hgnc_symbol&quot;</span>]][genes_to_label]
+  
+  p_vulcan &lt;-<span class="st"> </span><span class="kw">ggplot</span>(de_tab, <span class="kw">aes</span>(<span class="dt">x =</span> logFC, <span class="dt">y =</span> <span class="op">-</span><span class="kw">log10</span>(PValue), <span class="dt">fill =</span> sig,
+                     <span class="dt">label =</span> lab)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">size =</span> sig), <span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_label_repel</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>, 
+                     <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">type =</span> <span class="st">&quot;closed&quot;</span>, <span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.25</span>, <span class="st">&quot;cm&quot;</span>)), 
+                     <span class="dt">nudge_x =</span> <span class="fl">0.2</span>, <span class="dt">nudge_y =</span> <span class="fl">0.3</span>, <span class="dt">fill =</span> <span class="st">&quot;gray95&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">x =</span> <span class="op">-</span><span class="dv">1</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">xend =</span> <span class="op">-</span><span class="dv">4</span>, <span class="dt">yend =</span> <span class="dv">0</span>), 
+                 <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;cm&quot;</span>))) <span class="op">+</span>
+<span class="st">    </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="op">-</span><span class="dv">4</span>, <span class="dt">y =</span> <span class="op">-</span><span class="fl">0.5</span>, <span class="dt">size =</span> <span class="dv">6</span>,
+             <span class="dt">label =</span> <span class="kw">paste</span>(<span class="st">&quot;higher in&quot;</span>, <span class="kw">strsplit</span>(i, <span class="st">&quot;_&quot;</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>])) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">x =</span> <span class="dv">1</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">xend =</span> <span class="dv">4</span>, <span class="dt">yend =</span> <span class="dv">0</span>), 
+                 <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;cm&quot;</span>))) <span class="op">+</span>
+<span class="st">    </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="dv">4</span>, <span class="dt">y =</span> <span class="op">-</span><span class="fl">0.5</span>, <span class="dt">size =</span> <span class="dv">6</span>,
+             <span class="dt">label =</span> <span class="kw">paste</span>(<span class="st">&quot;higher in&quot;</span>, <span class="kw">strsplit</span>(i, <span class="st">&quot;_&quot;</span>)[[<span class="dv">1</span>]][<span class="dv">1</span>])) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;gray60&quot;</span>, <span class="st">&quot;firebrick&quot;</span>), 
+                      <span class="dt">label =</span> <span class="kw">c</span>(<span class="st">&quot;N.S.&quot;</span>, <span class="st">&quot;FDR &lt; 10%&quot;</span>), <span class="dt">name =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_size_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="dt">guide =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">guides</span>(<span class="dt">alpha =</span> <span class="ot">FALSE</span>,
+           <span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">override.aes =</span> <span class="kw">list</span>(<span class="dt">size =</span> <span class="dv">5</span>))) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">20</span>) <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)
+  <span class="kw">print</span>(p_vulcan)
+  
+  <span class="kw">ggsave</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/donor_specific/joxm_volcano_&quot;</span>, i, <span class="st">&quot;.png&quot;</span>), 
+         <span class="dt">plot =</span> p_vulcan, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">9</span>)
+  <span class="kw">ggsave</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/donor_specific/joxm_volcano_&quot;</span>, i, <span class="st">&quot;.pdf&quot;</span>), 
+         <span class="dt">plot =</span> p_vulcan, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">9</span>)
+  <span class="kw">ggsave</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/donor_specific/joxm_volcano_&quot;</span>, i, <span class="st">&quot;.svg&quot;</span>),
+         <span class="dt">plot =</span> p_vulcan, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">9</span>)
+}</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-1.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-2.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-3.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-4.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-5.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-6.png" width="864" style="display: block; margin: auto;" /></p>
+<hr />
+</div>
+</div>
+<div id="gene-set-enrichment-results" class="section level2">
+<h2>Gene set enrichment results</h2>
+<p>We extend our analysis from looking at differential expression for single genes to looking for enrichment in gene sets. We use gene sets from the MSigDB collection.</p>
+<p>We use the <em>camera</em> method from the <em>limma</em> package to conduct competitive gene set testing. This method uses the full distributions of logFC statistics from pairwise clone contrasts to identify significantly enriched gene sets.</p>
+<div id="msigdb-hallmark-gene-sets" class="section level3">
+<h3>MSigDB Hallmark gene sets</h3>
+<p>We look primarily at the “Hallmark” collection of gene sets from MSigDB.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">for</span> (i <span class="cf">in</span> cntrsts) {
+  <span class="kw">print</span>(i)
+  cam_H_pw &lt;-<span class="st"> </span>de_res<span class="op">$</span>camera<span class="op">$</span>H<span class="op">$</span>joxm[[i]]<span class="op">$</span>logFC
+  cam_H_pw[[<span class="st">&quot;geneset&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">rownames</span>(de_res<span class="op">$</span>camera<span class="op">$</span>H<span class="op">$</span>joxm[[i]]<span class="op">$</span>logFC)
+  cam_H_pw &lt;-<span class="st"> </span>cam_H_pw <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">sig =</span> FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>) 
+  <span class="kw">print</span>(<span class="kw">head</span>(cam_H_pw))
+}</code></pre></div>
+<pre><code>[1] &quot;clone2_clone1&quot;
+  NGenes Direction       PValue          FDR
+1    198      Down 7.528815e-08 3.764408e-06
+2    189      Down 1.201847e-06 3.004616e-05
+3    180      Down 2.525380e-03 4.208966e-02
+4     83      Down 4.356000e-02 5.445000e-01
+5     23      Down 8.915415e-02 7.630703e-01
+6     62      Down 9.817179e-02 7.630703e-01
+                              geneset   sig
+1                HALLMARK_E2F_TARGETS  TRUE
+2             HALLMARK_G2M_CHECKPOINT  TRUE
+3            HALLMARK_MITOTIC_SPINDLE  TRUE
+4        HALLMARK_ALLOGRAFT_REJECTION FALSE
+5 HALLMARK_WNT_BETA_CATENIN_SIGNALING FALSE
+6            HALLMARK_SPERMATOGENESIS FALSE
+[1] &quot;clone3_clone1&quot;
+  NGenes Direction     PValue       FDR                            geneset
+1    189      Down 0.03478297 0.9801348            HALLMARK_G2M_CHECKPOINT
+2     55        Up 0.15076698 0.9801348            HALLMARK_MYC_TARGETS_V2
+3    180      Down 0.15334031 0.9801348           HALLMARK_MITOTIC_SPINDLE
+4    198        Up 0.15598297 0.9801348 HALLMARK_OXIDATIVE_PHOSPHORYLATION
+5     76        Up 0.17798786 0.9801348                HALLMARK_PEROXISOME
+6     69        Up 0.18485565 0.9801348               HALLMARK_COAGULATION
+    sig
+1 FALSE
+2 FALSE
+3 FALSE
+4 FALSE
+5 FALSE
+6 FALSE
+[1] &quot;clone3_clone2&quot;
+  NGenes Direction     PValue       FDR                            geneset
+1    198        Up 0.03033312 0.9435644               HALLMARK_E2F_TARGETS
+2    155        Up 0.07516361 0.9435644                HALLMARK_GLYCOLYSIS
+3     55        Up 0.13413562 0.9435644            HALLMARK_MYC_TARGETS_V2
+4    116      Down 0.15395929 0.9435644 HALLMARK_INTERFERON_GAMMA_RESPONSE
+5    120        Up 0.17465889 0.9435644       HALLMARK_IL2_STAT5_SIGNALING
+6     76        Up 0.26073405 0.9435644                HALLMARK_PEROXISOME
+    sig
+1 FALSE
+2 FALSE
+3 FALSE
+4 FALSE
+5 FALSE
+6 FALSE</code></pre>
+<p>Below we see the following plots for each pairwise comparison:</p>
+<ul>
+<li>A -log10(PValue) vs direction plot for enrichment of each of the 50 Hallmark gene sets;</li>
+<li>A logFC “barcode plot”: distribution of the logFC statistics for genes in the E2F targets and G2M checkpoint gene sets relative to all other genes;</li>
+<li>A signed-F “barcode plot”: distribution of the signed F statistics for genes in the E2F targets and G2M checkpoint gene sets relative to all other genes.</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">for</span> (i <span class="cf">in</span> cntrsts) {
+  cam_H_pw &lt;-<span class="st"> </span>de_res<span class="op">$</span>camera<span class="op">$</span>H<span class="op">$</span>joxm[[i]]<span class="op">$</span>logFC
+  cam_H_pw[[<span class="st">&quot;geneset&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">rownames</span>(de_res<span class="op">$</span>camera<span class="op">$</span>H<span class="op">$</span>joxm[[i]]<span class="op">$</span>logFC)
+  cam_H_pw &lt;-<span class="st"> </span>cam_H_pw <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">sig =</span> FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>) 
+  cam_H_pw[[<span class="st">&quot;lab&quot;</span>]] &lt;-<span class="st"> &quot;&quot;</span>
+  cam_H_pw[[<span class="st">&quot;lab&quot;</span>]][<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>] &lt;-
+<span class="st">    </span>cam_H_pw[[<span class="st">&quot;geneset&quot;</span>]][<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>]
+  cam_H_pw[[<span class="st">&quot;Direction&quot;</span>]][cam_H_pw[[<span class="st">&quot;Direction&quot;</span>]] <span class="op">==</span><span class="st"> &quot;Up&quot;</span>] &lt;-<span class="st"> </span>
+<span class="st">    </span><span class="kw">paste</span>(<span class="st">&quot;Up in&quot;</span>, <span class="kw">strsplit</span>(i, <span class="st">&quot;_&quot;</span>)[[<span class="dv">1</span>]][<span class="dv">1</span>], <span class="st">&quot;vs&quot;</span>, <span class="kw">strsplit</span>(i, <span class="st">&quot;_&quot;</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>])
+  cam_H_pw[[<span class="st">&quot;Direction&quot;</span>]][cam_H_pw[[<span class="st">&quot;Direction&quot;</span>]] <span class="op">==</span><span class="st"> &quot;Down&quot;</span>] &lt;-<span class="st"> </span>
+<span class="st">    </span><span class="kw">paste</span>(<span class="st">&quot;Down in&quot;</span>, <span class="kw">strsplit</span>(i, <span class="st">&quot;_&quot;</span>)[[<span class="dv">1</span>]][<span class="dv">1</span>], <span class="st">&quot;vs&quot;</span>, <span class="kw">strsplit</span>(i, <span class="st">&quot;_&quot;</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>])
+  de_tab &lt;-<span class="st"> </span>de_res<span class="op">$</span>qlf_pairwise<span class="op">$</span>joxm[[i]]<span class="op">$</span>table
+  de_tab[[<span class="st">&quot;gene&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">rownames</span>(de_tab)
+  de_tab &lt;-<span class="st"> </span>de_tab <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">FDR =</span> <span class="kw">adj_pvalues</span>(<span class="kw">ihw</span>(PValue <span class="op">~</span><span class="st"> </span>logCPM, <span class="dt">alpha =</span> <span class="fl">0.1</span>)), 
+                  <span class="dt">sig =</span> FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.1</span>,
+                  <span class="dt">signed_F =</span> <span class="kw">sign</span>(logFC) <span class="op">*</span><span class="st"> </span>F)
+  
+  p_hallmark &lt;-<span class="st"> </span>cam_H_pw <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> Direction, <span class="dt">y =</span> <span class="op">-</span><span class="kw">log10</span>(PValue), <span class="dt">colour =</span> sig, 
+               <span class="dt">label =</span> lab)) <span class="op">+</span>
+<span class="st">    </span>ggbeeswarm<span class="op">::</span><span class="kw">geom_quasirandom</span>(<span class="kw">aes</span>(<span class="dt">size =</span> NGenes)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_label_repel</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>,
+                     <span class="dt">nudge_y =</span> <span class="fl">0.3</span>, <span class="dt">nudge_x =</span> <span class="fl">0.3</span>, <span class="dt">fill =</span> <span class="st">&quot;gray95&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_colour_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;gray50&quot;</span>, <span class="st">&quot;firebrick&quot;</span>), 
+                        <span class="dt">label =</span> <span class="kw">c</span>(<span class="st">&quot;N.S.&quot;</span>, <span class="st">&quot;FDR &lt; 5%&quot;</span>), <span class="dt">name =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">guides</span>(<span class="dt">alpha =</span> <span class="ot">FALSE</span>,
+           <span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">override.aes =</span> <span class="kw">list</span>(<span class="dt">size =</span> <span class="dv">5</span>))) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set enrichment direction&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">20</span>) <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)
+  <span class="kw">print</span>(p_hallmark)
+  
+  <span class="kw">ggsave</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/donor_specific/joxm_camera_H_&quot;</span>, i, <span class="st">&quot;.png&quot;</span>), 
+         <span class="dt">plot =</span> p_hallmark, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">9</span>)
+  <span class="kw">ggsave</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/donor_specific/joxm_camera_H_&quot;</span>, i, <span class="st">&quot;.png&quot;</span>), 
+         <span class="dt">plot =</span> p_hallmark, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">9</span>)
+  <span class="kw">ggsave</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/donor_specific/joxm_camera_H_&quot;</span>, i, <span class="st">&quot;.png&quot;</span>), 
+         <span class="dt">plot =</span> p_hallmark, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">9</span>)
+  
+  idx &lt;-<span class="st"> </span><span class="kw">ids2indices</span>(Hs.H, <span class="dt">id =</span> de_tab<span class="op">$</span>entrezid)
+  <span class="kw">barcodeplot</span>(de_tab<span class="op">$</span>logFC, <span class="dt">index =</span> idx<span class="op">$</span>HALLMARK_E2F_TARGETS, 
+              <span class="dt">index2 =</span> idx<span class="op">$</span>HALLMARK_G2M_CHECKPOINT, <span class="dt">xlab =</span> <span class="st">&quot;logFC&quot;</span>, 
+              <span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;joxm: &quot;</span>, i, <span class="st">&quot;</span><span class="ch">\n</span><span class="st"> HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT&quot;</span>))
+  
+  <span class="kw">png</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/donor_specific/joxm_camera_H_&quot;</span>, i, <span class="st">&quot;_barcode_logFC_E2F_G2M.png&quot;</span>),
+      <span class="dt">height =</span> <span class="dv">400</span>, <span class="dt">width =</span> <span class="dv">600</span>)
+  <span class="kw">barcodeplot</span>(de_tab<span class="op">$</span>logFC, <span class="dt">index =</span> idx<span class="op">$</span>HALLMARK_E2F_TARGETS, 
+              <span class="dt">index2 =</span> idx<span class="op">$</span>HALLMARK_G2M_CHECKPOINT, <span class="dt">xlab =</span> <span class="st">&quot;logFC&quot;</span>, 
+              <span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;joxm: &quot;</span>, i, <span class="st">&quot;</span><span class="ch">\n</span><span class="st"> HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT&quot;</span>))
+  <span class="kw">dev.off</span>()
+  
+  <span class="kw">barcodeplot</span>(de_tab<span class="op">$</span>signed_F, <span class="dt">index =</span> idx<span class="op">$</span>HALLMARK_E2F_TARGETS, 
+              <span class="dt">index2 =</span> idx<span class="op">$</span>HALLMARK_G2M_CHECKPOINT, <span class="dt">xlab =</span> <span class="st">&quot;signed F statistic&quot;</span>, 
+              <span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;joxm: &quot;</span>, i, <span class="st">&quot;</span><span class="ch">\n</span><span class="st"> HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT&quot;</span>))
+  <span class="kw">png</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/donor_specific/joxm_camera_H_&quot;</span>, i, <span class="st">&quot;_barcode_signedF_E2F_G2M.png&quot;</span>),
+      <span class="dt">height =</span> <span class="dv">400</span>, <span class="dt">width =</span> <span class="dv">600</span>)
+  <span class="kw">barcodeplot</span>(de_tab<span class="op">$</span>signed_F, <span class="dt">index =</span> idx<span class="op">$</span>HALLMARK_E2F_TARGETS, 
+              <span class="dt">index2 =</span> idx<span class="op">$</span>HALLMARK_G2M_CHECKPOINT, <span class="dt">xlab =</span> <span class="st">&quot;signed F statistic&quot;</span>, 
+              <span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;joxm: &quot;</span>, i, <span class="st">&quot;</span><span class="ch">\n</span><span class="st"> HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT&quot;</span>))
+  <span class="kw">dev.off</span>()
+}  </code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-1.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-2.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-3.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-4.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-5.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-6.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-7.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-8.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-9.png" width="864" style="display: block; margin: auto;" /></p>
+<p>One could carry out similar analyses and produce similar plots for the c2 and c6 MSigDB gene set collections.</p>
+</div>
+</div>
+<div id="test-for-difference-in-cell-cycle-phases-by-clone" class="section level2">
+<h2>Test for difference in cell cycle phases by clone</h2>
+<p>We observe differing proportions of cells in different phases of the cell cycle by clone.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">as.data.frame</span>(<span class="kw">colData</span>(de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[<span class="st">&quot;joxm&quot;</span>]])) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">Cell_Cycle =</span> <span class="kw">factor</span>(cyclone_phase, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;G2M&quot;</span>, <span class="st">&quot;S&quot;</span>, <span class="st">&quot;G1&quot;</span>)),
+                  <span class="dt">assigned =</span> <span class="kw">factor</span>(assigned, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;clone3&quot;</span>, <span class="st">&quot;clone2&quot;</span>, <span class="st">&quot;clone1&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> assigned, <span class="dt">fill =</span> Cell_Cycle)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_bar</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;#ff6a5c&quot;</span>, <span class="st">&quot;#ccdfcb&quot;</span>, <span class="st">&quot;#414141&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_flip</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">reverse =</span> <span class="ot">TRUE</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_blank</span>())</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/test-cc-1.png" width="768" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">as.data.frame</span>(<span class="kw">colData</span>(de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[<span class="st">&quot;joxm&quot;</span>]])) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">Cell_Cycle =</span> <span class="kw">factor</span>(cyclone_phase, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;G2M&quot;</span>, <span class="st">&quot;S&quot;</span>, <span class="st">&quot;G1&quot;</span>)),
+                  <span class="dt">assigned =</span> <span class="kw">factor</span>(assigned, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;clone3&quot;</span>, <span class="st">&quot;clone2&quot;</span>, <span class="st">&quot;clone1&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> assigned, <span class="dt">fill =</span> Cell_Cycle)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">position =</span> <span class="st">&quot;fill&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;#ff6a5c&quot;</span>, <span class="st">&quot;#ccdfcb&quot;</span>, <span class="st">&quot;#414141&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_flip</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;proportion&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">reverse =</span> <span class="ot">TRUE</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_blank</span>())</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/test-cc-2.png" width="768" style="display: block; margin: auto;" /></p>
+<p>A Fisher Exact Test can provide some guidance about whether or not these differences in cell cycle proportions are expected by chance.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">freqs &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(<span class="kw">table</span>(
+    de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[<span class="st">&quot;joxm&quot;</span>]]<span class="op">$</span>assigned,  
+    de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[<span class="st">&quot;joxm&quot;</span>]]<span class="op">$</span>cyclone_phase))
+<span class="kw">fisher.test</span>(freqs)</code></pre></div>
+<pre><code>
+    Fisher&#39;s Exact Test for Count Data
+
+data:  freqs
+p-value = 0.1731
+alternative hypothesis: two.sided</code></pre>
+<p>We can also test just for differences in proportions between clone1 and clone2.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">fisher.test</span>(freqs[<span class="op">-</span><span class="dv">3</span>,])</code></pre></div>
+<pre><code>
+    Fisher&#39;s Exact Test for Count Data
+
+data:  freqs[-3, ]
+p-value = 0.1021
+alternative hypothesis: two.sided</code></pre>
+</div>
+<div id="pca-plots" class="section level2">
+<h2>PCA plots</h2>
+<p>Principal component analysis can reveal global structure from single-cell transcriptomic profiles.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">choose_joxm_cells &lt;-<span class="st"> </span>(sce_joxm<span class="op">$</span>well_condition <span class="op">==</span><span class="st"> &quot;unstimulated&quot;</span> <span class="op">&amp;</span>
+<span class="st">                          </span>sce_joxm<span class="op">$</span>assigned <span class="op">!=</span><span class="st"> &quot;unassigned&quot;</span>)
+pca_unst &lt;-<span class="st"> </span><span class="kw">reducedDim</span>(<span class="kw">runPCA</span>(sce_joxm[, choose_joxm_cells], 
+                              <span class="dt">ntop =</span> <span class="dv">500</span>, <span class="dt">ncomponents =</span> <span class="dv">10</span>), <span class="st">&quot;PCA&quot;</span>)
+pca_unst &lt;-<span class="st"> </span><span class="kw">data.frame</span>(
+    <span class="dt">PC1 =</span> pca_unst[, <span class="dv">1</span>], <span class="dt">PC2 =</span> pca_unst[, <span class="dv">2</span>], 
+    <span class="dt">PC3 =</span> pca_unst[, <span class="dv">3</span>], <span class="dt">PC4 =</span> pca_unst[, <span class="dv">4</span>],
+    <span class="dt">PC5 =</span> pca_unst[, <span class="dv">5</span>], <span class="dt">PC6 =</span> pca_unst[, <span class="dv">6</span>],
+    <span class="dt">clone =</span> sce_joxm[, choose_joxm_cells]<span class="op">$</span>assigned,
+    <span class="dt">nvars_cloneid =</span> sce_joxm[, choose_joxm_cells]<span class="op">$</span>nvars_cloneid,
+    <span class="dt">cyclone_phase =</span> sce_joxm[, choose_joxm_cells]<span class="op">$</span>cyclone_phase,
+    <span class="dt">G1 =</span> sce_joxm[, choose_joxm_cells]<span class="op">$</span>G1,
+    <span class="dt">G2M =</span> sce_joxm[, choose_joxm_cells]<span class="op">$</span>G2M,
+    <span class="dt">S =</span> sce_joxm[, choose_joxm_cells]<span class="op">$</span>S,
+    <span class="dt">clone1_prob =</span> sce_joxm[, choose_joxm_cells]<span class="op">$</span>clone1_prob,
+    <span class="dt">clone2_prob =</span> sce_joxm[, choose_joxm_cells]<span class="op">$</span>clone2_prob,
+    <span class="dt">clone3_prob =</span> sce_joxm[, choose_joxm_cells]<span class="op">$</span>clone3_prob,
+    <span class="dt">RPS6KA2 =</span> <span class="kw">as.vector</span>(<span class="kw">logcounts</span>(sce_joxm[<span class="kw">grep</span>(<span class="st">&quot;RPS6KA2&quot;</span>, <span class="kw">rownames</span>(sce_joxm)), choose_joxm_cells]))
+    )
+
+<span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">fill =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_fill_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;assigned</span><span class="ch">\n</span><span class="st">clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-1.png" width="768" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC2, <span class="dt">y =</span> PC3, <span class="dt">fill =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_fill_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;assigned</span><span class="ch">\n</span><span class="st">clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-2.png" width="768" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC2, <span class="dt">y =</span> PC4, <span class="dt">fill =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_fill_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;assigned</span><span class="ch">\n</span><span class="st">clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-3.png" width="768" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC3, <span class="dt">y =</span> PC4, <span class="dt">fill =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_fill_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;assigned</span><span class="ch">\n</span><span class="st">clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-4.png" width="768" style="display: block; margin: auto;" /></p>
+<p>We can also explore how inferred cell cycle phase information relates to the PCA components.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pca_unst<span class="op">$</span>cyclone_phase &lt;-<span class="st"> </span><span class="kw">factor</span>(pca_unst<span class="op">$</span>cyclone_phase, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;G1&quot;</span>, <span class="st">&quot;S&quot;</span>, <span class="st">&quot;G2M&quot;</span>))
+<span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">colour =</span> cyclone_phase,
+                     <span class="dt">shape =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">6</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_color_manual</span>(<span class="dt">values =</span> <span class="kw">magma</span>(<span class="dv">6</span>)[<span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">5</span>)], <span class="dt">name =</span> <span class="st">&quot;cell cycle</span><span class="ch">\n</span><span class="st">phase&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;PC1 (10% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC2 (5% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-cc-1.png" width="768" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca.png&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+
+
+pca_unst<span class="op">$</span>cyclone_phase &lt;-<span class="st"> </span><span class="kw">factor</span>(pca_unst<span class="op">$</span>cyclone_phase, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;G1&quot;</span>, <span class="st">&quot;S&quot;</span>, <span class="st">&quot;G2M&quot;</span>))
+<span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC2, <span class="dt">y =</span> PC3, <span class="dt">colour =</span> cyclone_phase,
+                     <span class="dt">shape =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">6</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_color_manual</span>(<span class="dt">values =</span> <span class="kw">magma</span>(<span class="dv">6</span>)[<span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">5</span>)], <span class="dt">name =</span> <span class="st">&quot;cell cycle</span><span class="ch">\n</span><span class="st">phase&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;PC2 (5% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC3 (3% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-cc-2.png" width="768" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">fill =</span> G2M,
+                     <span class="dt">shape =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">colour =</span> <span class="st">&quot;gray50&quot;</span>, <span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="dv">21</span>, <span class="dv">23</span>, <span class="dv">25</span>), <span class="dt">name =</span> <span class="st">&quot;clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span>scico<span class="op">::</span><span class="kw">scale_fill_scico</span>(<span class="dt">palette =</span> <span class="st">&quot;bilbao&quot;</span>, <span class="dt">name  =</span> <span class="st">&quot;G2/M score&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_size_continuous</span>(<span class="dt">range =</span> <span class="kw">c</span>(<span class="dv">4</span>, <span class="dv">6</span>)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;PC1 (10% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC2 (5% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-cc-3.png" width="768" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_g2m_score.png&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_g2m_score.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_g2m_score.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+
+<span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">colour =</span> S,
+                     <span class="dt">shape =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_color_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;B&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;PC1 (10% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC2 (5% variance&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-cc-4.png" width="768" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">colour =</span> G1,
+                     <span class="dt">shape =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_color_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;B&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;PC1 (10% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC2 (5% variance&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-cc-5.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Number of variants used for clone ID looks to have little relationship to global structure in expression PCA space.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">fill =</span> clone2_prob, <span class="dt">size =</span> nvars_cloneid)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;B&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;clone2</span><span class="ch">\n</span><span class="st">probability&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_size_continuous</span>(<span class="dt">name =</span> <span class="st">&quot;# variants</span><span class="ch">\n</span><span class="st">for clone ID&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-nvars-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="de-accounting-for-cell-cycle-in-model" class="section level2">
+<h2>DE accounting for cell cycle in model</h2>
+<p>Load DE results when accounting for/testing for cell cycle state. We fit GLMs for differential expression as shown above, but including cell cycle scores inferred using the <em>cyclone</em> function in the <code>scran</code> package.</p>
+<p>First, we look at genes that are DE when comparing a model with technical factors and cell cycle scores to a null model with just technical factors (no clone factor here). As one might expect, there is a large number of DE genes for cell cycle.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">de_res_cc &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">&quot;data/de_analysis_FTv62/cellcycle_analyses/filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds&quot;</span>)
+de_joxm_cellcycle_only &lt;-<span class="st"> </span>de_res_cc<span class="op">$</span>cellcycle_only<span class="op">$</span>qlf_list<span class="op">$</span>joxm
+<span class="kw">topTags</span>(de_res_cc<span class="op">$</span>cellcycle_only<span class="op">$</span>qlf_list<span class="op">$</span>joxm)</code></pre></div>
+<pre><code>Coefficient:  G1 S G2M 
+                         logFC.G1   logFC.S  logFC.G2M   logCPM        F
+ENSG00000166851_PLK1   -2.9500051 -7.478386  0.1798167 6.637237 71.24342
+ENSG00000142945_KIF2C  -2.8548668 -7.219331  0.7626621 5.085581 65.42649
+ENSG00000126787_DLGAP5  0.8865819 -6.100050  1.6240057 4.583859 60.43557
+ENSG00000058804_NDC1    0.5330466 -5.941573  0.4918901 3.577027 57.77159
+ENSG00000143228_NUF2   -3.8428900 -7.612558 -0.5390044 5.017414 50.72767
+ENSG00000117399_CDC20  -5.5534364 -7.672110  0.6110384 6.344143 49.93985
+ENSG00000024526_DEPDC1 -2.8727134 -7.169126 -0.3452155 4.269838 45.95045
+ENSG00000148773_MKI67  -5.5363636 -3.550540  3.9024209 5.215892 43.22661
+ENSG00000131747_TOP2A  -8.0854497 -6.189015  2.7970999 6.918126 40.90662
+ENSG00000169679_BUB1   -7.8101939 -5.899641  0.2566063 4.875571 40.28345
+                             PValue          FDR
+ENSG00000166851_PLK1   2.922920e-23 3.178968e-19
+ENSG00000142945_KIF2C  3.822048e-22 2.078429e-18
+ENSG00000126787_DLGAP5 3.946876e-21 1.430874e-17
+ENSG00000058804_NDC1   1.448014e-20 3.937151e-17
+ENSG00000143228_NUF2   5.505566e-19 1.197571e-15
+ENSG00000117399_CDC20  8.434865e-19 1.528960e-15
+ENSG00000024526_DEPDC1 7.823899e-18 1.215610e-14
+ENSG00000148773_MKI67  3.834558e-17 5.213082e-14
+ENSG00000131747_TOP2A  1.557159e-16 1.881740e-13
+ENSG00000169679_BUB1   2.641059e-16 2.872416e-13</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">decideTests</span>(de_res_cc<span class="op">$</span>cellcycle_only<span class="op">$</span>qlf_list<span class="op">$</span>joxm, <span class="dt">p.value =</span> <span class="fl">0.1</span>))</code></pre></div>
+<pre><code>       G1+S+G2M
+NotSig     9233
+Sig        1643</code></pre>
+<p>When including cell cycle scores in the model, but testing for differential expression between clones, we still find many DE genes - a similar number to when not including cell cycle scores in the model.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">decideTests</span>(de_res_cc<span class="op">$</span>cellcycle_clone<span class="op">$</span>qlf_list<span class="op">$</span>joxm, <span class="dt">p.value =</span> <span class="fl">0.1</span>))</code></pre></div>
+<pre><code>       assignedclone2+assignedclone3
+NotSig                         10080
+Sig                              796</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">topTags</span>(de_res_cc<span class="op">$</span>cellcycle_clone<span class="op">$</span>qlf_list<span class="op">$</span>joxm)</code></pre></div>
+<pre><code>Coefficient:  assignedclone2 assignedclone3 
+                         logFC.assignedclone2 logFC.assignedclone3
+ENSG00000205542_TMSB4X             -0.2523841          -5.82148381
+ENSG00000164530_PI16               -0.3752611           8.62594854
+ENSG00000135776_ABCB10              0.2568207           5.11578252
+ENSG00000164099_PRSS12             -2.5160626           4.05691487
+ENSG00000124508_BTN2A2             -0.3307820           3.91366788
+ENSG00000215271_HOMEZ               3.9844759           1.98280951
+ENSG00000095739_BAMBI               4.1473320          -0.01415638
+ENSG00000146776_ATXN7L1             5.2645583           3.24665994
+ENSG00000173295_FAM86B3P            1.6128377           7.28991537
+ENSG00000256977_LIMS3               3.0572045           0.42525813
+                            logCPM         F       PValue          FDR
+ENSG00000205542_TMSB4X   12.477947 102.56975 2.342200e-23 2.547377e-19
+ENSG00000164530_PI16      6.713362  31.47340 6.405876e-11 3.483515e-07
+ENSG00000135776_ABCB10    2.677884  31.24981 2.044328e-10 7.411372e-07
+ENSG00000164099_PRSS12    3.227398  26.14641 1.758302e-09 4.780824e-06
+ENSG00000124508_BTN2A2    2.496920  30.66882 5.500365e-09 1.196439e-05
+ENSG00000215271_HOMEZ     2.859425  22.72593 1.253987e-08 2.273061e-05
+ENSG00000095739_BAMBI     3.003891  26.33436 1.585840e-08 2.463943e-05
+ENSG00000146776_ATXN7L1   3.836295  21.58778 3.350979e-08 4.374888e-05
+ENSG00000173295_FAM86B3P  3.305207  21.11722 3.620264e-08 4.374888e-05
+ENSG00000256977_LIMS3     2.705957  20.87919 7.477042e-08 8.132031e-05</code></pre>
+<p>When doing gene set testing after adjusting for cell cycle effects, unsurprisingly, G2M checkpoint and mitotic spindle gene sets are no longer significant, although E2F targets remains nominally significant (FDR &lt; 10%), showing that even for cell cycle/proliferation gene sets not all of the signal is captured by cell cycle scores from <em>cyclone</em>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## accounting for cell cycle in model
+<span class="kw">head</span>(de_res_cc<span class="op">$</span>camera<span class="op">$</span>H<span class="op">$</span>joxm<span class="op">$</span>clone2_clone1<span class="op">$</span>logFC)</code></pre></div>
+<pre><code>                                    NGenes Direction      PValue       FDR
+HALLMARK_E2F_TARGETS                   198      Down 0.001797878 0.0898939
+HALLMARK_G2M_CHECKPOINT                189      Down 0.005397947 0.1349487
+HALLMARK_ALLOGRAFT_REJECTION            83      Down 0.040155202 0.6692534
+HALLMARK_MITOTIC_SPINDLE               180      Down 0.077429835 0.7971485
+HALLMARK_WNT_BETA_CATENIN_SIGNALING     23      Down 0.094529863 0.7971485
+HALLMARK_MYOGENESIS                    115      Down 0.114033788 0.7971485</code></pre>
+<p>Overall, there is reasonably high concordance in P-values for clone DE with or without accounting for cell cycle scores, though the ranking of genes for DE does change with the two approaches.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">data_frame</span>(
+  <span class="dt">pval_clone =</span> de_res<span class="op">$</span>qlf_list<span class="op">$</span>joxm<span class="op">$</span>table<span class="op">$</span>PValue,
+  <span class="dt">fdr_clone =</span> <span class="kw">p.adjust</span>(de_res<span class="op">$</span>qlf_list<span class="op">$</span>joxm<span class="op">$</span>table<span class="op">$</span>PValue, <span class="dt">method =</span> <span class="st">&quot;BH&quot;</span>),
+  <span class="dt">pval_cellcycle_only =</span> de_res_cc<span class="op">$</span>cellcycle_only<span class="op">$</span>qlf_list<span class="op">$</span>joxm<span class="op">$</span>table<span class="op">$</span>PValue,
+  <span class="dt">pval_cellcycle_clone =</span> de_res_cc<span class="op">$</span>cellcycle_clone<span class="op">$</span>qlf_list<span class="op">$</span>joxm<span class="op">$</span>table<span class="op">$</span>PValue)
+
+<span class="kw">ggplot</span>(df, <span class="kw">aes</span>(<span class="op">-</span><span class="kw">log10</span>(pval_clone), <span class="op">-</span><span class="kw">log10</span>(pval_cellcycle_clone),
+               <span class="dt">colour =</span> fdr_clone <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">slope =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;P-value for clone DE, not accounting for cell cycle (-log10 scale)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;P-value for clone DE, accounting for cell cycle (-log10 scale)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_classic</span>()</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/de-cc-plot-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="combined-figure" class="section level2">
+<h2>Combined figure</h2>
+<p>For publication, we put together a combined figure summarising the analyses conducted above.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## tree and cell assignment
+snv_label &lt;-<span class="st"> </span>cardelino<span class="op">:::</span><span class="kw">mut.label</span>(cell_assign_joxm<span class="op">$</span>tree)
+
+fig_tree &lt;-<span class="st"> </span><span class="kw">plot_tree</span>(cell_assign_joxm<span class="op">$</span>full_tree, <span class="dt">orient =</span> <span class="st">&quot;v&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Clonal tree&quot;</span>) <span class="op">+</span>
+<span class="st">    </span>cardelino<span class="op">:::</span><span class="kw">heatmap.theme</span>(<span class="dt">size =</span> <span class="dv">16</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_blank</span>(), <span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">20</span>))
+
+prob_to_plot &lt;-<span class="st"> </span>cell_assign_joxm<span class="op">$</span>prob_mat[
+    <span class="kw">colnames</span>(sce_joxm)[sce_joxm<span class="op">$</span>well_condition <span class="op">==</span><span class="st"> &quot;unstimulated&quot;</span>], ]
+hc &lt;-<span class="st"> </span><span class="kw">hclust</span>(<span class="kw">dist</span>(prob_to_plot))
+
+clone_ids &lt;-<span class="st"> </span><span class="kw">colnames</span>(prob_to_plot)
+clone_frac &lt;-<span class="st"> </span><span class="kw">colMeans</span>(prob_to_plot[matrixStats<span class="op">::</span><span class="kw">rowMaxs</span>(prob_to_plot) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>,])
+clone_perc &lt;-<span class="st"> </span><span class="kw">paste0</span>(clone_ids, <span class="st">&quot;: &quot;</span>, 
+                          <span class="kw">round</span>(clone_frac<span class="op">*</span><span class="dv">100</span>, <span class="dt">digits =</span> <span class="dv">1</span>), <span class="st">&quot;%&quot;</span>)
+
+<span class="kw">colnames</span>(prob_to_plot) &lt;-<span class="st"> </span>clone_perc
+nba.m &lt;-<span class="st"> </span><span class="kw">as_data_frame</span>(prob_to_plot[hc<span class="op">$</span>order,]) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">cell =</span> <span class="kw">rownames</span>(prob_to_plot[hc<span class="op">$</span>order,])) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">gather</span>(<span class="dt">key =</span> <span class="st">&quot;clone&quot;</span>, <span class="dt">value =</span> <span class="st">&quot;prob&quot;</span>, <span class="op">-</span>cell)
+nba.m &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(nba.m, <span class="dt">cell =</span> <span class="kw">factor</span>(
+    cell, <span class="dt">levels =</span> <span class="kw">rownames</span>(prob_to_plot[hc<span class="op">$</span>order,])))
+fig_assign &lt;-<span class="st"> </span><span class="kw">ggplot</span>(nba.m, <span class="kw">aes</span>(clone, cell, <span class="dt">fill =</span> prob)) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">geom_tile</span>(<span class="dt">show.legend =</span> <span class="ot">TRUE</span>) <span class="op">+</span>
+<span class="st">    </span><span class="co"># scale_fill_gradient(low = &quot;white&quot;, high = &quot;firebrick4&quot;,</span>
+<span class="st">    </span><span class="co">#                     name = &quot;posterior probability of assignment&quot;) +</span>
+<span class="st">    </span>scico<span class="op">::</span><span class="kw">scale_fill_scico</span>(<span class="dt">palette =</span> <span class="st">&quot;oleron&quot;</span>, <span class="dt">direction =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="kw">paste</span>(<span class="st">&quot;Single cells&quot;</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span>cardelino<span class="op">:::</span><span class="kw">heatmap.theme</span>(<span class="dt">size =</span> <span class="dv">16</span>) <span class="op">+</span><span class="st"> </span><span class="co">#cardelino:::pub.theme() +</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">20</span>), <span class="dt">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,
+          <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">12</span>), <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.05</span>, <span class="st">&quot;npc&quot;</span>))
+
+p_tree &lt;-<span class="st"> </span><span class="kw">plot_grid</span>(fig_tree, fig_assign, <span class="dt">nrow =</span> <span class="dv">2</span>, <span class="dt">rel_heights =</span> <span class="kw">c</span>(<span class="fl">0.46</span>, <span class="fl">0.52</span>))
+
+
+## cell cycle barplot
+p_bar &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">colData</span>(de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[<span class="st">&quot;joxm&quot;</span>]])) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">Cell_Cycle =</span> <span class="kw">factor</span>(cyclone_phase, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;G2M&quot;</span>, <span class="st">&quot;S&quot;</span>, <span class="st">&quot;G1&quot;</span>)),
+                <span class="dt">assigned =</span> <span class="kw">factor</span>(assigned, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;clone3&quot;</span>, <span class="st">&quot;clone2&quot;</span>, <span class="st">&quot;clone1&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> assigned, <span class="dt">fill =</span> Cell_Cycle, <span class="dt">group =</span> Cell_Cycle)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">position =</span> <span class="st">&quot;fill&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;#ff6a5c&quot;</span>, <span class="st">&quot;#ccdfcb&quot;</span>, <span class="st">&quot;#414141&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_flip</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;proportion of cells&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">reverse =</span> <span class="ot">TRUE</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_blank</span>())
+
+## effects on mutated clone
+df_to_plot &lt;-<span class="st"> </span>mut_genes_df_allcells <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(logFC), donor <span class="op">==</span><span class="st"> &quot;joxm&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">duplicated</span>(gene)) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(
+    <span class="dt">FDR =</span> <span class="kw">p.adjust</span>(PValue, <span class="dt">method =</span> <span class="st">&quot;BH&quot;</span>),
+    <span class="dt">consequence_simplified =</span> <span class="kw">factor</span>(
+      consequence_simplified, 
+      <span class="kw">levels</span>(<span class="kw">as.factor</span>(consequence_simplified))[<span class="kw">order</span>(tmp4[[<span class="st">&quot;med&quot;</span>]])]),
+    <span class="dt">de  =</span> <span class="kw">ifelse</span>(FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.2</span>, <span class="st">&quot;FDR &lt; 0.2&quot;</span>, <span class="st">&quot;FDR &gt; 0.2&quot;</span>))
+
+
+p_mutated_clone &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df_to_plot, <span class="kw">aes</span>(<span class="dt">y =</span> logFC, <span class="dt">x =</span> consequence_simplified)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_hline</span>(<span class="dt">yintercept =</span> <span class="dv">0</span>, <span class="dt">linetype =</span> <span class="dv">1</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_boxplot</span>(<span class="dt">outlier.size =</span> <span class="dv">0</span>, <span class="dt">outlier.alpha =</span> <span class="dv">0</span>, <span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>,
+                 <span class="dt">colour =</span> <span class="st">&quot;firebrick4&quot;</span>, <span class="dt">width =</span> <span class="fl">0.2</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">    </span>ggbeeswarm<span class="op">::</span><span class="kw">geom_quasirandom</span>(<span class="kw">aes</span>(<span class="dt">fill =</span> <span class="op">-</span><span class="kw">log10</span>(PValue)), 
+                                 <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">y =</span> <span class="op">-</span><span class="fl">0.25</span>, <span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">yend =</span> <span class="op">-</span><span class="dv">1</span>, <span class="dt">xend =</span> <span class="dv">0</span>), 
+                 <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;cm&quot;</span>))) <span class="op">+</span>
+<span class="st">    </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="dt">y =</span> <span class="op">-</span><span class="dv">3</span>, <span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">size =</span> <span class="dv">6</span>, <span class="dt">label =</span> <span class="st">&quot;lower in mutated clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">y =</span> <span class="fl">0.25</span>, <span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">yend =</span> <span class="dv">1</span>, <span class="dt">xend =</span> <span class="dv">0</span>), 
+                 <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;cm&quot;</span>))) <span class="op">+</span>
+<span class="st">    </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="dt">y =</span> <span class="dv">3</span>, <span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">size =</span> <span class="dv">6</span>, <span class="dt">label =</span> <span class="st">&quot;higher in mutated clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_x_discrete</span>(<span class="dt">expand =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, .<span class="dv">05</span>), <span class="dt">name =</span> <span class="st">&quot;consequence&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_y_continuous</span>(<span class="dt">expand =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>), <span class="dt">name =</span> <span class="st">&quot;logFC&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">expand_limits</span>(<span class="dt">x =</span> <span class="kw">c</span>(<span class="op">-</span><span class="fl">0.75</span>, <span class="dv">8</span>)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_ridges</span>(<span class="dv">22</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;B&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;-log10(P)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>),
+          <span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">guides</span>(<span class="dt">color =</span> <span class="ot">FALSE</span>)
+
+## PCA
+p_pca &lt;-<span class="st"> </span><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC2, <span class="dt">y =</span> PC3, <span class="dt">fill =</span> clone,
+                     <span class="dt">shape =</span> clone)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">colour =</span> <span class="st">&quot;gray50&quot;</span>, <span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="dv">21</span>, <span class="dv">23</span>, <span class="dv">25</span>, <span class="dv">22</span>, <span class="dv">24</span>, <span class="dv">26</span>), <span class="dt">name =</span> <span class="st">&quot;clone&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="co"># scico::scale_fill_scico(palette = &quot;bilbao&quot;, name  = &quot;G2/M score&quot;) +</span>
+<span class="st">    </span>ggthemes<span class="op">::</span><span class="kw">scale_fill_canva</span>(<span class="dt">palette =</span> <span class="st">&quot;Surf and turf&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_size_continuous</span>(<span class="dt">range =</span> <span class="kw">c</span>(<span class="dv">4</span>, <span class="dv">6</span>)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;PC2 (5% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC3 (3% variance)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)
+
+ <span class="co"># ggplot(pca_unst, aes(x = PC2, y = PC3, colour = clone,</span>
+ <span class="co">#                     shape = cyclone_phase)) +</span>
+ <span class="co">#    geom_point(alpha = 0.9, size = 5) +</span>
+ <span class="co">#    scale_shape_manual(values = c(15, 17, 19), name = &quot;clone&quot;) +</span>
+ <span class="co">#    # scico::scale_fill_scico(palette = &quot;bilbao&quot;, name  = &quot;G2/M score&quot;) +</span>
+ <span class="co">#    ggthemes::scale_color_canva(palette = &quot;Surf and turf&quot;) +</span>
+ <span class="co">#    scale_size_continuous(range = c(4, 6)) +</span>
+ <span class="co">#    xlab(&quot;PC2 (5% variance)&quot;) +</span>
+ <span class="co">#    ylab(&quot;PC3 (3% variance)&quot;) +</span>
+ <span class="co">#    theme_classic(18)</span>
+
+## volcano
+de_joxm_cl2_vs_cl1 &lt;-<span class="st"> </span>de_res<span class="op">$</span>qlf_pairwise<span class="op">$</span>joxm<span class="op">$</span>clone2_clone1<span class="op">$</span>table
+de_joxm_cl2_vs_cl1[[<span class="st">&quot;gene&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">rownames</span>(de_joxm_cl2_vs_cl1)
+de_joxm_cl2_vs_cl1 &lt;-<span class="st"> </span>de_joxm_cl2_vs_cl1 <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">FDR =</span> <span class="kw">adj_pvalues</span>(<span class="kw">ihw</span>(PValue <span class="op">~</span><span class="st"> </span>logCPM, <span class="dt">alpha =</span> <span class="fl">0.1</span>)), 
+                <span class="dt">sig =</span> FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.1</span>,
+                <span class="dt">signed_F =</span> <span class="kw">sign</span>(logFC) <span class="op">*</span><span class="st"> </span>F) 
+de_joxm_cl2_vs_cl1[[<span class="st">&quot;lab&quot;</span>]] &lt;-<span class="st"> &quot;&quot;</span>
+int_genes_entrezid &lt;-<span class="st"> </span><span class="kw">c</span>(Hs.H<span class="op">$</span>HALLMARK_G2M_CHECKPOINT, Hs.H<span class="op">$</span>HALLMARK_E2F_TARGETS,
+                        Hs.H<span class="op">$</span>HALLMARK_MITOTIC_SPINDLE)
+mm &lt;-<span class="st"> </span><span class="kw">match</span>(int_genes_entrezid, de_joxm_cl2_vs_cl1<span class="op">$</span>entrezid)
+mm &lt;-<span class="st"> </span>mm[<span class="op">!</span><span class="kw">is.na</span>(mm)]
+int_genes_hgnc &lt;-<span class="st"> </span>de_joxm_cl2_vs_cl1<span class="op">$</span>hgnc_symbol[mm]
+genes_to_label &lt;-<span class="st"> </span>(de_joxm_cl2_vs_cl1[[<span class="st">&quot;hgnc_symbol&quot;</span>]] <span class="op">%in%</span><span class="st"> </span>int_genes_hgnc <span class="op">&amp;</span>
+<span class="st">                     </span>de_joxm_cl2_vs_cl1[[<span class="st">&quot;FDR&quot;</span>]] <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.01</span>)
+de_joxm_cl2_vs_cl1[[<span class="st">&quot;lab&quot;</span>]][genes_to_label] &lt;-
+<span class="st">  </span>de_joxm_cl2_vs_cl1[[<span class="st">&quot;hgnc_symbol&quot;</span>]][genes_to_label]
+de_joxm_cl2_vs_cl1[[<span class="st">&quot;cell_cycle_gene&quot;</span>]] &lt;-<span class="st"> </span>(de_joxm_cl2_vs_cl1<span class="op">$</span>entrezid <span class="op">%in%</span><span class="st"> </span>
+<span class="st">                                              </span>int_genes_entrezid)
+
+p_volcano &lt;-<span class="st"> </span><span class="kw">ggplot</span>(de_joxm_cl2_vs_cl1, <span class="kw">aes</span>(<span class="dt">x =</span> logFC, <span class="dt">y =</span> <span class="op">-</span><span class="kw">log10</span>(PValue), 
+                                            <span class="dt">fill =</span> sig, <span class="dt">label =</span> lab)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">size =</span> sig), <span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_label_repel</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>, 
+                   <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">type =</span> <span class="st">&quot;closed&quot;</span>, <span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.25</span>, <span class="st">&quot;cm&quot;</span>)), 
+                   <span class="dt">nudge_x =</span> <span class="fl">0.2</span>, <span class="dt">nudge_y =</span> <span class="fl">0.3</span>, <span class="dt">fill =</span> <span class="st">&quot;gray95&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">x =</span> <span class="op">-</span><span class="dv">1</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">xend =</span> <span class="op">-</span><span class="dv">4</span>, <span class="dt">yend =</span> <span class="dv">0</span>), 
+               <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;cm&quot;</span>))) <span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="op">-</span><span class="dv">4</span>, <span class="dt">y =</span> <span class="op">-</span><span class="fl">0.5</span>, <span class="dt">label =</span> <span class="st">&quot;higher in clone1&quot;</span>, <span class="dt">size =</span> <span class="dv">6</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">x =</span> <span class="dv">1</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">xend =</span> <span class="dv">4</span>, <span class="dt">yend =</span> <span class="dv">0</span>), 
+               <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">arrow =</span> <span class="kw">arrow</span>(<span class="dt">length =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;cm&quot;</span>))) <span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="dv">4</span>, <span class="dt">y =</span> <span class="op">-</span><span class="fl">0.5</span>, <span class="dt">label =</span> <span class="st">&quot;higher in clone2&quot;</span>, <span class="dt">size =</span> <span class="dv">6</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;gray60&quot;</span>, <span class="st">&quot;firebrick&quot;</span>), 
+                    <span class="dt">label =</span> <span class="kw">c</span>(<span class="st">&quot;N.S.&quot;</span>, <span class="st">&quot;FDR &lt; 10%&quot;</span>), <span class="dt">name =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_size_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="dt">guide =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">guides</span>(<span class="dt">alpha =</span> <span class="ot">FALSE</span>,
+         <span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">override.aes =</span> <span class="kw">list</span>(<span class="dt">size =</span> <span class="dv">5</span>))) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">20</span>) <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)
+
+<span class="co"># ggplot(de_joxm_cl2_vs_cl1, aes(x = logFC, y = -log10(PValue), </span>
+<span class="co">#                                fill = cell_cycle_gene, label = lab)) +</span>
+<span class="co">#   geom_point(aes(size = sig), pch = 21, colour = &quot;gray40&quot;) +</span>
+<span class="co">#   geom_point(aes(size = sig), pch = 21, colour = &quot;gray40&quot;, </span>
+<span class="co">#              data = dplyr::filter(de_joxm_cl2_vs_cl1, cell_cycle_gene)) +</span>
+<span class="co">#   geom_label_repel(show.legend = FALSE, </span>
+<span class="co">#                    arrow = arrow(type = &quot;closed&quot;, length = unit(0.25, &quot;cm&quot;)), </span>
+<span class="co">#                    nudge_x = 0.2, nudge_y = 0.3, fill = &quot;gray95&quot;) +</span>
+<span class="co">#   geom_segment(aes(x = -1, y = 0, xend = -4, yend = 0), </span>
+<span class="co">#                colour = &quot;black&quot;, size = 1, arrow = arrow(length = unit(0.5, &quot;cm&quot;))) +</span>
+<span class="co">#   annotate(&quot;text&quot;, x = -4, y = -0.5, label = &quot;higher in clone1&quot;, size = 6) +</span>
+<span class="co">#   geom_segment(aes(x = 1, y = 0, xend = 4, yend = 0), </span>
+<span class="co">#                colour = &quot;black&quot;, size = 1, arrow = arrow(length = unit(0.5, &quot;cm&quot;))) +</span>
+<span class="co">#   annotate(&quot;text&quot;, x = 4, y = -0.5, label = &quot;higher in clone2&quot;, size = 6) +</span>
+<span class="co">#   scale_fill_manual(values = c(&quot;gray60&quot;, &quot;firebrick&quot;), </span>
+<span class="co">#                     label = c(&quot;N.S.&quot;, &quot;FDR &lt; 10%&quot;), name = &quot;&quot;) +</span>
+<span class="co">#   scale_size_manual(values = c(1, 3), guide = FALSE) +</span>
+<span class="co">#   guides(alpha = FALSE) +</span>
+<span class="co">#   theme_classic(20) + theme(legend.position = &quot;right&quot;)</span>
+
+## genesets
+cam_H_pw &lt;-<span class="st"> </span>de_res<span class="op">$</span>camera<span class="op">$</span>H<span class="op">$</span>joxm<span class="op">$</span>clone2_clone1<span class="op">$</span>logFC
+cam_H_pw[[<span class="st">&quot;geneset&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">rownames</span>(cam_H_pw)
+cam_H_pw &lt;-<span class="st"> </span>cam_H_pw <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">sig =</span> FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>) 
+cam_H_pw[[<span class="st">&quot;lab&quot;</span>]] &lt;-<span class="st"> &quot;&quot;</span>
+cam_H_pw[[<span class="st">&quot;lab&quot;</span>]][<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>] &lt;-
+<span class="st">    </span>cam_H_pw[[<span class="st">&quot;geneset&quot;</span>]][<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>]
+
+cam_H_pw &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(
+    cam_H_pw,
+    <span class="dt">Direction =</span> <span class="kw">gsub</span>(<span class="st">&quot;clone4&quot;</span>, <span class="st">&quot;clone2&quot;</span>, Direction)
+)
+p_genesets &lt;-<span class="st"> </span>cam_H_pw <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> Direction, <span class="dt">y =</span> <span class="op">-</span><span class="kw">log10</span>(PValue), <span class="dt">colour =</span> sig, 
+             <span class="dt">label =</span> lab)) <span class="op">+</span>
+<span class="st">  </span>ggbeeswarm<span class="op">::</span><span class="kw">geom_quasirandom</span>(<span class="kw">aes</span>(<span class="dt">size =</span> NGenes)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_label_repel</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>,
+                   <span class="dt">nudge_y =</span> <span class="fl">0.3</span>, <span class="dt">nudge_x =</span> <span class="fl">0.3</span>, <span class="dt">fill =</span> <span class="st">&quot;gray95&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_colour_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;gray50&quot;</span>, <span class="st">&quot;firebrick&quot;</span>), 
+                      <span class="dt">label =</span> <span class="kw">c</span>(<span class="st">&quot;N.S.&quot;</span>, <span class="st">&quot;FDR &lt; 5%&quot;</span>), <span class="dt">name =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">guides</span>(<span class="dt">alpha =</span> <span class="ot">FALSE</span>,
+         <span class="dt">colour =</span> <span class="kw">guide_legend</span>(<span class="dt">override.aes =</span> <span class="kw">list</span>(<span class="dt">size =</span> <span class="dv">5</span>))) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set enrichment direction&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">20</span>) <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)
+
+
+## produce combined fig
+## combine pca and barplot
+p_bar_pca &lt;-<span class="st"> </span><span class="kw">ggdraw</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">draw_plot</span>(p_pca <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.justification =</span> <span class="st">&quot;bottom&quot;</span>), <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">draw_plot</span>(p_bar, <span class="dt">x =</span> <span class="fl">0.48</span>, <span class="fl">0.65</span>, <span class="dt">height =</span> <span class="fl">0.35</span>, <span class="dt">width =</span> <span class="fl">0.52</span>, <span class="dt">scale =</span> <span class="dv">1</span>)
+
+<span class="kw">ggdraw</span>() <span class="op">+</span>
+<span class="st">    </span><span class="kw">draw_plot</span>(p_tree, <span class="dt">x =</span> <span class="dv">0</span>,  <span class="dt">y =</span> <span class="fl">0.45</span>, <span class="dt">width =</span> <span class="fl">0.48</span>, <span class="dt">height =</span> <span class="fl">0.55</span>, <span class="dt">scale =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">draw_plot</span>(p_bar_pca, <span class="dt">x =</span> <span class="fl">0.52</span>, <span class="dt">y =</span> <span class="fl">0.45</span>, <span class="dt">width =</span> <span class="fl">0.48</span>, <span class="dt">height =</span> <span class="fl">0.55</span>, <span class="dt">scale =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">draw_plot</span>(p_volcano, <span class="dt">x =</span> <span class="dv">0</span>,  <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">width =</span> <span class="fl">0.48</span>, <span class="dt">height =</span> <span class="fl">0.45</span>, <span class="dt">scale =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">draw_plot</span>(p_genesets, <span class="dt">x =</span> <span class="fl">0.52</span>,  <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">width =</span> <span class="fl">0.48</span>, <span class="dt">height =</span> <span class="fl">0.45</span>, <span class="dt">scale =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">draw_plot_label</span>(letters[<span class="dv">1</span><span class="op">:</span><span class="dv">4</span>], <span class="dt">x =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">0</span>, <span class="fl">0.5</span>), 
+                    <span class="dt">y =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="fl">0.45</span>, <span class="fl">0.45</span>), <span class="dt">size =</span> <span class="dv">36</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/combined-fig-1.png" width="1728" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_combined_fig.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="dv">16</span>, <span class="dt">width =</span> <span class="dv">18</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_combined_fig.pdf&quot;</span>, 
+       <span class="dt">height =</span> <span class="dv">16</span>, <span class="dt">width =</span> <span class="dv">18</span>)
+
+
+## plots for talk
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_bar_pca.png&quot;</span>, <span class="dt">plot =</span> p_bar_pca,
+       <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">10</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_volcano.png&quot;</span>, <span class="dt">plot =</span> p_volcano,
+       <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">10</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_genesets.png&quot;</span>, <span class="dt">plot =</span> p_genesets,
+       <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">10</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_mutated_clone.png&quot;</span>, <span class="dt">plot =</span> p_mutated_clone,
+       <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">14</span>)
+
+
+<span class="co"># ggdraw() +</span>
+<span class="co">#     draw_plot(p_tree, x = 0,  y = 0.57, width = 0.48, height = 0.43, scale = 1) +</span>
+<span class="co">#     draw_plot(p_bar_pca, x = 0.52, y = 0.57, width = 0.48, height = 0.43, scale = 1) +</span>
+<span class="co">#     draw_plot(p_volcano, x = 0,  y = 0.3, width = 0.48, height = 0.27, scale = 1) +</span>
+<span class="co">#     draw_plot(p_genesets, x = 0.52,  y = 0.3, width = 0.48, height = 0.27, scale = 1) +</span>
+<span class="co">#     #draw_plot(p_table, x = 0,  y = 0.2, width = 1, height = 0.15, scale = 1) +</span>
+<span class="co">#     draw_plot(p_mutated_clone, x = 0.05,  y = 0, width = 0.9, height = 0.3, scale = 1) +</span>
+<span class="co">#     draw_plot_label(letters[1:5], x = c(0, 0.5, 0, 0.5, 0), </span>
+<span class="co">#                     y = c(1, 1, 0.57, 0.57, 0.3), size = 36)</span>
+<span class="co"># ggsave(&quot;figures/donor_specific/joxm_combined_fig.png&quot;, </span>
+<span class="co">#        height = 20, width = 19)</span>
+<span class="co"># ggsave(&quot;figures/donor_specific/joxm_combined_fig.pdf&quot;, </span>
+<span class="co">#        height = 20, width = 19)</span></code></pre></div>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">session_info</span>()</code></pre></div>
+<pre><code> setting  value                       
+ version  R version 3.5.1 (2018-07-02)
+ system   x86_64, darwin15.6.0        
+ ui       X11                         
+ language (EN)                        
+ collate  en_GB.UTF-8                 
+ tz       Europe/London               
+ date     2018-08-17                  
+
+ package              * version   date       source                
+ AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
+ ape                    5.1       2018-04-04 CRAN (R 3.5.0)        
+ assertthat             0.2.0     2017-04-11 CRAN (R 3.5.0)        
+ backports              1.1.2     2017-12-13 CRAN (R 3.5.0)        
+ base                 * 3.5.1     2018-07-05 local                 
+ beeswarm               0.2.3     2016-04-25 CRAN (R 3.5.0)        
+ bindr                  0.1.1     2018-03-13 CRAN (R 3.5.0)        
+ bindrcpp             * 0.2.2     2018-03-29 CRAN (R 3.5.0)        
+ Biobase              * 2.40.0    2018-05-01 Bioconductor          
+ BiocGenerics         * 0.26.0    2018-05-01 Bioconductor          
+ BiocParallel         * 1.14.2    2018-07-08 Bioconductor          
+ biomaRt                2.36.1    2018-05-24 Bioconductor          
+ Biostrings             2.48.0    2018-05-01 Bioconductor          
+ bit                    1.1-14    2018-05-29 CRAN (R 3.5.0)        
+ bit64                  0.9-7     2017-05-08 CRAN (R 3.5.0)        
+ bitops                 1.0-6     2013-08-17 CRAN (R 3.5.0)        
+ blob                   1.1.1     2018-03-25 CRAN (R 3.5.0)        
+ broom                  0.5.0     2018-07-17 CRAN (R 3.5.0)        
+ BSgenome               1.48.0    2018-05-01 Bioconductor          
+ cardelino            * 0.0.13    2018-08-17 Bioconductor          
+ cellranger             1.1.0     2016-07-27 CRAN (R 3.5.0)        
+ cli                    1.0.0     2017-11-05 CRAN (R 3.5.0)        
+ colorspace             1.3-2     2016-12-14 CRAN (R 3.5.0)        
+ compiler               3.5.1     2018-07-05 local                 
+ cowplot              * 0.9.3     2018-07-15 CRAN (R 3.5.0)        
+ crayon                 1.3.4     2017-09-16 CRAN (R 3.5.0)        
+ data.table             1.11.4    2018-05-27 CRAN (R 3.5.0)        
+ datasets             * 3.5.1     2018-07-05 local                 
+ DBI                    1.0.0     2018-05-02 CRAN (R 3.5.0)        
+ DelayedArray         * 0.6.3     2018-08-01 Bioconductor          
+ DelayedMatrixStats     1.2.0     2018-05-01 Bioconductor          
+ devtools               1.13.6    2018-06-27 CRAN (R 3.5.0)        
+ digest                 0.6.15    2018-01-28 CRAN (R 3.5.0)        
+ dplyr                * 0.7.6     2018-06-29 CRAN (R 3.5.1)        
+ edgeR                * 3.22.3    2018-06-21 Bioconductor          
+ evaluate               0.11      2018-07-17 CRAN (R 3.5.0)        
+ fansi                  0.2.3     2018-05-06 CRAN (R 3.5.0)        
+ fdrtool                1.2.15    2015-07-08 CRAN (R 3.5.0)        
+ forcats              * 0.3.0     2018-02-19 CRAN (R 3.5.0)        
+ gdtools              * 0.1.7     2018-02-27 CRAN (R 3.5.0)        
+ GenomeInfoDb         * 1.16.0    2018-05-01 Bioconductor          
+ GenomeInfoDbData       1.1.0     2018-04-25 Bioconductor          
+ GenomicAlignments      1.16.0    2018-05-01 Bioconductor          
+ GenomicFeatures        1.32.0    2018-05-01 Bioconductor          
+ GenomicRanges        * 1.32.6    2018-07-20 Bioconductor          
+ ggbeeswarm             0.6.0     2017-08-07 CRAN (R 3.5.0)        
+ ggforce              * 0.1.3     2018-07-07 CRAN (R 3.5.0)        
+ ggplot2              * 3.0.0     2018-07-03 CRAN (R 3.5.0)        
+ ggrepel              * 0.8.0     2018-05-09 CRAN (R 3.5.0)        
+ ggridges             * 0.5.0     2018-04-05 CRAN (R 3.5.0)        
+ ggthemes             * 4.0.0     2018-07-19 CRAN (R 3.5.0)        
+ ggtree                 1.12.6    2018-07-21 Bioconductor          
+ git2r                  0.23.0    2018-07-17 CRAN (R 3.5.0)        
+ glue                   1.3.0     2018-07-17 CRAN (R 3.5.0)        
+ graphics             * 3.5.1     2018-07-05 local                 
+ grDevices            * 3.5.1     2018-07-05 local                 
+ grid                   3.5.1     2018-07-05 local                 
+ gridExtra              2.3       2017-09-09 CRAN (R 3.5.0)        
+ gtable                 0.2.0     2016-02-26 CRAN (R 3.5.0)        
+ haven                  1.1.2     2018-06-27 CRAN (R 3.5.0)        
+ hms                    0.4.2     2018-03-10 CRAN (R 3.5.0)        
+ htmltools              0.3.6     2017-04-28 CRAN (R 3.5.0)        
+ httr                   1.3.1     2017-08-20 CRAN (R 3.5.0)        
+ IHW                  * 1.8.0     2018-05-01 Bioconductor          
+ IRanges              * 2.14.10   2018-05-16 Bioconductor          
+ jsonlite               1.5       2017-06-01 CRAN (R 3.5.0)        
+ knitr                  1.20      2018-02-20 CRAN (R 3.5.0)        
+ labeling               0.3       2014-08-23 CRAN (R 3.5.0)        
+ lattice                0.20-35   2017-03-25 CRAN (R 3.5.1)        
+ lazyeval               0.2.1     2017-10-29 CRAN (R 3.5.0)        
+ limma                * 3.36.2    2018-06-21 Bioconductor          
+ locfit                 1.5-9.1   2013-04-20 CRAN (R 3.5.0)        
+ lpsymphony             1.8.0     2018-05-01 Bioconductor (R 3.5.0)
+ lubridate              1.7.4     2018-04-11 CRAN (R 3.5.0)        
+ magrittr               1.5       2014-11-22 CRAN (R 3.5.0)        
+ MASS                   7.3-50    2018-04-30 CRAN (R 3.5.1)        
+ Matrix                 1.2-14    2018-04-13 CRAN (R 3.5.1)        
+ matrixStats          * 0.54.0    2018-07-23 CRAN (R 3.5.0)        
+ memoise                1.1.0     2017-04-21 CRAN (R 3.5.0)        
+ methods              * 3.5.1     2018-07-05 local                 
+ modelr                 0.1.2     2018-05-11 CRAN (R 3.5.0)        
+ munsell                0.5.0     2018-06-12 CRAN (R 3.5.0)        
+ nlme                   3.1-137   2018-04-07 CRAN (R 3.5.1)        
+ org.Hs.eg.db         * 3.6.0     2018-05-15 Bioconductor          
+ parallel             * 3.5.1     2018-07-05 local                 
+ pheatmap               1.0.10    2018-05-19 CRAN (R 3.5.0)        
+ pillar                 1.3.0     2018-07-14 CRAN (R 3.5.0)        
+ pkgconfig              2.0.1     2017-03-21 CRAN (R 3.5.0)        
+ plyr                   1.8.4     2016-06-08 CRAN (R 3.5.0)        
+ prettyunits            1.0.2     2015-07-13 CRAN (R 3.5.0)        
+ progress               1.2.0     2018-06-14 CRAN (R 3.5.0)        
+ purrr                * 0.2.5     2018-05-29 CRAN (R 3.5.0)        
+ R.methodsS3            1.7.1     2016-02-16 CRAN (R 3.5.0)        
+ R.oo                   1.22.0    2018-04-22 CRAN (R 3.5.0)        
+ R.utils                2.6.0     2017-11-05 CRAN (R 3.5.0)        
+ R6                     2.2.2     2017-06-17 CRAN (R 3.5.0)        
+ RColorBrewer         * 1.1-2     2014-12-07 CRAN (R 3.5.0)        
+ Rcpp                   0.12.18   2018-07-23 CRAN (R 3.5.0)        
+ RCurl                  1.95-4.11 2018-07-15 CRAN (R 3.5.0)        
+ readr                * 1.1.1     2017-05-16 CRAN (R 3.5.0)        
+ readxl                 1.1.0     2018-04-20 CRAN (R 3.5.0)        
+ reshape2               1.4.3     2017-12-11 CRAN (R 3.5.0)        
+ rhdf5                  2.24.0    2018-05-01 Bioconductor          
+ Rhdf5lib               1.2.1     2018-05-17 Bioconductor          
+ rjson                  0.2.20    2018-06-08 CRAN (R 3.5.0)        
+ rlang                * 0.2.1     2018-05-30 CRAN (R 3.5.0)        
+ rmarkdown              1.10      2018-06-11 CRAN (R 3.5.0)        
+ rprojroot              1.3-2     2018-01-03 CRAN (R 3.5.0)        
+ Rsamtools              1.32.2    2018-07-03 Bioconductor          
+ RSQLite                2.1.1     2018-05-06 CRAN (R 3.5.0)        
+ rstudioapi             0.7       2017-09-07 CRAN (R 3.5.0)        
+ rtracklayer            1.40.3    2018-06-02 Bioconductor          
+ rvcheck                0.1.0     2018-05-23 CRAN (R 3.5.0)        
+ rvest                  0.3.2     2016-06-17 CRAN (R 3.5.0)        
+ S4Vectors            * 0.18.3    2018-06-08 Bioconductor          
+ scales                 0.5.0     2017-08-24 CRAN (R 3.5.0)        
+ scater               * 1.9.12    2018-08-03 Bioconductor          
+ scico                  1.0.0     2018-05-30 CRAN (R 3.5.0)        
+ SingleCellExperiment * 1.2.0     2018-05-01 Bioconductor          
+ slam                   0.1-43    2018-04-23 CRAN (R 3.5.0)        
+ snpStats               1.30.0    2018-05-01 Bioconductor          
+ splines                3.5.1     2018-07-05 local                 
+ stats                * 3.5.1     2018-07-05 local                 
+ stats4               * 3.5.1     2018-07-05 local                 
+ stringi                1.2.4     2018-07-20 CRAN (R 3.5.0)        
+ stringr              * 1.3.1     2018-05-10 CRAN (R 3.5.0)        
+ SummarizedExperiment * 1.10.1    2018-05-11 Bioconductor          
+ superheat            * 0.1.0     2017-02-04 CRAN (R 3.5.0)        
+ survival               2.42-6    2018-07-13 CRAN (R 3.5.0)        
+ svglite                1.2.1     2017-09-11 CRAN (R 3.5.0)        
+ tibble               * 1.4.2     2018-01-22 CRAN (R 3.5.0)        
+ tidyr                * 0.8.1     2018-05-18 CRAN (R 3.5.0)        
+ tidyselect             0.2.4     2018-02-26 CRAN (R 3.5.0)        
+ tidytree               0.1.9     2018-06-13 CRAN (R 3.5.0)        
+ tidyverse            * 1.2.1     2017-11-14 CRAN (R 3.5.0)        
+ tools                  3.5.1     2018-07-05 local                 
+ treeio                 1.4.2     2018-07-19 Bioconductor          
+ tweenr                 0.1.5     2016-10-10 CRAN (R 3.5.0)        
+ tximport               1.8.0     2018-05-01 Bioconductor          
+ units                  0.6-0     2018-06-09 CRAN (R 3.5.0)        
+ utf8                   1.1.4     2018-05-24 CRAN (R 3.5.0)        
+ utils                * 3.5.1     2018-07-05 local                 
+ VariantAnnotation      1.26.1    2018-07-04 Bioconductor          
+ vipor                  0.4.5     2017-03-22 CRAN (R 3.5.0)        
+ viridis              * 0.5.1     2018-03-29 CRAN (R 3.5.0)        
+ viridisLite          * 0.3.0     2018-02-01 CRAN (R 3.5.0)        
+ whisker                0.3-2     2013-04-28 CRAN (R 3.5.0)        
+ withr                  2.1.2     2018-03-15 CRAN (R 3.5.0)        
+ workflowr              1.1.1     2018-07-06 CRAN (R 3.5.0)        
+ XML                    3.98-1.13 2018-08-01 CRAN (R 3.5.0)        
+ xml2                   1.2.0     2018-01-24 CRAN (R 3.5.0)        
+ XVector                0.20.0    2018-05-01 Bioconductor          
+ yaml                   2.2.0     2018-07-25 CRAN (R 3.5.1)        
+ zlibbioc               1.26.0    2018-05-01 Bioconductor          </code></pre>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
