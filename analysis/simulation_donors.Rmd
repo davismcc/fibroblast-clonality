@@ -1,18 +1,18 @@
 ---
-title: "Simulation analysis for all donors"
+title: "Simulation analysis for all lines"
 author: "Yuanhua Huang & Davis J. McCarthy"
 site: workflowr::wflow_site
 ---
 
 ## Load libraries and simulation results
 
-```{r load-libs}
+```{r load-libs, warning=FALSE, message=FALSE}
 library(ggpubr)
 library(tidyverse)
 library(cardelino)
 library(viridis)
 library(cowplot)
-donors <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
+lines <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
             "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
             "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
             "ualf", "vass", "vuna", "wahn", "wetu", "xugn", "zoxy", "vils")
@@ -23,10 +23,10 @@ donors <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn",
 ### Load simulation results
 
 ```{r}
-all_files <- paste0(donors, ".simulate.rds")
-assign_0 <- matrix(0, nrow = 500, ncol = length(donors))
-assign_1 <- matrix(0, nrow = 500, ncol = length(donors))
-prob_all <- matrix(0, nrow = 500, ncol = length(donors))
+all_files <- paste0(lines, ".simulate.rds")
+assign_0 <- matrix(0, nrow = 500, ncol = length(lines))
+assign_1 <- matrix(0, nrow = 500, ncol = length(lines))
+prob_all <- matrix(0, nrow = 500, ncol = length(lines))
 
 for (i in seq_len(length(all_files))) {
   afile <- all_files[i]
@@ -40,11 +40,11 @@ for (i in seq_len(length(all_files))) {
 ### Load results from real data
 
 ```{r}
-all_files <- paste0("cardelino_results.", donors, 
+all_files <- paste0("cardelino_results.", lines, 
                     ".filt_lenient.cell_coverage_sites.rds")
-n_sites <- rep(0, length(donors))
-n_clone <- rep(0, length(donors))
-recall_all <- rep(0, length(donors))
+n_sites <- rep(0, length(lines))
+n_clone <- rep(0, length(lines))
+recall_all <- rep(0, length(lines))
 for (i in seq_len(length(all_files))) {
   afile <- all_files[i]
   carde_dat <- readRDS(file.path("data", "cell_assignment", afile))
@@ -59,13 +59,13 @@ data is `r round(cor(colMeans(prob_all > 0.5), recall_all), digits = 3)`.
 
 
 ```{r}
-precision_simu <- rep(0, length(donors))
-for (i in seq_len(length(donors))) {
+precision_simu <- rep(0, length(lines))
+for (i in seq_len(length(lines))) {
   idx <- prob_all[, i] > 0.5
   precision_simu[i] <- mean(assign_0[idx, i] == assign_1[idx, i])
 }
 
-df <- data.frame(donor = donors, n_sites = n_sites, n_clone = n_clone, 
+df <- data.frame(line = lines, n_sites = n_sites, n_clone = n_clone, 
                  recall_real = recall_all, recall_simu = colMeans(prob_all > 0.5),
                  precision_simu = precision_simu)
 ```
@@ -127,8 +127,15 @@ ggsave("figures/simulations/sim_precision_v_recall.pdf",
 
 ## Clone statistics
 
+Table showing the number of lines with 2, 3 and 4 clones.
+
 ```{r}
 table(df$n_clone)
-summary(df$n_sites / df$n_clone)
+```
+
+Summary of the average number of mutations per clonal branch across lines.
+
+```{r}
+summary(df$n_sites / (df$n_clone - 1))
 ```
 
