@@ -478,13 +478,11 @@ df_camera_all_unst %>%
     dplyr::filter(stat == "logFC") %>%
     group_by(donor, msigdb_collection, contrast) %>%
     summarise(n_sig = sum(FDR < 0.05)) %>% ungroup() %>% 
-    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor)))),
-                  pos_selection = as.character(donor)  %in% pos_sel_donors) %>%
+    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor))))) %>%
     ggplot(aes(y = n_sig, x = donor,
-               fill = contrast, shape = pos_selection)) +
+               fill = contrast)) +
     geom_point(alpha = 1, size = 4, colour = "gray50") +
     facet_wrap(~ msigdb_collection, scales = "free_x") + 
-    scale_shape_manual(values = c(21, 23), name = "positive\nselection") +
     scale_fill_brewer(palette = "Accent") +
     coord_flip() +
     theme_bw(16) +
@@ -509,12 +507,10 @@ df_camera_all_unst %>%
     dplyr::filter(stat == "logFC") %>%
     group_by(donor, msigdb_collection) %>%
     summarise(n_sig = sum(FDR < 0.05)) %>% ungroup() %>% 
-    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor)))),
-                  pos_selection = as.character(donor)  %in% pos_sel_donors) %>%
-    ggplot(aes(y = n_sig, x = donor, shape = pos_selection)) +
+    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor))))) %>%
+    ggplot(aes(y = n_sig, x = donor)) +
     geom_point(alpha = 1, size = 4) +
     facet_wrap(~ msigdb_collection, scales = "free_x") + 
-    scale_shape_manual(values = c(1, 8), name = "positive\nselection") +
     scale_fill_brewer(palette = "Accent") +
     coord_flip() +
     theme_bw(16) +
@@ -538,8 +534,6 @@ names(ncells_by_donor) <- names(sce_unst_list)
 for (don in names(sce_unst_list))
     ncells_by_donor[don] <- ncol(sce_unst_list[[don]])
 
-
-
 df_camera_all_unst %>% 
     dplyr::filter(stat == "logFC") %>%
     group_by(donor, msigdb_collection) %>%
@@ -548,12 +542,10 @@ df_to_plot <- inner_join(df_to_plot,
                         data_frame(donor = names(ncells_by_donor),
                                    ncells = ncells_by_donor))
 df_to_plot %>%
-    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor)))),
-                  pos_selection = as.character(donor)  %in% pos_sel_donors) %>%
-    ggplot(aes(y = n_sig, x = donor, shape = pos_selection, size = ncells)) +
+    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor))))) %>%
+    ggplot(aes(y = n_sig, x = donor, size = ncells)) +
     geom_point(alpha = 1) +
     facet_wrap(~ msigdb_collection, scales = "free_x") + 
-    scale_shape_manual(values = c(1, 8), name = "positive\nselection") +
     scale_fill_brewer(palette = "Accent") +
     coord_flip() +
     theme_bw(16) +
@@ -857,7 +849,7 @@ df_donor_info$donor <- df_donor_info$donor_short
 df_ncells_de <- assignments %>% dplyr::filter(assigned != "unassigned", 
                               donor_short_id %in% names(de_res$qlf_list)) %>%
     group_by(donor_short_id) %>%
-    summarise(n_cells_de = n())
+    summarise(n_cells = n())
 colnames(df_ncells_de)[1] <- "donor"
 
 df_prop_assigned <- assignments %>% 
