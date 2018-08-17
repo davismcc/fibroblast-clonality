@@ -1,5 +1,5 @@
 ---
-title: "Mutated gene analysis across all donors"
+title: "Mutated gene analysis across all lines"
 author: "Davis J. McCarthy"
 site: workflowr::wflow_site
 ---
@@ -20,7 +20,7 @@ Clonal trees were inferred with [Canopy](http://www.pnas.org/content/early/2016/
 allele frequency information from a set of strictly filtered somatic variants
 called from whole-exome sequencing data. We filtered somatic variants to only 
 include variants that had read coverage in at least one single-cell for the 
-relevant donor. Assignment of cells to clones was done with [cardelino](https://github.com/PMBio/cardelino).
+relevant line. Assignment of cells to clones was done with [cardelino](https://github.com/PMBio/cardelino).
 
 ## Load libraries and data
 
@@ -53,7 +53,7 @@ colnames(vep_best)[1] <- "Uploaded_variation"
 vep_best <- vep_best[!duplicated(vep_best[["Uploaded_variation"]]),]
 ```
 
-There are `r nrow(vep_best)` variants, aggregated across all donors, and we can 
+There are `r nrow(vep_best)` variants, aggregated across all lines, and we can 
 check the number that fall into the different VEP annotation categories.
 
 ```{r}
@@ -123,17 +123,17 @@ params <- list()
 params$callset <- "filt_lenient.cell_coverage_sites"
 fls <- list.files("data/sces")
 fls <- fls[grepl(params$callset, fls)]
-donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+lines <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
 
 sce_unst_list <- list()
-for (don in donors) {
+for (don in lines) {
     sce_unst_list[[don]] <- readRDS(file.path("data/sces", 
         paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
     cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), "cells.\n"))
 }
 
 assignments_lst <- list()
-for (don in donors) {
+for (don in lines) {
     assignments_lst[[don]] <- as_data_frame(
         colData(sce_unst_list[[don]])[, 
                                       c("donor_short_id", "highest_prob", 
@@ -144,7 +144,7 @@ assignments <- do.call("rbind", assignments_lst)
 ```
 
 We have SCE objects (expression data and cell assignments) for 
-`r length(donors)` donors, with `r round(100 * mean(assignments$assigned != "unassigned"))`% 
+`r length(lines)` lines, with `r round(100 * mean(assignments$assigned != "unassigned"))`% 
 of cells confidently assigned to a clone.
 
 Finally, we load transcriptome-wide differential expression results computed 
@@ -156,45 +156,45 @@ de_res <- readRDS(paste0("data/de_analysis_FTv62/",
                          ".de_results_unstimulated_cells.rds"))
 ```
 
-## Annotating variants with clone presence by donor
+## Annotating variants with clone presence by line
 
 Next, we need to annotate the variants with information about which clones they
 are expected to be present in (obtained from the Canopy tree inference).
 
 ```{r load-sce-canopy}
 cell_assign_list <- list()
-for (don in donors) {
+for (don in lines) {
     cell_assign_list[[don]] <- readRDS(file.path("data/cell_assignment", 
         paste0("cardelino_results.", don, ".", params$callset, ".rds")))
     cat(paste("reading", don, "\n"))
 } 
 
-get_sites_by_donor <- function(sites_df, sce_list, assign_list) {
+get_sites_by_line <- function(sites_df, sce_list, assign_list) {
     if (!identical(sort(names(sce_list)), sort(names(assign_list))))
-        stop("donors do not match between sce_list and assign_list.")
-    sites_by_donor <- list()
+        stop("lines do not match between sce_list and assign_list.")
+    sites_by_line <- list()
     for (don in names(sce_list)) {
         config <- as_data_frame(assign_list[[don]]$tree$Z)
         config[["var_id"]] <- rownames(assign_list[[don]]$tree$Z)
-        sites_donor <- inner_join(sites_df, config)
-        sites_donor[["clone_presence"]] <- ""
+        sites_line <- inner_join(sites_df, config)
+        sites_line[["clone_presence"]] <- ""
         for (cln in colnames(assign_list[[don]]$tree$Z)[-1]) {
-            sites_donor[["clone_presence"]][
-                as.logical(sites_donor[[cln]])] <- paste(
-                    sites_donor[["clone_presence"]][
-                        as.logical(sites_donor[[cln]])], cln, sep = "&")
+            sites_line[["clone_presence"]][
+                as.logical(sites_line[[cln]])] <- paste(
+                    sites_line[["clone_presence"]][
+                        as.logical(sites_line[[cln]])], cln, sep = "&")
         }
-        sites_donor[["clone_presence"]] <- gsub("^&", "",
-                                                sites_donor[["clone_presence"]])
-        ## drop config columns as these won't match up between donors
-        keep_cols <- grep("^clone[0-9]$", colnames(sites_donor), invert = TRUE)
-        sites_by_donor[[don]] <- sites_donor[, keep_cols]
+        sites_line[["clone_presence"]] <- gsub("^&", "",
+                                                sites_line[["clone_presence"]])
+        ## drop config columns as these won't match up between lines
+        keep_cols <- grep("^clone[0-9]$", colnames(sites_line), invert = TRUE)
+        sites_by_line[[don]] <- sites_line[, keep_cols]
     }
-    do.call("bind_rows", sites_by_donor)
+    do.call("bind_rows", sites_by_line)
 }
 
-sites_by_donor <- get_sites_by_donor(exome_sites, sce_unst_list, cell_assign_list)
-sites_by_donor <- dplyr::mutate(sites_by_donor, 
+sites_by_line <- get_sites_by_line(exome_sites, sce_unst_list, cell_assign_list)
+sites_by_line <- dplyr::mutate(sites_by_line, 
                                 Consequence = gsub("_variant", "", Consequence))
 ```
 
@@ -221,23 +221,23 @@ for (don in names(de_res[["sce_list_unst"]])) {
         keep.extra.columns = TRUE)
     seqlevelsStyle(sce_de_list_gr[[don]]) <- "Ensembl"
 }
-sites_by_donor <- dplyr::mutate(sites_by_donor, end_pos = pos)
-sites_by_donor_gr <- makeGRangesFromDataFrame(
-        sites_by_donor,
+sites_by_line <- dplyr::mutate(sites_by_line, end_pos = pos)
+sites_by_line_gr <- makeGRangesFromDataFrame(
+        sites_by_line,
         start.field = "pos",
         end.field = "end_pos",
         keep.extra.columns = TRUE)
-seqlevelsStyle(sites_by_donor_gr) <- "Ensembl"
+seqlevelsStyle(sites_by_line_gr) <- "Ensembl"
 ```
 
 Run DE testing between mutated and un-mutated clones for all affected genes for
-each donor.
+each line.
 
 ```{r}
 mut_genes_df_allcells_list <- list()
 for (don in names(de_res[["sce_list_unst"]])) {
     cat("working on ", don, "\n")
-    sites_tmp <- sites_by_donor_gr[sites_by_donor_gr$donor_short_id == don]
+    sites_tmp <- sites_by_line_gr[sites_by_line_gr$donor_short_id == don]
     ov_tmp <- findOverlaps(sce_de_list_gr[[don]], sites_tmp)
     sce_tmp <- de_res[["sce_list_unst"]][[don]][queryHits(ov_tmp),]
     sites_tmp <- sites_tmp[subjectHits(ov_tmp)]
@@ -245,7 +245,7 @@ for (don in names(de_res[["sce_list_unst"]])) {
     dge_tmp <- de_res[["dge_list"]][[don]]
     dge_tmp <- dge_tmp[intersect(rownames(dge_tmp), sites_tmp$gene),]
     base_design <- dge_tmp$design[, !grepl("assigned", colnames(dge_tmp$design))]
-    de_tbl_tmp <- data.frame(donor = don,
+    de_tbl_tmp <- data.frame(line = don,
                              gene = sites_tmp$gene, 
                              hgnc_symbol = gsub(".*_", "", sites_tmp$gene),
                              ensembl_gene_id = gsub("_.*", "", sites_tmp$gene),
@@ -327,11 +327,11 @@ ggplot(aes(x = logFC, y = -log10(PValue),
     theme(strip.background = element_rect(fill = "gray90"),
           legend.position = c(0.9, 0.1))
  
-ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_vep_anno_allcells.png", 
+ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_vep_anno_allcells.png", 
        height = 7, width = 16)
-ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_vep_anno_allcells.pdf", 
+ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_vep_anno_allcells.pdf", 
        height = 7, width = 16)
-ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_vep_anno_allcells.svg", 
+ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_vep_anno_allcells.svg", 
        height = 7, width = 16)  
 ```
 
@@ -356,11 +356,11 @@ ggplot(aes(x = logFC, y = -log10(PValue),
           strip.text = element_text(size = 13),
           legend.position = c(0.8, 0.15))
  
-ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_simple_vep_anno_allcells.png", 
+ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_simple_vep_anno_allcells.png", 
        height = 7, width = 10.5)
-ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_simple_vep_anno_allcells.pdf", 
+ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_simple_vep_anno_allcells.pdf", 
        height = 7, width = 10.5)
-ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_simple_vep_anno_allcells.svg", 
+ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_simple_vep_anno_allcells.svg", 
        height = 7, width = 10.5)  
 ```
 
@@ -405,11 +405,11 @@ for (cons in simple_cons_vec) {
 }
 cowplot::plot_grid(plotlist = plist, nrow = 2)
 
-ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_simple_vep_anno_allcells_with_boxplot.png", 
+ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_simple_vep_anno_allcells_with_boxplot.png", 
        height = 7, width = 18)
-ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_simple_vep_anno_allcells_with_boxplot.pdf", 
+ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_simple_vep_anno_allcells_with_boxplot.pdf", 
        height = 7, width = 18)
-ggsave("figures/mutated_genes/alldonors_mutgenes_volcano_by_simple_vep_anno_allcells_with_boxplot.svg", 
+ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_simple_vep_anno_allcells_with_boxplot.svg", 
        height = 7, width = 18)  
 ```
 
@@ -437,11 +437,11 @@ ggplot(aes(y = logFC, x = consequence)) +
     theme(strip.background = element_rect(fill = "gray90")) +
     guides(fill = FALSE, color = FALSE, point_color = FALSE)
 
-ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_vep_anno_allcells.png", 
+ggsave("figures/mutated_genes/alllines_mutgenes_logfc-box_by_vep_anno_allcells.png", 
        height = 9, width = 10)
-ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_vep_anno_allcells.pdf", 
+ggsave("figures/mutated_genes/alllines_mutgenes_logfc-box_by_vep_anno_allcells.pdf", 
        height = 9, width = 10)
-ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_vep_anno_allcells.svg", 
+ggsave("figures/mutated_genes/alllines_mutgenes_logfc-box_by_vep_anno_allcells.svg", 
        height = 9, width = 10)
 ```
 
@@ -479,11 +479,11 @@ ggplot(aes(y = logFC, x = consequence_simplified)) +
     theme(strip.background = element_rect(fill = "gray90")) +
     guides(fill = FALSE, color = FALSE, point_color = FALSE)
 
-ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.png", 
+ggsave("figures/mutated_genes/alllines_mutgenes_logfc-box_by_simple_vep_anno_allcells.png", 
        height = 7, width = 10)
-ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.pdf", 
+ggsave("figures/mutated_genes/alllines_mutgenes_logfc-box_by_simple_vep_anno_allcells.pdf", 
        height = 7, width = 10)
-ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.svg", 
+ggsave("figures/mutated_genes/alllines_mutgenes_logfc-box_by_simple_vep_anno_allcells.svg", 
        height = 7, width = 10)
 ```
 
@@ -496,13 +496,13 @@ analysis but increasing the minimum number of cells for a group to 10 to try to
 obtain more accurate (on average) logFC estimates from the DE model.
 
 Run DE testing between mutated and un-mutated clones for a more strictly 
-filtered set of affected genes for each donor.
+filtered set of affected genes for each line.
 
 ```{r}
 mut_genes_df_allcells_filt_list <- list()
 for (don in names(de_res[["sce_list_unst"]])) {
   cat("working on ", don, "\n")
-  sites_tmp <- sites_by_donor_gr[sites_by_donor_gr$donor_short_id == don]
+  sites_tmp <- sites_by_line_gr[sites_by_line_gr$donor_short_id == don]
   ov_tmp <- findOverlaps(sce_de_list_gr[[don]], sites_tmp)
   sce_tmp <- de_res[["sce_list_unst"]][[don]][queryHits(ov_tmp),]
   sites_tmp <- sites_tmp[subjectHits(ov_tmp)]
@@ -510,7 +510,7 @@ for (don in names(de_res[["sce_list_unst"]])) {
   dge_tmp <- de_res[["dge_list"]][[don]]
   dge_tmp <- dge_tmp[intersect(rownames(dge_tmp), sites_tmp$gene),]
   base_design <- dge_tmp$design[, !grepl("assigned", colnames(dge_tmp$design))]
-  de_tbl_tmp <- data.frame(donor = don,
+  de_tbl_tmp <- data.frame(line = don,
                            gene = sites_tmp$gene, 
                            hgnc_symbol = gsub(".*_", "", sites_tmp$gene),
                            ensembl_gene_id = gsub("_.*", "", sites_tmp$gene),
@@ -567,7 +567,7 @@ mut_genes_df_allcells_filt$consequence_simplified[
         c("splice_donor", "splice_acceptor", "splice_region")] <- "splicing"
 table(mut_genes_df_allcells_filt$consequence_simplified)
 dplyr::arrange(mut_genes_df_allcells_filt, FDR) %>% 
-  dplyr::select(-location, donor, hgnc_symbol, var_id, consequence, FDR, PValue,
+  dplyr::select(-location, line, hgnc_symbol, var_id, consequence, FDR, PValue,
                 everything()) %>% 
   DT::datatable(., options = list(pageLength = 20))
 ```
@@ -604,11 +604,11 @@ ggplot(aes(y = logFC, x = consequence_simplified, fill = consequence)) +
     scale_fill_brewer(palette = "Paired") +
     theme(legend.position = "bottom")
 
-ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.png", 
+ggsave("figures/mutated_genes/alllines_mutgenes_logfc-box_by_simple_vep_anno_allcells.png", 
        height = 9, width = 15)
-ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.pdf", 
+ggsave("figures/mutated_genes/alllines_mutgenes_logfc-box_by_simple_vep_anno_allcells.pdf", 
        height = 9, width = 15)
-ggsave("figures/mutated_genes/alldonors_mutgenes_logfc-box_by_simple_vep_anno_allcells.svg", 
+ggsave("figures/mutated_genes/alllines_mutgenes_logfc-box_by_simple_vep_anno_allcells.svg", 
        height = 9, width = 15)
 ```
 
@@ -631,7 +631,7 @@ between mutated and unwanted clones for mutated genes.
 mut_genes_df_allcells_list_PCreg <- list()
 for (don in names(de_res[["sce_list_unst"]])) {
     cat("working on ", don, "\n")
-    sites_tmp <- sites_by_donor_gr[sites_by_donor_gr$donor_short_id == don]
+    sites_tmp <- sites_by_line_gr[sites_by_line_gr$donor_short_id == don]
     ov_tmp <- findOverlaps(sce_de_list_gr[[don]], sites_tmp)
     sce_tmp <- de_res[["sce_list_unst"]][[don]][queryHits(ov_tmp),]
     sites_tmp <- sites_tmp[subjectHits(ov_tmp)]
@@ -639,7 +639,7 @@ for (don in names(de_res[["sce_list_unst"]])) {
     dge_tmp <- de_res[["dge_list"]][[don]]
     dge_tmp <- dge_tmp[intersect(rownames(dge_tmp), sites_tmp$gene),]
     base_design <- dge_tmp$design[, !grepl("assigned", colnames(dge_tmp$design))]
-    de_tbl_tmp <- data.frame(donor = don,
+    de_tbl_tmp <- data.frame(line = don,
                              gene = sites_tmp$gene, 
                              hgnc_symbol = gsub(".*_", "", sites_tmp$gene),
                              ensembl_gene_id = gsub("_.*", "", sites_tmp$gene),
@@ -715,7 +715,7 @@ clones for mutated genes.
 mut_genes_df_allcells_list_CCreg <- list()
 for (don in names(de_res[["sce_list_unst"]])) {
     cat("working on ", don, "\n")
-    sites_tmp <- sites_by_donor_gr[sites_by_donor_gr$donor_short_id == don]
+    sites_tmp <- sites_by_line_gr[sites_by_line_gr$line_short_id == don]
     ov_tmp <- findOverlaps(sce_de_list_gr[[don]], sites_tmp)
     sce_tmp <- de_res[["sce_list_unst"]][[don]][queryHits(ov_tmp),]
     sites_tmp <- sites_tmp[subjectHits(ov_tmp)]
@@ -723,7 +723,7 @@ for (don in names(de_res[["sce_list_unst"]])) {
     dge_tmp <- de_res[["dge_list"]][[don]]
     dge_tmp <- dge_tmp[intersect(rownames(dge_tmp), sites_tmp$gene),]
     base_design <- dge_tmp$design[, !grepl("assigned", colnames(dge_tmp$design))]
-    de_tbl_tmp <- data.frame(donor = don,
+    de_tbl_tmp <- data.frame(line = don,
                              gene = sites_tmp$gene, 
                              hgnc_symbol = gsub(".*_", "", sites_tmp$gene),
                              ensembl_gene_id = gsub("_.*", "", sites_tmp$gene),
@@ -792,10 +792,10 @@ differences in expression between mutated and unmutated clones.
 ## Characterising mutations and mutated genes
 
 First, we can look at the number of variants annotated to the different VEP 
-categories and assigned to combinations of clones, aggregated across all donors.
+categories and assigned to combinations of clones, aggregated across all lines.
 
 ```{r, fig.height=12, fig.width=14}
-sites_by_donor %>% group_by(Consequence, clone_presence) %>%
+sites_by_line %>% group_by(Consequence, clone_presence) %>%
     summarise(n_vars = n()) %>%
 ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max), 
        colour = reorder(Consequence, n_vars, max))) +
@@ -804,16 +804,16 @@ ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max),
     facet_wrap(~clone_presence) +
     scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
     guides(colour = FALSE) +
-    ggtitle("Clone tagging variants by consequence class: all donors") +
+    ggtitle("Clone tagging variants by consequence class: all lines") +
     xlab("number of variants") + ylab("consequence") +
     theme_bw(16)
 ```
 
 We can also produce a similar plot, but showing the total number variants in 
-each annotation category for each donor separately.
+each annotation category for each line separately.
 
 ```{r, fig.height=16, fig.width=16}
-sites_by_donor %>% group_by(Consequence, donor_short_id) %>%
+sites_by_line %>% group_by(Consequence, donor_short_id) %>%
     summarise(n_vars = n()) %>%
 ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max), 
        colour = reorder(Consequence, n_vars, max))) +
@@ -823,7 +823,7 @@ ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max),
 #    scale_color_brewer(palette = "Set2") +
     scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
     guides(colour = FALSE) +
-    ggtitle("Clone tagging variants by consequence class: all donors") +
+    ggtitle("Clone tagging variants by consequence class: all lines") +
     xlab("number of variants") + ylab("consequence") +
     theme_bw(16)
 ```
@@ -831,26 +831,26 @@ ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max),
 ### Genes with more than one mutation
 
 It's also of interest to know if there are genes with multiple mutations in a 
-donor.
+line.
 
 ```{r}
 df_genes_multi_vars <- mut_genes_df_allcells %>%
   dplyr::mutate(pos = as.numeric(gsub("chr.+:([0-9]+)_.*", "\\1", var_id))) %>%
-  group_by(donor, hgnc_symbol) %>%
+  group_by(line, hgnc_symbol) %>%
   summarise(n_variants_in_gene = n(),
             max_dist_btw_vars = range(pos)[2] - range(pos)[1])
 df_genes_multi_vars %>%
   dplyr::filter(n_variants_in_gene > 1.5, max_dist_btw_vars > 1.5)
 ```
 
-There are only `r sum(df_genes_multi_vars$n_variants_in_gene > 1.5 & df_genes_multi_vars$max_dist_btw_vars > 1.5)` genes, across all donors, that 
+There are only `r sum(df_genes_multi_vars$n_variants_in_gene > 1.5 & df_genes_multi_vars$max_dist_btw_vars > 1.5)` genes, across all lines, that 
 have more than one (non-dinucleotide) somatic variant.
 
 ```{r}
 idx <- (df_genes_multi_vars$n_variants_in_gene > 1.5 &
           df_genes_multi_vars$max_dist_btw_vars > 1.5)
 mut_genes_df_allcells %>%
-  dplyr::filter(donor %in% df_genes_multi_vars[["donor"]][idx], 
+  dplyr::filter(line %in% df_genes_multi_vars[["line"]][idx], 
                hgnc_symbol %in% df_genes_multi_vars[["hgnc_symbol"]][idx]) %>%
   DT::datatable()
 ```
@@ -890,10 +890,10 @@ genes.
 ```{r, fig.height=18, fig.width=16}
 df_cc_vars <- mut_genes_df_allcells %>% 
   dplyr::filter(hgnc_symbol %in% xx) %>%
-  group_by(donor, consequence_simplified) %>%
+  group_by(line, consequence_simplified) %>%
   summarise(n_vars = n())
 df_cc_vars <- left_join(
-  expand.grid(donor = levels(as.factor(mut_genes_df_allcells$donor)),
+  expand.grid(line = levels(as.factor(mut_genes_df_allcells$line)),
               consequence_simplified = levels(as.factor(
                 mut_genes_df_allcells$consequence_simplified))),
   df_cc_vars)
@@ -906,11 +906,11 @@ ggplot(df_cc_vars,
   geom_segment(aes(x = 0, y = consequence_simplified, xend = n_vars, 
                    yend = consequence_simplified)) +
   geom_point(size = 5, colour = "gray50", shape = 21) +
-  facet_wrap(~donor, ncol = 4) +
+  facet_wrap(~line, ncol = 4) +
   scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
   scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
   guides(colour = FALSE, fill = FALSE) +
-  ggtitle("Variants in proliferation genes: all donors") +
+  ggtitle("Variants in proliferation genes: all lines") +
   xlab("number of variants") + ylab("consequence") +
   theme_bw(16)
 ```
@@ -935,10 +935,10 @@ cycle.
 ```{r, fig.height=18, fig.width=16}
 df_prolif_vars <- mut_genes_df_allcells %>% 
   dplyr::filter(hgnc_symbol %in% x2) %>%
-  group_by(donor, consequence_simplified) %>%
+  group_by(line, consequence_simplified) %>%
   summarise(n_vars = n())
 df_prolif_vars <- left_join(
-  expand.grid(donor = levels(as.factor(mut_genes_df_allcells$donor)),
+  expand.grid(line = levels(as.factor(mut_genes_df_allcells$line)),
               consequence_simplified = levels(as.factor(
                 mut_genes_df_allcells$consequence_simplified))),
   df_prolif_vars)
@@ -951,11 +951,11 @@ ggplot(df_prolif_vars,
   geom_segment(aes(x = 0, y = consequence_simplified, xend = n_vars, 
                    yend = consequence_simplified)) +
   geom_point(size = 5, colour = "gray50", shape = 21) +
-  facet_wrap(~donor, ncol = 4) +
+  facet_wrap(~line, ncol = 4) +
   scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
   scale_fill_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(18)) +
   guides(colour = FALSE, fill = FALSE) +
-  ggtitle("Variants in cell cycle genes: all donors") +
+  ggtitle("Variants in cell cycle genes: all lines") +
   xlab("number of variants") + ylab("consequence") +
   theme_bw(16)
 ```
@@ -965,33 +965,33 @@ different classes of genes and VEP classes, and save to file for use in other
 analyses.
 
 ```{r}
-colnames(df_cc_vars) <- c("donor", "consequence", "n_vars_cellcycle_genes")
-colnames(df_prolif_vars) <- c("donor", "consequence", "n_vars_proliferation_genes")
+colnames(df_cc_vars) <- c("line", "consequence", "n_vars_cellcycle_genes")
+colnames(df_prolif_vars) <- c("line", "consequence", "n_vars_proliferation_genes")
 df_all_vars <- mut_genes_df_allcells %>% 
-  group_by(donor, consequence_simplified) %>%
+  group_by(line, consequence_simplified) %>%
   summarise(n_vars_all_genes = n())
 df_all_vars <- left_join(
-  expand.grid(donor = levels(as.factor(mut_genes_df_allcells$donor)),
+  expand.grid(line = levels(as.factor(mut_genes_df_allcells$line)),
               consequence_simplified = levels(as.factor(
                 mut_genes_df_allcells$consequence_simplified))),
   df_all_vars)
 df_all_vars[is.na(df_all_vars)] <- 0
-colnames(df_all_vars) <- c("donor", "consequence", "n_vars_all_genes")
+colnames(df_all_vars) <- c("line", "consequence", "n_vars_all_genes")
 
 df_nvars <- inner_join(inner_join(df_all_vars, df_cc_vars), df_prolif_vars) %>%
   as_data_frame
 
-readr::write_tsv(df_nvars, "output/nvars_by_category_by_donor.tsv")
+readr::write_tsv(df_nvars, "output/nvars_by_category_by_line.tsv")
 
 df_nvars %>% 
   DT::datatable(., options = list(pageLength = 20))
 ```
 
-We can also look at the total mutational load for each of the donors.
+We can also look at the total mutational load for each of the lines.
 
 ```{r}
 df_nvars %>%
-  group_by(donor) %>%
+  group_by(line) %>%
   summarise(nvars = sum(n_vars_all_genes)) %>% print(n = Inf)
 ```
 
@@ -1001,7 +1001,7 @@ df_nvars %>%
 
 We find a small number of somatic variants to associate with differential 
 expression between mutated and unmutated cells/clones. Unfortunately, in this 
-set of variants and donors (with relatively small sample size in terms of 
+set of variants and lines (with relatively small sample size in terms of 
 numbers of cells), we cannot make any claims about different effects on 
 expression of somatic variants with different functional annotations.
 
