@@ -21,10 +21,10 @@ params <- list()
 params$callset <- "filt_lenient.cell_coverage_sites"
 fls <- list.files("data/sces")
 fls <- fls[grepl(params$callset, fls)]
-donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+lines <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
 
 cell_assign_list <- list()
-for (don in donors) {
+for (don in lines) {
     cell_assign_list[[don]] <- readRDS(file.path("data/cell_assignment", 
         paste0("cardelino_results.", don, ".", params$callset, ".rds")))
     cat(paste("reading", don, "\n"))
@@ -32,9 +32,9 @@ for (don in donors) {
 canopy_list <- list()
 
 prev_list <- list()
-for (don in donors) {
+for (don in lines) {
   tmp_df <- data_frame(
-    donor = don,
+    line = don,
     clone = rownames(cell_assign_list[[don]]$tree$P),
     prev_canopy = cell_assign_list[[don]]$tree$P[, 1],
     prev_cardelino = NA,
@@ -144,10 +144,10 @@ ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone.pdf",
 
 ```
 
-Since there are so few donors with four clones we can also make a version of the 
+Since there are so few lines with four clones we can also make a version of the 
 figure above with just clone1, clone2 and clone3 and fitted a weighted 
 regression line, with points weighted by the fraction of cells assigned for the 
-donor.
+line.
 
 ```{r plot-prev-facet-clone-3clones, fig.height = 4.5, fig.width=8.5}
 fits %>%
@@ -177,10 +177,10 @@ ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf",
 
 ```
 
-Also look at what happens if we filter out donors that have fewer than 75% of 
-cells assigned (`r length(unique(dplyr::filter(df_prev, prop_assigned > 0.75)$donor))` donors).
+Also look at what happens if we filter out lines that have fewer than 75% of 
+cells assigned (`r length(unique(dplyr::filter(df_prev, prop_assigned > 0.75)$line))` lines).
 
-```{r plot-prev-facet-clone-3clones-donorfilt, fig.height = 4.5, fig.width=10.5}
+```{r plot-prev-facet-clone-3clones-linefilt, fig.height = 4.5, fig.width=10.5}
 df_prev %>%
   dplyr::filter(clone != "clone4", prop_assigned > 0.75) %>%
   ggplot(aes(x = prev_canopy, y = prev_cardelino, shape = clone, 
