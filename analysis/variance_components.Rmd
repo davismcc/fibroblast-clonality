@@ -1,0 +1,349 @@
+---
+title: "Variance components analysis"
+author: "Yuanhua Huang & Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+## Load libraries 
+
+```{r, warning=FALSE, message=FALSE}
+library(viridis)
+library(tidyverse)
+library(ggpubr)
+library(ggrepel)
+library(cowplot)
+library(reshape2)
+```
+
+## Results aggregated across all lines
+
+Previously, we conducted variance components analysis combining scRNA-seq data
+across all lines. We used the `variancePartion` package, fitting assigned 
+clone, line, plate (on which cells were processed) and cellular detection rate
+(cdr; proportion of genes per cell with non-zero expression) as random effects.
+
+The output of the model gives us the proportion of variance explained, for 
+each gene, by clone, line, plate, cdr and residuals. 
+
+```{r}
+varPart.df <- as.data.frame(
+  read.table("data/variance_components/fit_per_gene_highVar.csv", sep = ","))
+colnames(varPart.df) <- c("clone", "line", "plate", "cdr", "residuals")
+varPart.df$gene_id <- rownames(varPart.df)
+varPart.df <- as_data_frame(varPart.df)
+head(varPart.df)
+```
+
+We ran the analysis for `r nrow(varPart.df)` highly variable genes (as 
+identified using methods in the `scran` package).
+
+We detect `r sum(varPart.df$clone > 0.05)` genes with more than 5% of variance
+explained by clone and `r sum((varPart.df$clone > varPart.df$plate) & (varPart.df$clone > 0.01))` genes for which variance explained by clone is both
+greater than 1% and also greater than the variance explained by plate (a good
+proxy for technical effects on variability in gene expression between cells).
+
+
+```{r}
+varPart.mel <- tidyr::gather(varPart.df, key = "variable", value = "value", 
+                             -gene_id)
+```
+
+```{r}
+dat_dir <- "data/variance_components/donorVar/"
+
+fig.violin <- varPart.mel %>%
+  dplyr::mutate(variable = replace(variable, variable == "cdr", 
+                                   "cell. det. rate")) %>%
+  dplyr::mutate(variable = factor(variable, 
+                                  levels = c("residuals", "cell. det. rate",
+                                             "plate", "line", "clone"))) %>%
+  ggplot(aes(x = variable, y = 100 * value)) + 
+  geom_violin(aes(fill = variable), scale = "width") + 
+  geom_boxplot(width = 0.07, fill = "grey", outlier.colour = "black") + 
+  ylab("Variance explained (%)") + 
+  xlab("") + 
+  scale_fill_manual(values = c("gray70", "#f7efe2", "#f9a603", "#f25c00",
+                               "#f70025")) +
+  coord_flip() +
+  theme(legend.position = "none") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("figures/variance_components/varpart_violin_alllines.png", 
+       fig.violin, height = 4, width = 6.5, dpi = 300)
+ggsave("figures/variance_components/varpart_violin_alllines.pdf", 
+       fig.violin, height = 4, width = 6.5, dpi = 300)
+ggsave("figures/variance_components/varpart_violin_alllines_skinny.png", 
+       fig.violin, height = 4, width = 4.5, dpi = 300)
+ggsave("figures/variance_components/varpart_violin_alllines_skinny.pdf", 
+       fig.violin, height = 4, width = 4.5, dpi = 300)
+
+fig.violin
+```
+
+
+```{r}
+# plotVarPart( varPart_mat )
+# idx_order <- order(varPart_mat$clone, decreasing = TRUE)
+# plotPercentBars( varPart_mat[idx_order[1:10],] )
+```
+
+
+### Plot line component against clone component
+
+```{r, warning=FALSE, message=FALSE}
+varPart.df %>%
+  ggplot(aes(x = 100 * line, y = 100 * clone)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(colour = "firebrick", alpha = 0.7) +
+  coord_cartesian(ylim = c(0, 25)) +
+  xlab("Variance explained by line (%)") +
+  ylab("Variance explained by clone (%)")
+```
+
+
+## Results for individual lines
+
+### Load individual lines
+
+We load a SingleCellExperiment object for each line containing expression data,
+cell metadata and gene metadata.
+
+```{r, message=FALSE, warning=FALSE}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites" 
+lines <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
+            "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
+            "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
+            "ualf", "vass", "vuna", "wahn", "wetu", "xugn", "zoxy")
+## Load SCE objects
+sce_unst_list <- list()
+for (don in lines) {
+    sce_unst_list[[don]] <- readRDS(file.path("data/sces/", 
+        paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), "cells\n"))
+}
+```
+
+We load variance component analysis results for each line.
+
+```{r}
+varPart_list <- list()
+for (i in seq_along(lines)) {
+  df <- read.csv(paste0("data/variance_components/donorVar/",
+                        lines[i], ".var_part.var1.csv"))
+    colnames(df) <- c("clone", "plate", "cell. det. rate", "residuals")
+    df$gene_id <- rownames(df)
+    df$line <- lines[i]
+    varPart_list[[i]] <- as_data_frame(df)
+}
+names(varPart_list) <- lines
+```
+
+For each line we thus have a data.frame with the variance components results.
+
+```{r}
+head(varPart_list[[1]])
+```
+
+### Number of genes with substantial clone component
+
+We observe larger clone effects if we fit the linear mixed model for each line
+separately. A large number of genes for each line have >5% of variance explained
+by clone (median: `r median(sapply(varPart_list, function(x) sum(x$clone > 0.05)))`).
+
+```{r}
+sort(sapply(varPart_list, function(x) sum(x$clone > 0.05)))
+```
+
+
+### Plot results for individual lines
+
+For each line we will plot the variance explained by clone for the to 400 genes
+with most variance explained by clone (for that line).
+
+First, we need to process the raw variance component results from each line.
+
+```{r}
+n_top <- 400
+n_lines <- length(varPart_list)
+
+n_hv_genes <- rep(NA, n_lines)
+n_cells_use <- rep(NA, n_lines)
+n_genes_use <- rep(NA, n_lines)
+var_top_mean <- rep(NA, n_lines)
+var_top_list <- list()
+for (i in seq_len(length(varPart_list))) {
+    sort_idx <- order(varPart_list[[i]]$clone, decreasing = TRUE)
+    var_top_list[[i]] <- varPart_list[[i]][sort_idx[1:n_top], "clone", 
+                                           drop = FALSE]
+    var_top_mean[i] <- mean(var_top_list[[i]]$clone, na.rm = TRUE)
+    n_hv_genes[i] <- sum(varPart_list[[i]]$clone > 0.25, na.rm = TRUE)
+    min_var <- 1.0
+    cell_idx <- which(sce_unst_list[[lines[i]]]$assigned != "unassigned")
+    n_cells_use[i] <- length(cell_idx)
+    n_genes_use[i] <- nrow(varPart_list[[i]])
+}
+don_sort_idx <- order(var_top_mean, decreasing = TRUE)
+
+df.line <- data_frame(line_id = lines, 
+                       clone_cells = n_cells_use, 
+                       n_genes_use = n_genes_use, 
+                       n_hv_genes = n_hv_genes, 
+                       var_top_mean = var_top_mean)[don_sort_idx, ]
+df.line <- cbind(rank = seq_len(nrow(df.line)), df.line)
+
+var_full <- c()
+idx_full <- c()
+don_full <- c()
+rank_full <- c()
+for (ii in don_sort_idx) {        
+    var_full <- c(var_full, var_top_list[[ii]]$clone)
+    idx_full <- c(idx_full, seq_len(n_top))
+    don_full <- c(don_full, rep(lines[ii], n_top))
+    rank_full <- c(rank_full, rep(ii, n_top))
+}
+
+line_info <- rep("other", length(don_full))
+median_line <- lines[don_sort_idx[round(length(don_sort_idx)/2)]]
+# line_info[don_full == median_line] <- "median"
+line_info[don_full == "joxm"] <- "joxm"
+# print(median_line)
+# summary(n_hv_genes)
+
+df <- data_frame(varPart = var_full, gene_rank = idx_full, 
+                 lines = don_full, line_rank = rank_full,
+                 line_info = line_info)
+rm(line_info)
+
+df <- df %>%
+  group_by(gene_rank) %>%
+  summarise(varPart = median(varPart)) %>%
+  dplyr::mutate(lines = "median", line_info = "median", line_rank = NA) %>%
+  bind_rows(., df)
+
+```
+
+The table below provides a summary of the per-line variance component results.
+We can read off the mean proportion of variance explained by clone for the top
+400 genes for each line (`var_top_mean`), as well as other information for each
+line.
+
+```{r}
+df.line
+```
+
+Now we can plot a curve for each line showing the variance explained by clone
+for the top 400 genes.
+
+```{r, warning=FALSE, message=FALSE}
+df_labs <- dplyr::filter(df, gene_rank == 200) %>%
+  dplyr::mutate(labs = ifelse(varPart > 0.33, lines, ""))
+
+fig.curve <- ggplot(df, aes(colour = line_info)) +
+  geom_line(aes(x = gene_rank, y = 100 * varPart, color = line_info, 
+                size = line_info, group = lines)) +
+  scale_color_manual(values = c("firebrick", "black", "gray60"),
+                     name = "line") +
+  scale_size_manual(values = c(0.5, 1, 0.5), name = "line") +
+  geom_line(data = df[df$lines == "joxm", ],
+            aes(x = gene_rank, y = 100 * varPart), size = 0.5, color = "firebrick") +
+  geom_line(data = df[df$lines == "median", ],
+            aes(x = gene_rank, y = 100 * varPart), size = 1, color = "black") +
+  geom_text(aes(x = gene_rank - 15, y = 100 * varPart, label = labs),
+                   nudge_y = 0, nudge_x = 0, 
+                   data = df_labs, colour = "gray40", size = 2) +
+  xlab("Top genes") + ylab("Variance explained by clone (%)") +
+  ggtitle("") + xlim(0, 400) +
+  theme(legend.position = c(0.8, 0.8))
+
+ggsave("figures/variance_components/varpart_curve_perline.png", 
+       fig.curve, height = 4, width = 6.5, dpi = 300)
+ggsave("figures/variance_components/varpart_cruve_perline.pdf", 
+       fig.curve, height = 4, width = 6.5, dpi = 300)
+ggsave("figures/variance_components/varpart_curve_perline_skinny.png", 
+       fig.curve +  theme(legend.position = c(0.7, 0.8)),
+       height = 4, width = 4.5, dpi = 300)
+ggsave("figures/variance_components/varpart_cruve_perline_skinny.pdf", 
+       fig.curve +  theme(legend.position = c(0.7, 0.8)), 
+       height = 4, width = 4.5, dpi = 300)
+
+fig.curve
+```
+
+Each line has a substantial number of genes with a substantial proportion of 
+variance explained by clone. For example, the number of genes with more than
+25% of variance explained by line across lines:
+
+```{r}
+sapply(varPart_list, function(x) sum(x$clone > 0.25))
+```
+
+There are a large number of genes in each line with more than 5% of variance
+explained by clone:
+
+```{r}
+sapply(varPart_list, function(x) sum(x$clone > 0.05))
+```
+
+
+
+## Plots including line selection information
+
+We have inferred selection dynamics from somatic variants detected from 
+whole-exome sequencing data. We can overlay selection status on the plot above 
+to look for any relationship between selection and variance explained by clone
+in top genes by line.
+
+```{r}
+line_selected <- c("euts", "fawm", "fikt", "garx", "pipw", "puie", "qolg", "rozh")
+line_neutral <- c("hipn", "nusw", "qonc", "sehl", "ualf", "xugn")
+line_undetermined <- c("feec", "gesg", "heja", "ieki", "joxm", "kuco", "laey", 
+                        "lexy", "naju", "oaaz", 
+                        "oilg", "qayj", "vass", "vuna", "wahn", "wetu", "zoxy")
+df$selection <- "undetermined"
+df$selection[df$lines %in% line_neutral] <- "neutral"
+df$selection[df$lines %in% line_selected] <- "selection"
+df$selection[df$lines %in% "median"] <- "median"
+df$selection <- factor(df$selection, 
+                       levels = c("neutral", "undetermined", "selection", 
+                                  "median"))
+```
+
+
+```{r}
+df_labs <- dplyr::filter(df, gene_rank == 200) %>%
+  dplyr::mutate(labs = ifelse(varPart > 0.33, lines, ""))
+
+fig.curve <- ggplot(df, aes(colour = selection)) +
+  geom_line(aes(x = gene_rank, y = 100 * varPart, color = selection, 
+                size = selection, group = lines)) +
+  scale_color_manual(values =  c("dodgerblue", "#CCCCCC", "dodgerblue4", 
+                                 "black"), name = "selection\ndynamics") +
+  scale_size_manual(values = c(0.5, 0.5, 0.5, 1), name = "selection\ndynamics") +
+  geom_line(data = df[df$lines == "median", ],
+            aes(x = gene_rank, y = 100 * varPart), size = 1, color = "black") +
+  geom_text(aes(x = gene_rank - 15, y = 100 * varPart, label = labs),
+                   nudge_y = 0, nudge_x = 0, 
+                   data = df_labs, colour = "gray40", size = 2) +
+  xlab("Top genes") + ylab("Variance explained by clone (%)") +
+  ggtitle("") + xlim(0, 400) +
+  theme(legend.position = c(0.8, 0.8))
+
+fig.curve
+```
+
+There is not any obvious relationship between selection dynamics and variance
+explained by clone here.
+
+## Write mean variance explained to file
+
+Write a table with the mean fraction of variance explained by clone for the top
+400 genes per line out to file.
+
+```{r}
+idx <- order(var_top_mean, decreasing = TRUE)
+line_var_df <- data.frame(line = lines[idx], 
+                           meanFraction400 = var_top_mean[idx])
+write.csv(line_var_df, "output/variance_components/line_var_top400.csv")
+```
+

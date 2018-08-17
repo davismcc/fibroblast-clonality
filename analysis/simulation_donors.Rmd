@@ -76,8 +76,8 @@ df <- data.frame(donor = donors, n_sites = n_sites, n_clone = n_clone,
 
 ```{r}
 df %>%
-  dplyr::mutate(sites_per_clone = cut(n_sites / n_clone, 
-                                      breaks = c(0, 5, 10, 20, 40))) %>%
+  dplyr::mutate(sites_per_clone = cut(n_sites / pmax(n_clone - 1, 1), 
+                                      breaks = c(0, 3, 8, 15, 25, 60))) %>%
   ggplot(
          aes(x = recall_simu, y = recall_real, 
              fill = sites_per_clone)) +
@@ -85,8 +85,8 @@ df %>%
   geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
   geom_point(size = 3, shape = 21) +
   xlim(0, 1) + ylim(0, 1) +
-  scale_fill_manual(name = "mean\n# variants\nper clone", 
-                    values = magma(5)[-1]) +
+  scale_fill_manual(name = "mean\n# variants\nper clonal\nbranch", 
+                    values = magma(6)[-1]) +
   guides(colour = FALSE, group = FALSE) +
   xlab("Assignment rate: simulated") +
   ylab("Assignment rate: observed")
