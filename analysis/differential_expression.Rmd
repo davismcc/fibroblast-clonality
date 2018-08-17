@@ -175,8 +175,10 @@ ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_li
        height = 7, width = 5.5)
 ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_linscale.svg", 
        height = 7, width = 5.5)
+```
 
 
+```{r, fig.height=14, fig.width=12}
 p2 <- df_de_sig_unst %>% 
     group_by(gene) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
@@ -200,7 +202,7 @@ ggsave("figures/differential_expression/alldonors_de_n_sig_donors_topgenes.svg",
        height = 7, width = 5.5)
 
 
-cowplot::plot_grid(p1, p2, rel_heights = c(0.4, 0.6))
+#cowplot::plot_grid(p1, p2, rel_heights = c(0.4, 0.6))
 
 
 df_donor_n_de <- df_de_sig_unst %>% 
@@ -247,7 +249,7 @@ df_perm %>% group_by(n_donors) %>% summarise(min = min(n_genes),
                                              mean = mean(n_genes), 
                                              max = max(n_genes))
 
-df_de_sig_unst %>% 
+ppp <- df_de_sig_unst %>% 
     group_by(gene) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
     summarise(n_donors = n()) %>% group_by(n_donors) %>%
@@ -278,11 +280,11 @@ ggplot(aes(x = n_donors, y = n_genes)) +
     ylab("Number of genes")
 
 ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm.png", 
-       height = 7, width = 10)
+       height = 7, width = 10, plot = ppp)
 ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm.pdf", 
-       height = 7, width = 10)
+       height = 7, width = 10, plot = ppp)
 ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm.svg", 
-       height = 7, width = 10)
+       height = 7, width = 10, plot = ppp)
 
 df_de_sig_unst %>% 
     group_by(gene) %>% 
@@ -344,7 +346,8 @@ df_gene_n_de <- dplyr::mutate(
                            Hs.H$HALLMARK_MYC_TARGETS_V2)),
     emt = (entrezid %in% c(Hs.H$HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION))
 )
-df_gene_n_de %>% dplyr::filter(count >= 8) %>% print(n = Inf)
+df_gene_n_de %>% dplyr::filter(count >= 8) %>% 
+  DT::datatable(.)
 ```
 
 ----------
@@ -473,34 +476,6 @@ df_camera_sig_unst %>%
 
 We can look at the number of significant gene sets for each donor.
 
-```{r alldonors_camera_enrichment_by_donor, fig.height=12, fig.width=8}
-df_camera_all_unst %>% 
-    dplyr::filter(stat == "logFC") %>%
-    group_by(donor, msigdb_collection, contrast) %>%
-    summarise(n_sig = sum(FDR < 0.05)) %>% ungroup() %>% 
-    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor))))) %>%
-    ggplot(aes(y = n_sig, x = donor,
-               fill = contrast)) +
-    geom_point(alpha = 1, size = 4, colour = "gray50") +
-    facet_wrap(~ msigdb_collection, scales = "free_x") + 
-    scale_fill_brewer(palette = "Accent") +
-    coord_flip() +
-    theme_bw(16) +
-    xlab("Donor") + ylab("Number of significant genesets (FDR < 5%)") +
-    ggtitle("Camera MSigDB gene set enrichment by donor") +
-    guides(fill = guide_legend(override.aes = list(shape = 21)))
-
-
-ggsave("figures/differential_expression/alldonors_camera_enrichment_by_donor.png", 
-       height = 7, width = 10)
-ggsave("figures/differential_expression/alldonors_camera_enrichment_by_donor.pdf", 
-       height = 7, width = 10)
-ggsave("figures/differential_expression/alldonors_camera_enrichment_by_donor.svg", 
-       height = 7, width = 10)
-```
-
-A slightly simpler version of that plot.
-
 ```{r alldonors_camera_enrichment_by_donor_simple, fig.height=12, fig.width=8}
 ## simpler version
 df_camera_all_unst %>% 
@@ -604,7 +579,7 @@ For gene sets related directly to cell cycle and growth, we see contrasts being
 both up- and down- regulated, but for EMT, coagulation and angiogenesis pathways,
 we only see these down-regulated.
 
-```{r alldonors_camera_enrichment_H_by_geneset_by_dir, fig.height=7, fig.width=10}
+```{r alldonors_camera_enrichment_H_by_geneset_by_dir, fig.height=10, fig.width=16}
 df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
   dplyr::filter(stat == "logFC") %>%
   group_by(geneset, Direction) %>% 
@@ -820,9 +795,6 @@ pp_nsig <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>%
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           axis.line.y = element_blank())
-
-plot_grid(corrplot1 + theme(legend.position = "top"), 
-          pp_nsig, rel_widths = c(7, 3), rel_heights = c(1, 0.1))
 
 ggdraw() +
   draw_plot(corrplot1 + theme(legend.position = "top"), 
