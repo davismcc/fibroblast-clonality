@@ -5,15 +5,11 @@ output:
     toc: false
 ---
 
-What license are you using for your code? See [choosealicense.com][choose] for
-help deciding. It's a convention to save a file `LICENSE` in the root of your
-Git repo that contains the license text.
+All source code, software and outputs in this repository are made available 
+under the terms of the [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/legalcode) 
+license.
 
-What license are you using for the written content on your site? It is
-traditional to choose a [Creative Commons][cc] license for this type of content.
+Input data are available.
 
-[choose]: http://choosealicense.com/
-[cc]: https://creativecommons.org/choose/
+To cite this work, please use...
 
-How should others cite your work? It's a convention to save a file `CITATION`
-in the root of your Git repo that contains the citation information.

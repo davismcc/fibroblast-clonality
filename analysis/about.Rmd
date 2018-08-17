@@ -5,4 +5,38 @@ output:
     toc: false
 ---
 
-Describe your project.
+## *Cardelino* : Integrating whole exomes and single-cell transcriptomes to reveal phenotypic impact of somatic variants
+
+Decoding the clonal substructures of somatic tissues sheds light on cell growth,
+development and differentiation in health, ageing and disease. Targeted DNA 
+sequencing, whole exome sequencing, and most recently single-cell DNA sequencing
+have been applied to reconstruct trees describing this clonal substructure. 
+However, the functional and phenotypic differences between clonal populations 
+identified have been difficult to characterise and remain unclear in most cases. 
+
+To address this, we present cardelino (https://github.com/PMBio/cardelino), a 
+computational method to assign single-cell transcriptome profiles to nodes in a 
+clonal tree, based on variants identified from single-cell RNA-seq data. After 
+validating the model on simulated data, we apply cardelino to matched 
+single-cell RNA-seq and exome sequencing data from 32 human dermal fibroblast 
+lines. 
+
+The somatic mutation landscape reveals non-neutral clonal evolution in a subset 
+of these healthy donors. In line with this evolutionary selection pressure, we 
+identify gene expression differences between clones. Interestingly, cell cycle 
+and proliferation pathways separate clones repeatedly in our fibroblast samples.
+In summary, we develop and apply an approach that allows for reconstructing 
+transcriptome profiles of clonal subpopulations within tissues. This has the 
+potential to inform on mutational processes at single-cell resolution, both in 
+cancer and healthy ageing. 
+
+**Key findings:**
+
+* A novel approach for integrating DNA-seq and single-cell RNA-seq data to 
+reconstruct clonal substructure and single-cell transcriptomes.
+* A new computational method to map single-cell RNA-seq profiles to clones.
+* Evidence for non-neutral evolution of clonal populations in human fibroblasts.
+* Proliferation and cell cycle pathways are commonly distorted in mutated clonal
+populations, with implications for cancer and ageing. 
+
+
