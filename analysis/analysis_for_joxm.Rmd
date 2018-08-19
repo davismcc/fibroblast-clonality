@@ -178,8 +178,6 @@ plot_tree <- function(tree, orient="h") {
 
 
 ```{r plot-tree}
-snv_label <- cardelino:::mut.label(cell_assign_joxm$tree)
-
 fig_tree <- plot_tree(cell_assign_joxm$full_tree, orient = "v") + 
     xlab("Clonal tree") +
     cardelino:::heatmap.theme(size = 16) +
@@ -924,8 +922,6 @@ conducted above.
 
 ```{r combined-fig, fig.height=16, fig.width=18}
 ## tree and cell assignment
-snv_label <- cardelino:::mut.label(cell_assign_joxm$tree)
-
 fig_tree <- plot_tree(cell_assign_joxm$full_tree, orient = "v") + 
     xlab("Clonal tree") +
     cardelino:::heatmap.theme(size = 16) +
