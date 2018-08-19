@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-17</p>
+<p><strong>Last updated:</strong> 2018-08-19</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,19 +391,16 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/dbf3a51871d3a14e37732e0aa6897af27e1013c6" target="_blank">dbf3a51</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/12820185de66b7ad73dc2da4669adb03bffbef1f" target="_blank">1282018</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
     Ignored:    .Rproj.user/
-    Ignored:    output/donor_specific/
 
 Untracked files:
-    Untracked:  analysis/analysis_for_garx.Rmd
-    Untracked:  analysis/analysis_for_joxm.Rmd
-    Untracked:  analysis/cell_assignment.Rmd
-    Untracked:  analysis/differential_expression.Rmd
+    Untracked:  analysis/overview_lines.Rmd
+    Untracked:  code/analysis_for_garx.Rmd
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
     Untracked:  data/de_analysis_FTv62/
@@ -423,9 +420,14 @@ Untracked files:
     Untracked:  data/variance_components/
     Untracked:  docs/figure/
     Untracked:  figures/
-    Untracked:  output/garx/
+    Untracked:  output/differential_expression/
+    Untracked:  output/donor_specific/
     Untracked:  output/nvars_by_category_by_donor.tsv
+    Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
+
+Unstaged changes:
+    Modified:   analysis/analysis_for_joxm.Rmd
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -454,6 +456,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/1489d32ff1b8d5073a4170baec953cdbe4fcc14a/docs/simulation_donors.html" target="_blank">1489d32</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-17
+</td>
+<td style="text-align:left;">
+Add html files
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -631,7 +650,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-17                  </code></pre>
+ date     2018-08-19                  </code></pre>
 <pre><code>Packages -----------------------------------------------------------------</code></pre>
 <pre><code> package              * version   date       source        
  AnnotationDbi          1.42.1    2018-05-08 Bioconductor  
@@ -652,7 +671,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  blob                   1.1.1     2018-03-25 CRAN (R 3.5.0)
  broom                  0.5.0     2018-07-17 CRAN (R 3.5.0)
  BSgenome               1.48.0    2018-05-01 Bioconductor  
- cardelino            * 0.0.13    2018-08-17 Bioconductor  
+ cardelino            * 0.1.1     2018-08-19 Bioconductor  
  cellranger             1.1.0     2016-07-27 CRAN (R 3.5.0)
  cli                    1.0.0     2017-11-05 CRAN (R 3.5.0)
  colorspace             1.3-2     2016-12-14 CRAN (R 3.5.0)
