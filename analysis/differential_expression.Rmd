@@ -958,7 +958,7 @@ ggplot(aes(x = nvars_all, y = .resid, fill = selection)) +
   scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
 
 ggsave("figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_all.png", 
-       height = 5.5, width = 6.5)
+       height = 6.5, width = 5.5)
 
 ## n_de (sqrt scale) vs mutational load (all)
 df_nbglm_nde %>%
