@@ -4,8 +4,8 @@ author: "Davis J. McCarthy"
 site: workflowr::wflow_site
 ---
 
-Here, we will lok at differential expresion between clones across all donors at
-the gene and gene set levels.
+Here, we will lok at differential expresion between clones across all lines (
+i.e. donors) at the gene and gene set levels.
 
 ## Load libraries, data and DE results
 
@@ -142,7 +142,7 @@ ggplot(aes(x = n_donors, y = count)) +
     scale_x_continuous(breaks = 0:11) +
     coord_cartesian(ylim = c(1, 2000)) +
     theme_classic(20) +
-    xlab("Number of donors in which significant (FDR < 10%)")  +
+    xlab("Number of lines in which significant (FDR < 10%)")  +
     ylab("Number of genes") +
     ggtitle("edgeR QL F test DE results")
 
@@ -165,7 +165,7 @@ ggplot(aes(x = n_donors, y = count)) +
     scale_x_continuous(breaks = 0:11) +
     #coord_cartesian(ylim = c(1, 2200)) +
     theme_classic(16) +
-    xlab("Number of donors significant (FDR < 10%)")  +
+    xlab("Number of lines significant (FDR < 10%)")  +
     ylab("Number of genes")
 p1 
 
@@ -191,7 +191,7 @@ p2 <- df_de_sig_unst %>%
     ggthemes::scale_colour_tableau() +
     coord_flip() +
     theme_bw(16) +
-    xlab("Gene") + ylab("Number of donors significant")
+    xlab("Gene") + ylab("Number of lines significant")
 p2
 
 ggsave("figures/differential_expression/alldonors_de_n_sig_donors_topgenes.png", 
@@ -276,7 +276,7 @@ ggplot(aes(x = n_donors, y = n_genes)) +
           panel.grid.minor.x = element_blank()) +
     guides(colour = guide_legend(override.aes = list(shape = c(17, 19))),
            fill = FALSE, boxplot = FALSE) +
-    xlab("Number of donors significant (FDR < 10%)")  +
+    xlab("Number of lines significant (FDR < 10%)")  +
     ylab("Number of genes")
 
 ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm.png", 
@@ -312,7 +312,7 @@ ggplot(aes(x = n_donors, y = n_genes)) +
           panel.grid.minor.x = element_blank()) +
     guides(colour = guide_legend(override.aes = list(shape = c(17, 19))),
            fill = FALSE, boxplot = FALSE) +
-    xlab("Number of donors significant (FDR < 10%)")  +
+    xlab("Number of lines significant (FDR < 10%)")  +
     ylab("Number of genes")
 
 ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm_skinny.png", 
@@ -490,7 +490,7 @@ df_camera_all_unst %>%
     coord_flip() +
     theme_bw(16) +
     xlab("Donor") + ylab("Number of significant genesets (FDR < 5%)") +
-    ggtitle("Camera MSigDB gene set enrichment by donor")
+    ggtitle("Camera MSigDB gene set enrichment by line")
 
 ggsave("figures/differential_expression/alldonors_camera_enrichment_by_donor_simple.png", 
        height = 7, width = 10)
@@ -525,7 +525,7 @@ df_to_plot %>%
     coord_flip() +
     theme_bw(16) +
     xlab("Donor") + ylab("Number of significant genesets (FDR < 5%)") +
-    ggtitle("Camera MSigDB gene set enrichment by donor")
+    ggtitle("Camera MSigDB gene set enrichment by line")
 
 ggsave("figures/differential_expression/alldonors_camera_enrichment_by_donor_simple_size_by_ncells.png", 
        height = 7, width = 10)
@@ -557,7 +557,7 @@ ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max))) +
     ggthemes::scale_colour_tableau() +
     coord_flip() +
     theme_bw(14) +
-    xlab("Gene set") + ylab("Number of donors significant")
+    xlab("Gene set") + ylab("Number of lines significant")
 
 ggsave("figures/differential_expression/alldonors_camera_enrichment_H_by_geneset.png", 
        height = 7, width = 9.5)
@@ -591,7 +591,7 @@ df_camera_sig_unst %>% dplyr::filter(collection == "H") %>%
   ggthemes::scale_colour_tableau() +
   coord_flip() +
   theme_bw(16) +
-  xlab("Gene set") + ylab("Number of donors significant")  +
+  xlab("Gene set") + ylab("Number of lines significant")  +
   ggtitle("Camera MSigDB Hallmark gene set enrichment")
 ```
 
@@ -666,7 +666,7 @@ pp <- df_4_heatmap_all %>%
     scale_fill_manual(values = c("lightgoldenrod1", "sienna1")) +
     scale_alpha_discrete(name = "-log10(P)") +
     ylab("Gene set") +
-    xlab("Donor and clone comparison") +
+    xlab("Line and clone comparison") +
     theme(axis.text.x = element_text(angle = 60, hjust = 1),
           legend.position = "right")
 pp    
@@ -694,7 +694,7 @@ pp_nsig <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>%
     geom_point(size = 4, colour = "gray30", alpha = 1) +
     ggthemes::scale_colour_tableau() +
     coord_flip() +
-    xlab("Gene set") + ylab("Number of donors significant") +
+    xlab("Gene set") + ylab("Number of lines significant") +
     theme(axis.title.y = element_blank(),
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
@@ -790,7 +790,7 @@ pp_nsig <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>%
     geom_point(size = 4, colour = "gray30", alpha = 1) +
     ggthemes::scale_colour_tableau() +
     coord_flip() +
-    xlab("Gene set") + ylab("Number of donors\nsignificant") +
+    xlab("Gene set") + ylab("Number of lines\nsignificant") +
     theme(axis.title.y = element_blank(),
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
@@ -1004,6 +1004,20 @@ ggplot(aes(x = nvars_misnonspli, y = .resid, fill = selection)) +
   scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
 
 ggsave("figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_misnonspli.png", 
+       height = 6.5, width = 5.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = rsq_ntrtestr, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Goodness of fit: cumulative mutations ") +
+  xlab("Number of somatic variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.png", 
        height = 6.5, width = 5.5)
 
 # 
