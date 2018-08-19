@@ -375,7 +375,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-17</p>
+<p><strong>Last updated:</strong> 2018-08-19</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -399,7 +399,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/6b5f8c7f63ef4bdadbbcd677045c0fd4e3a53080" target="_blank">6b5f8c7</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/013c8bda0fe828aa5032a857010eeadbab598b62" target="_blank">013c8bd</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -407,8 +407,8 @@ Ignored files:
     Ignored:    .Rproj.user/
 
 Untracked files:
-    Untracked:  CITATION
-    Untracked:  LICENSE
+    Untracked:  Dockerfile
+    Untracked:  analysis/overview_lines.Rmd
     Untracked:  code/analysis_for_garx.Rmd
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
@@ -428,6 +428,7 @@ Untracked files:
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
     Untracked:  docs/figure/
+    Untracked:  environment.yml
     Untracked:  figures/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
@@ -462,6 +463,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/013c8bda0fe828aa5032a857010eeadbab598b62/analysis/differential_expression.Rmd" target="_blank">013c8bd</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+<td style="text-align:left;">
+Tweaking plot sizes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/5ab2fe7e26265c4d44707419d6f3a9620d6c837e/analysis/differential_expression.Rmd" target="_blank">5ab2fe7</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+<td style="text-align:left;">
+Adding plot for GoF vs n_mutations; changing “donor” to “line” in plot labels
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/1489d32ff1b8d5073a4170baec953cdbe4fcc14a/docs/differential_expression.html" target="_blank">1489d32</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-17
+</td>
+<td style="text-align:left;">
+Add html files
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -518,7 +570,7 @@ Adding analysis of differential expression results
 </ul>
 <p></details></p>
 <hr />
-<p>Here, we will lok at differential expresion between clones across all donors at the gene and gene set levels.</p>
+<p>Here, we will lok at differential expresion between clones across all lines ( i.e. donors) at the gene and gene set levels.</p>
 <div id="load-libraries-data-and-de-results" class="section level2">
 <h2>Load libraries, data and DE results</h2>
 <p>Load the genewise differential expression results produced with the edgeR quasi-likelihood F test and gene set enrichment results produced with camera.</p>
@@ -639,7 +691,7 @@ df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="dv">0</span><span class="op">:</span><span class="dv">11</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">coord_cartesian</span>(<span class="dt">ylim =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2000</span>)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">20</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Number of donors in which significant (FDR &lt; 10%)&quot;</span>)  <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Number of lines in which significant (FDR &lt; 10%)&quot;</span>)  <span class="op">+</span>
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;Number of genes&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;edgeR QL F test DE results&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/genewise-de-1.png" width="672" style="display: block; margin: auto;" /></p>
@@ -662,7 +714,7 @@ p1 &lt;-<span class="st"> </span>df_de_sig_unst <span class="op">%&gt;%</span><s
 <span class="st">    </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="dv">0</span><span class="op">:</span><span class="dv">11</span>) <span class="op">+</span>
 <span class="st">    </span><span class="co">#coord_cartesian(ylim = c(1, 2200)) +</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">16</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Number of donors significant (FDR &lt; 10%)&quot;</span>)  <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Number of lines significant (FDR &lt; 10%)&quot;</span>)  <span class="op">+</span>
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;Number of genes&quot;</span>)
 p1 </code></pre></div>
 <p><img src="figure/differential_expression.Rmd/genewise-de-2.png" width="672" style="display: block; margin: auto;" /></p>
@@ -684,7 +736,7 @@ p1 </code></pre></div>
 <span class="st">    </span>ggthemes<span class="op">::</span><span class="kw">scale_colour_tableau</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_bw</span>(<span class="dv">16</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of donors significant&quot;</span>)
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of lines significant&quot;</span>)
 p2</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-1-1.png" width="1152" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_topgenes.png&quot;</span>, 
@@ -777,7 +829,7 @@ df_perm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">
           <span class="dt">panel.grid.minor.x =</span> <span class="kw">element_blank</span>()) <span class="op">+</span>
 <span class="st">    </span><span class="kw">guides</span>(<span class="dt">colour =</span> <span class="kw">guide_legend</span>(<span class="dt">override.aes =</span> <span class="kw">list</span>(<span class="dt">shape =</span> <span class="kw">c</span>(<span class="dv">17</span>, <span class="dv">19</span>))),
            <span class="dt">fill =</span> <span class="ot">FALSE</span>, <span class="dt">boxplot =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Number of donors significant (FDR &lt; 10%)&quot;</span>)  <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Number of lines significant (FDR &lt; 10%)&quot;</span>)  <span class="op">+</span>
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;Number of genes&quot;</span>)
 
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm.png&quot;</span>, 
@@ -813,7 +865,7 @@ df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
           <span class="dt">panel.grid.minor.x =</span> <span class="kw">element_blank</span>()) <span class="op">+</span>
 <span class="st">    </span><span class="kw">guides</span>(<span class="dt">colour =</span> <span class="kw">guide_legend</span>(<span class="dt">override.aes =</span> <span class="kw">list</span>(<span class="dt">shape =</span> <span class="kw">c</span>(<span class="dv">17</span>, <span class="dv">19</span>))),
            <span class="dt">fill =</span> <span class="ot">FALSE</span>, <span class="dt">boxplot =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Number of donors significant (FDR &lt; 10%)&quot;</span>)  <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Number of lines significant (FDR &lt; 10%)&quot;</span>)  <span class="op">+</span>
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;Number of genes&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/permute-de-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm_skinny.png&quot;</span>, 
@@ -1045,7 +1097,7 @@ df_camera_all_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_bw</span>(<span class="dv">16</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Donor&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of significant genesets (FDR &lt; 5%)&quot;</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Camera MSigDB gene set enrichment by donor&quot;</span>)</code></pre></div>
+<span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Camera MSigDB gene set enrichment by line&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/alldonors_camera_enrichment_by_donor_simple-1.png" width="768" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_by_donor_simple.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">10</span>)
@@ -1075,7 +1127,7 @@ df_to_plot <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_bw</span>(<span class="dv">16</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Donor&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of significant genesets (FDR &lt; 5%)&quot;</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Camera MSigDB gene set enrichment by donor&quot;</span>)</code></pre></div>
+<span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Camera MSigDB gene set enrichment by line&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/alldonors_camera_enrichment_by_donor_simple_size_by_ncells-1.png" width="768" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_by_donor_simple_size_by_ncells.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">10</span>)
@@ -1099,7 +1151,7 @@ df_camera_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>dplyr<
 <span class="st">    </span>ggthemes<span class="op">::</span><span class="kw">scale_colour_tableau</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_bw</span>(<span class="dv">14</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of donors significant&quot;</span>)</code></pre></div>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of lines significant&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/alldonors_camera_enrichment_H_by_geneset-1.png" width="960" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_H_by_geneset.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
@@ -1128,7 +1180,7 @@ tmp &lt;-<span class="st"> </span>df_camera_sig_unst <span class="op">%&gt;%</sp
 <span class="st">  </span>ggthemes<span class="op">::</span><span class="kw">scale_colour_tableau</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">coord_flip</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme_bw</span>(<span class="dv">16</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of donors significant&quot;</span>)  <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of lines significant&quot;</span>)  <span class="op">+</span>
 <span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">&quot;Camera MSigDB Hallmark gene set enrichment&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/alldonors_camera_enrichment_H_by_geneset_by_dir-1.png" width="1536" style="display: block; margin: auto;" /></p>
 </div>
@@ -1193,7 +1245,7 @@ pp &lt;-<span class="st"> </span>df_4_heatmap_all <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;lightgoldenrod1&quot;</span>, <span class="st">&quot;sienna1&quot;</span>)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">scale_alpha_discrete</span>(<span class="dt">name =</span> <span class="st">&quot;-log10(P)&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Donor and clone comparison&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Line and clone comparison&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">60</span>, <span class="dt">hjust =</span> <span class="dv">1</span>),
           <span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)
 pp    </code></pre></div>
@@ -1216,7 +1268,7 @@ pp_nsig &lt;-<span class="st"> </span>df_camera_sig_unst <span class="op">%&gt;%
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>, <span class="dt">alpha =</span> <span class="dv">1</span>) <span class="op">+</span>
 <span class="st">    </span>ggthemes<span class="op">::</span><span class="kw">scale_colour_tableau</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of donors significant&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of lines significant&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_blank</span>(),
           <span class="dt">axis.text.y =</span> <span class="kw">element_blank</span>(),
           <span class="dt">axis.ticks.y =</span> <span class="kw">element_blank</span>(),
@@ -1299,7 +1351,7 @@ corrplot2</code></pre></div>
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>, <span class="dt">alpha =</span> <span class="dv">1</span>) <span class="op">+</span>
 <span class="st">    </span>ggthemes<span class="op">::</span><span class="kw">scale_colour_tableau</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of donors</span><span class="ch">\n</span><span class="st">significant&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of lines</span><span class="ch">\n</span><span class="st">significant&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_blank</span>(),
           <span class="dt">axis.text.y =</span> <span class="kw">element_blank</span>(),
           <span class="dt">axis.ticks.y =</span> <span class="kw">element_blank</span>(),
@@ -1480,7 +1532,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-7.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_all.png&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
+       <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
 ## n_de (sqrt scale) vs mutational load (all)
 df_nbglm_nde <span class="op">%&gt;%</span>
@@ -1526,6 +1578,20 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-10.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_misnonspli.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
+
+df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> rsq_ntrtestr, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations &quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic variants&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-11.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
 <span class="co"># </span>
@@ -1587,7 +1653,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-17                  
+ date     2018-08-19                  
 
  package              * version   date       source                
  AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
