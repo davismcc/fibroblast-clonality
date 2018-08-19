@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-17</p>
+<p><strong>Last updated:</strong> 2018-08-19</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/8135bb3bec559ac88aaf677d30516d1459f933e4" target="_blank">8135bb3</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/87e9b0b15fb7846944b715aac782224ae1bbd97b" target="_blank">87e9b0b</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -399,7 +399,7 @@ Ignored files:
     Ignored:    .Rproj.user/
 
 Untracked files:
-    Untracked:  analysis/differential_expression.Rmd
+    Untracked:  analysis/overview_lines.Rmd
     Untracked:  code/analysis_for_garx.Rmd
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
@@ -418,10 +418,9 @@ Untracked files:
     Untracked:  data/sces/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/
     Untracked:  figures/
+    Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
-    Untracked:  output/garx/
     Untracked:  output/nvars_by_category_by_donor.tsv
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
@@ -453,6 +452,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/adb49959bb39a22587a905eb0d908f3310afd416/analysis/analysis_for_joxm.Rmd" target="_blank">adb4995</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+<td style="text-align:left;">
+Bug fix in joxm analysis
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/1489d32ff1b8d5073a4170baec953cdbe4fcc14a/docs/analysis_for_joxm.html" target="_blank">1489d32</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-17
+</td>
+<td style="text-align:left;">
+Add html files
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -664,9 +697,7 @@ spikeNames(1): ERCC</code></pre>
   }
   pt
 }</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">snv_label &lt;-<span class="st"> </span>cardelino<span class="op">:::</span><span class="kw">mut.label</span>(cell_assign_joxm<span class="op">$</span>tree)
-
-fig_tree &lt;-<span class="st"> </span><span class="kw">plot_tree</span>(cell_assign_joxm<span class="op">$</span>full_tree, <span class="dt">orient =</span> <span class="st">&quot;v&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_tree &lt;-<span class="st"> </span><span class="kw">plot_tree</span>(cell_assign_joxm<span class="op">$</span>full_tree, <span class="dt">orient =</span> <span class="st">&quot;v&quot;</span>) <span class="op">+</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Clonal tree&quot;</span>) <span class="op">+</span>
 <span class="st">    </span>cardelino<span class="op">:::</span><span class="kw">heatmap.theme</span>(<span class="dt">size =</span> <span class="dv">16</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_blank</span>(), <span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">20</span>))
@@ -698,6 +729,36 @@ fig_assign &lt;-<span class="st"> </span><span class="kw">ggplot</span>(nba.m, <
 
 <span class="kw">plot_grid</span>(fig_tree, fig_assign, <span class="dt">nrow =</span> <span class="dv">2</span>, <span class="dt">rel_heights =</span> <span class="kw">c</span>(<span class="fl">0.46</span>, <span class="fl">0.52</span>))</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/plot-tree-1.png" width="1344" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plot-tree-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/plot-tree-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_tree_probmat.png&quot;</span>, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="fl">7.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_tree_probmat.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="fl">7.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_tree_probmat.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="fl">7.5</span>)
@@ -737,6 +798,36 @@ exome_sites_joxm <span class="op">%&gt;%</span><span class="st"> </span><span cl
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;number of variants&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;consequence&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_bw</span>(<span class="dv">16</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/load-sce-canopy-1.png" width="1344" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of load-sce-canopy-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/load-sce-canopy-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>Look at expression of genes with mutations.</p>
 <p>Organise data for analysis.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## filter out any remaining ERCC genes
@@ -1040,6 +1131,36 @@ p_mutated_clone &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df_
        <span class="dt">plot =</span> p_mutated_clone, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">11.5</span>)
 p_mutated_clone</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/de-mutated-joxm-1.png" width="1104" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of de-mutated-joxm-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/de-mutated-joxm-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 </div>
 <div id="differential-expression-transcriptome-wide" class="section level2">
@@ -1078,9 +1199,69 @@ ENSG00000136158_SPRY2    2.678918 37.12940 9.180697e-10 9.984926e-07</code></pre
 <p>We can check that the estimates of the biological coefficient of variation from the negative binomial model look sensible. Here they do, so we can expect sensible DE results.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotBCV</span>(de_res<span class="op">$</span>dge_list<span class="op">$</span>joxm)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/plot-bcv-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plot-bcv-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/plot-bcv-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>Likewise, a plot of the quasi-likelihood parameter against average gene expression looks smooth and sensible.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotQLDisp</span>(de_res<span class="op">$</span>qlf_list<span class="op">$</span>joxm)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/-lot-qld-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of -lot-qld-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/-lot-qld-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div id="pairwise-comparisons-of-clones" class="section level3">
 <h3>Pairwise comparisons of clones</h3>
 <p>As well as looking for <em>any</em> difference in expression across clones, we can also inspect specific pairwise contrasts of clones for differential expression.</p>
@@ -1218,7 +1399,187 @@ ENSG00000165752_STK32C  ENSG00000165752      STK32C   282974 2.280075e-04</code>
   <span class="kw">ggsave</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/donor_specific/joxm_volcano_&quot;</span>, i, <span class="st">&quot;.svg&quot;</span>),
          <span class="dt">plot =</span> p_vulcan, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">9</span>)
 }</code></pre></div>
-<p><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-1.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-2.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-3.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-4.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-5.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-6.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="figure/analysis_for_joxm.Rmd/plots-cntrst-1.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plots-cntrst-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/plots-cntrst-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/plots-cntrst-2.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plots-cntrst-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/plots-cntrst-2.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/plots-cntrst-3.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plots-cntrst-3.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/plots-cntrst-3.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/plots-cntrst-4.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plots-cntrst-4.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/plots-cntrst-4.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/plots-cntrst-5.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plots-cntrst-5.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/plots-cntrst-5.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/plots-cntrst-6.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plots-cntrst-6.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/plots-cntrst-6.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <hr />
 </div>
 </div>
@@ -1350,7 +1711,277 @@ ENSG00000165752_STK32C  ENSG00000165752      STK32C   282974 2.280075e-04</code>
               <span class="dt">main =</span> <span class="kw">paste0</span>(<span class="st">&quot;joxm: &quot;</span>, i, <span class="st">&quot;</span><span class="ch">\n</span><span class="st"> HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT&quot;</span>))
   <span class="kw">dev.off</span>()
 }  </code></pre></div>
-<p><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-1.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-2.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-3.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-4.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-5.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-6.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-7.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-8.png" width="864" style="display: block; margin: auto;" /><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-9.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="figure/analysis_for_joxm.Rmd/gene-set-plots-1.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of gene-set-plots-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/gene-set-plots-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/gene-set-plots-2.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of gene-set-plots-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/gene-set-plots-2.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/gene-set-plots-3.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of gene-set-plots-3.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/gene-set-plots-3.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/gene-set-plots-4.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of gene-set-plots-4.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/gene-set-plots-4.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/gene-set-plots-5.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of gene-set-plots-5.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/gene-set-plots-5.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/gene-set-plots-6.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of gene-set-plots-6.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/gene-set-plots-6.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/gene-set-plots-7.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of gene-set-plots-7.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/gene-set-plots-7.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/gene-set-plots-8.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of gene-set-plots-8.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/gene-set-plots-8.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details> <img src="figure/analysis_for_joxm.Rmd/gene-set-plots-9.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of gene-set-plots-9.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/gene-set-plots-9.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>One could carry out similar analyses and produce similar plots for the c2 and c6 MSigDB gene set collections.</p>
 </div>
 </div>
@@ -1367,6 +1998,36 @@ ENSG00000165752_STK32C  ENSG00000165752      STK32C   282974 2.280075e-04</code>
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">reverse =</span> <span class="ot">TRUE</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_blank</span>())</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/test-cc-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of test-cc-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/test-cc-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">as.data.frame</span>(<span class="kw">colData</span>(de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[<span class="st">&quot;joxm&quot;</span>]])) <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">Cell_Cycle =</span> <span class="kw">factor</span>(cyclone_phase, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;G2M&quot;</span>, <span class="st">&quot;S&quot;</span>, <span class="st">&quot;G1&quot;</span>)),
                   <span class="dt">assigned =</span> <span class="kw">factor</span>(assigned, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;clone3&quot;</span>, <span class="st">&quot;clone2&quot;</span>, <span class="st">&quot;clone1&quot;</span>))) <span class="op">%&gt;%</span>
@@ -1378,6 +2039,36 @@ ENSG00000165752_STK32C  ENSG00000165752      STK32C   282974 2.280075e-04</code>
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">reverse =</span> <span class="ot">TRUE</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_blank</span>())</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/test-cc-2.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of test-cc-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/test-cc-2.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>A Fisher Exact Test can provide some guidance about whether or not these differences in cell cycle proportions are expected by chance.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">freqs &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(<span class="kw">table</span>(
     de_res[[<span class="st">&quot;sce_list_unst&quot;</span>]][[<span class="st">&quot;joxm&quot;</span>]]<span class="op">$</span>assigned,  
@@ -1426,21 +2117,141 @@ pca_unst &lt;-<span class="st"> </span><span class="kw">data.frame</span>(
 <span class="st">    </span><span class="kw">scale_fill_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;assigned</span><span class="ch">\n</span><span class="st">clone&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC2, <span class="dt">y =</span> PC3, <span class="dt">fill =</span> clone)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">scale_fill_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;assigned</span><span class="ch">\n</span><span class="st">clone&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-2.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-2.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC2, <span class="dt">y =</span> PC4, <span class="dt">fill =</span> clone)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">scale_fill_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;assigned</span><span class="ch">\n</span><span class="st">clone&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-3.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-3.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-3.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC3, <span class="dt">y =</span> PC4, <span class="dt">fill =</span> clone)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">scale_fill_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;assigned</span><span class="ch">\n</span><span class="st">clone&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-4.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-4.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-4.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>We can also explore how inferred cell cycle phase information relates to the PCA components.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pca_unst<span class="op">$</span>cyclone_phase &lt;-<span class="st"> </span><span class="kw">factor</span>(pca_unst<span class="op">$</span>cyclone_phase, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;G1&quot;</span>, <span class="st">&quot;S&quot;</span>, <span class="st">&quot;G2M&quot;</span>))
 <span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">colour =</span> cyclone_phase,
@@ -1451,6 +2262,36 @@ pca_unst &lt;-<span class="st"> </span><span class="kw">data.frame</span>(
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC2 (5% variance)&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-cc-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-cc-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-cc-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca.png&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
@@ -1465,6 +2306,36 @@ pca_unst<span class="op">$</span>cyclone_phase &lt;-<span class="st"> </span><sp
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC3 (3% variance)&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-cc-2.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-cc-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-cc-2.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">fill =</span> G2M,
                      <span class="dt">shape =</span> clone)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">colour =</span> <span class="st">&quot;gray50&quot;</span>, <span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
@@ -1475,6 +2346,36 @@ pca_unst<span class="op">$</span>cyclone_phase &lt;-<span class="st"> </span><sp
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC2 (5% variance)&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-cc-3.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-cc-3.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-cc-3.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_g2m_score.png&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_g2m_score.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_g2m_score.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
@@ -1487,6 +2388,36 @@ pca_unst<span class="op">$</span>cyclone_phase &lt;-<span class="st"> </span><sp
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC2 (5% variance&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-cc-4.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-cc-4.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-cc-4.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">colour =</span> G1,
                      <span class="dt">shape =</span> clone)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
@@ -1495,6 +2426,36 @@ pca_unst<span class="op">$</span>cyclone_phase &lt;-<span class="st"> </span><sp
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;PC2 (5% variance&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">18</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-cc-5.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-cc-5.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-cc-5.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>Number of variants used for clone ID looks to have little relationship to global structure in expression PCA space.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">fill =</span> clone2_prob, <span class="dt">size =</span> nvars_cloneid)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
@@ -1502,6 +2463,36 @@ pca_unst<span class="op">$</span>cyclone_phase &lt;-<span class="st"> </span><sp
 <span class="st">    </span><span class="kw">scale_size_continuous</span>(<span class="dt">name =</span> <span class="st">&quot;# variants</span><span class="ch">\n</span><span class="st">for clone ID&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/pca-nvars-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of pca-nvars-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/pca-nvars-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 <div id="de-accounting-for-cell-cycle-in-model" class="section level2">
 <h2>DE accounting for cell cycle in model</h2>
@@ -1591,13 +2582,41 @@ HALLMARK_MYOGENESIS                    115      Down 0.114033788 0.7971485</code
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;P-value for clone DE, accounting for cell cycle (-log10 scale)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme_classic</span>()</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/de-cc-plot-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of de-cc-plot-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/de-cc-plot-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 <div id="combined-figure" class="section level2">
 <h2>Combined figure</h2>
 <p>For publication, we put together a combined figure summarising the analyses conducted above.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## tree and cell assignment
-snv_label &lt;-<span class="st"> </span>cardelino<span class="op">:::</span><span class="kw">mut.label</span>(cell_assign_joxm<span class="op">$</span>tree)
-
 fig_tree &lt;-<span class="st"> </span><span class="kw">plot_tree</span>(cell_assign_joxm<span class="op">$</span>full_tree, <span class="dt">orient =</span> <span class="st">&quot;v&quot;</span>) <span class="op">+</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Clonal tree&quot;</span>) <span class="op">+</span>
 <span class="st">    </span>cardelino<span class="op">:::</span><span class="kw">heatmap.theme</span>(<span class="dt">size =</span> <span class="dv">16</span>) <span class="op">+</span>
@@ -1800,6 +2819,36 @@ p_bar_pca &lt;-<span class="st"> </span><span class="kw">ggdraw</span>() <span c
 <span class="st">    </span><span class="kw">draw_plot_label</span>(letters[<span class="dv">1</span><span class="op">:</span><span class="dv">4</span>], <span class="dt">x =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">0</span>, <span class="fl">0.5</span>), 
                     <span class="dt">y =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="fl">0.45</span>, <span class="fl">0.45</span>), <span class="dt">size =</span> <span class="dv">36</span>)</code></pre></div>
 <p><img src="figure/analysis_for_joxm.Rmd/combined-fig-1.png" width="1728" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of combined-fig-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/combined-fig-1.png" target="_blank">87e9b0b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_combined_fig.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">16</span>, <span class="dt">width =</span> <span class="dv">18</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_combined_fig.pdf&quot;</span>, 
@@ -1841,7 +2890,7 @@ p_bar_pca &lt;-<span class="st"> </span><span class="kw">ggdraw</span>() <span c
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-17                  
+ date     2018-08-19                  
 
  package              * version   date       source                
  AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
@@ -1863,7 +2912,7 @@ p_bar_pca &lt;-<span class="st"> </span><span class="kw">ggdraw</span>() <span c
  blob                   1.1.1     2018-03-25 CRAN (R 3.5.0)        
  broom                  0.5.0     2018-07-17 CRAN (R 3.5.0)        
  BSgenome               1.48.0    2018-05-01 Bioconductor          
- cardelino            * 0.0.13    2018-08-17 Bioconductor          
+ cardelino            * 0.1.1     2018-08-19 Bioconductor          
  cellranger             1.1.0     2016-07-27 CRAN (R 3.5.0)        
  cli                    1.0.0     2017-11-05 CRAN (R 3.5.0)        
  colorspace             1.3-2     2016-12-14 CRAN (R 3.5.0)        
