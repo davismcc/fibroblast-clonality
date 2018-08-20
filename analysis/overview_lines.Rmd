@@ -10,7 +10,7 @@ distinct donor, so we use the terms "line" and "donor" interchangeably.
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Load libraries and data
@@ -86,10 +86,9 @@ functional annotation category.
 ```{r load-csq-data}
 vep_best <- read_tsv("data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
 colnames(vep_best)[1] <- "Uploaded_variation"
-vep_best
 ## deduplicate dataframe
 vep_best <- as.data.frame(vep_best[!duplicated(vep_best[["Uploaded_variation"]]),])
-table(vep_best[["Consequence"]])
+as.data.frame(table(vep_best[["Consequence"]]))
 ```
 
 Add consequences to exome sites.
@@ -142,7 +141,7 @@ plot of goodness of fit for each line for the cumulative mutations
 neutral evolution. We label the example line `joxm`, which is analysed in more
 depth in other scripts.
 
-```{r donor-mutation-selection, fig.height=12, fig.width=12}
+```{r donor-mutation-selection, fig.height=5, fig.width=6}
 ntrtestrPetr <- read.table("data/neutralitytestr-petr.tsv", 
                            stringsAsFactors = FALSE, header = TRUE)
 negbinfitPetr = read.table("data/neg-bin-rsquared-petr.csv", 
@@ -228,7 +227,7 @@ Add donor level mutation signature exposures, using the `sigfit` package and
 the tri-nucleotide context for each variant (required for computing signature
 exposures), using a function from the `deconstructSigs` package.
 
-```{r donor-mutation-signatures-cosmic, fig.height=3.5, fig.width=6}
+```{r donor-mutation-signatures-cosmic, fig.height=3.5, fig.width=6, results='hide'}
 data("cosmic_signatures", package = "sigfit")
 
 ##new input 
@@ -246,7 +245,7 @@ for (i in mutation_donors) {
 
 ## Calculate triNucleotide contexts for mutations using deconstructSigs command
 mut_triNs <- list()
-for(i in mutation_donors) {
+for (i in mutation_donors) {
   cat("....processing ", i, "\n")
   mut_triNs[[i]] <- mut.to.sigs.input(mutation_list_donors[[i]], sample.id = "donor_short_id", 
                                       chr = "chr", pos = "pos", ref = "ref", alt = "alt")
@@ -299,14 +298,15 @@ signature_names <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
 
 for (j in donors) {
   cat("....plotting ", j, "\n")
-  png(paste0("figures/overview_lines/mutational_signatures/exposure_barchart_", 
+   sigfit::plot_exposures(mcmc_samples_fit[[j]], 
+                          signature_names = signature_names)
+   png(paste0("figures/overview_lines/mutational_signatures/exposure_barchart_", 
              j, ".png"),
       units = "in", width = 12, height = 10, res = 500)
   sigfit::plot_exposures(mcmc_samples_fit[[j]], 
                          signature_names = signature_names)
   dev.off()
-  sigfit::plot_exposures(mcmc_samples_fit[[j]], 
-                         signature_names = signature_names)
+ 
 }
 ```
 
@@ -417,7 +417,6 @@ canopy_files <- list.files("data/canopy")
 canopy_files <- canopy_files[grepl(params$callset, canopy_files)]
 canopy_list <- list()
 for (don in donors) {
-        cat(paste("reading canopy data for", don, "\n"))
   canopy_list[[don]] <- readRDS(
     file.path("data/canopy", 
               paste0("canopy_results.", don, ".", params$callset, ".rds")))
@@ -448,7 +447,7 @@ rownames(clone_mut_df) <- donors
 clone_mut_df$donor_short <- donors
 ```
 
-Next, summarise the number of unique mutations tagging each clone identified by
+Next, summarise the number of _unique_ mutations tagging each clone identified by
 Canopy (that is, the number of variants for each clone that distinguish it from
 other clones in the line). Produce a dataframe with this information as well.
 
@@ -652,7 +651,7 @@ Finally, we plot the cell assignment rate (from `cardelino`) against the
 minimum Hamming distance (minimum number of variants distinguishing a pair of 
 clones) for each line.
 
-```{r plot-cell-assignment-vs-hamming, fig.height=12, fig.width=12}
+```{r plot-cell-assignment-vs-hamming, fig.height=5, fig.width=6}
 fig_2c_no_size <- ggplot(
   donor_info_filt, 
   aes(y = as.numeric(percent_assigned_cells), x = as.numeric(min_hamming_dist), 
@@ -683,3 +682,13 @@ ggsave("figures/overview_lines/cell_assignment_vs_min_hamming_dist.png",
        plot = fig_2c_no_size, width = 12, height = 12, dpi = 300, units = "cm")
 fig_2c_no_size
 ```
+
+## Save data to file
+
+Save the donor info dataframe to `output/line_info.tsv`.
+
+```{r write-data}
+write_tsv(donor_info_filt, path = "output/line_info.tsv", col_names = TRUE)
+```
+
+
