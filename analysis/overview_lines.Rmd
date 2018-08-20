@@ -1,0 +1,683 @@
+---
+title: "Overview of lines"
+author: "Raghd Rostom, Daniel J. Kunz & Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+This document provides overview information for 32 healthy human fibroblast cell
+lines used in this project. Note that each cell line was each derived from a 
+distinct donor, so we use the terms "line" and "donor" interchangeably.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+## Load libraries and data
+
+```{r load-libraries}
+library(readr)
+library(dplyr)
+library(scran)
+library(scater)
+library(viridis)
+library(ggplot2)
+library(ggforce)
+library(ggridges)
+library(SingleCellExperiment)
+library(edgeR)
+library(limma)
+library(org.Hs.eg.db)
+library(cowplot)
+library(gplots)
+library(ggrepel)
+library(sigfit)
+library(Rcpp)
+library(deconstructSigs)
+options(stringsAsFactors = FALSE)
+```
+
+Load donor level information.
+
+```{r load-donor-info}
+donor_info <- as.data.frame(read_csv("data/donor_info_core.csv"))
+# merge age bins
+donor_info$age_decade <- ""
+for (i in 1:nrow(donor_info)) {
+  if (donor_info$age[i] %in% c("30-34", "35-39")) 
+    donor_info$age_decade[i] <- "30-39"
+  if (donor_info$age[i] %in% c("40-44", "45-49")) 
+    donor_info$age_decade[i] <- "40-49"
+  if (donor_info$age[i] %in% c("50-54", "55-59")) 
+    donor_info$age_decade[i] <- "50-59"
+  if (donor_info$age[i] %in% c("60-64", "65-69")) 
+    donor_info$age_decade[i] <- "60-69"
+  if (donor_info$age[i] %in% c("70-74", "75-79")) 
+    donor_info$age_decade[i] <- "70-79"
+}
+```
+
+Load exome variant sites.
+
+```{r load-exome-sites-data}
+exome_sites <- read_tsv("data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz",
+                        col_types = "ciccdcciiiiccccccccddcdcll", comment = "#",
+                        col_names = TRUE)
+exome_sites <- dplyr::mutate(
+  exome_sites,
+  chrom = paste0("chr", gsub("chr", "", chrom)),
+  var_id = paste0(chrom, ":", pos, "_", ref, "_", alt),
+  chr_pos = paste0(chrom, "_", pos))
+
+exome_sites <- as.data.frame(exome_sites)
+## deduplicate sites list
+exome_sites <- exome_sites[!duplicated(exome_sites[["var_id"]]),]
+## calculate coverage at sites for each donor
+donor_vars_coverage <- list()
+for (i in unique(exome_sites$donor_short_id)) {
+  exome_sites_subset <- exome_sites[exome_sites$donor_short_id == i, ]
+  donor_vars_coverage[[i]] <- exome_sites_subset$nREF_fibro + exome_sites_subset$nALT_fibro
+}
+```
+
+Load VEP annotations and show table with number of variants assigned to each
+functional annotation category.
+
+```{r load-csq-data}
+vep_best <- read_tsv("data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
+colnames(vep_best)[1] <- "Uploaded_variation"
+vep_best
+## deduplicate dataframe
+vep_best <- as.data.frame(vep_best[!duplicated(vep_best[["Uploaded_variation"]]),])
+table(vep_best[["Consequence"]])
+```
+
+Add consequences to exome sites.
+
+```{r join-csq}
+vep_best[["var_id"]] <- paste0("chr", vep_best[["Uploaded_variation"]])
+exome_sites <- inner_join(exome_sites, 
+                          vep_best[, c("var_id", "Location", "Consequence")], 
+                          by = "var_id")
+```
+
+Add donor level mutation information (aggregate across impacts)
+Not used in manuscript, but still calculated to store in `donor_info` table.
+
+```{r donor-mutation-impacts}
+impactful_csq <- c("stop_lost", "start_lost", "stop_gained",
+                   "splice_donor_variant", "splice_acceptor_variant",
+                   "splice_region_variant", "missense_variant")
+donor_info$num_mutations <- NA
+donor_info$num_synonymous <- NA
+donor_info$num_missense <- NA
+donor_info$num_splice_region <- NA
+donor_info$num_splice_acceptor <- NA
+donor_info$num_splice_donor <- NA
+donor_info$num_stop_gained <- NA
+donor_info$num_start_lost <- NA
+donor_info$num_stop_lost <- NA
+for (i in unique(donor_info$donor_short)) {
+  if (i %in% unique(exome_sites$donor_short_id)) {
+    exome_sites_subset <- exome_sites[exome_sites$donor_short_id == i, ]
+    donor_info$num_mutations[donor_info$donor_short == i] <- length(exome_sites_subset$Consequence)
+    donor_info$num_synonymous[donor_info$donor_short == i] <- sum(exome_sites_subset$Consequence == "synonymous_variant")
+    donor_info$num_missense[donor_info$donor_short == i] <- sum(exome_sites_subset$Consequence == "missense_variant")
+    donor_info$num_splice_region[donor_info$donor_short == i] <- sum(exome_sites_subset$Consequence == "splice_region_variant")
+    donor_info$num_splice_acceptor[donor_info$donor_short == i] <- sum(exome_sites_subset$Consequence == "splice_acceptor_variant")
+    donor_info$num_splice_donor[donor_info$donor_short == i] <- sum(exome_sites_subset$Consequence == "splice_donor_variant")
+    donor_info$num_stop_gained[donor_info$donor_short == i] <- sum(exome_sites_subset$Consequence == "stop_gained")
+    donor_info$num_start_lost[donor_info$donor_short == i] <- sum(exome_sites_subset$Consequence == "start_lost")
+    donor_info$num_stop_lost[donor_info$donor_short == i] <- sum(exome_sites_subset$Consequence == "stop_lost")
+  }
+}
+```
+
+
+## Goodness of fit of neutral evolution models
+
+Add donor level mutation selection info (Daniel Kunz). We produce a scatter 
+plot of goodness of fit for each line for the cumulative mutations 
+(Williams et al, 2016) and the negative binomial (Simons, 2016) models of 
+neutral evolution. We label the example line `joxm`, which is analysed in more
+depth in other scripts.
+
+```{r donor-mutation-selection, fig.height=12, fig.width=12}
+ntrtestrPetr <- read.table("data/neutralitytestr-petr.tsv", 
+                           stringsAsFactors = FALSE, header = TRUE)
+negbinfitPetr = read.table("data/neg-bin-rsquared-petr.csv", 
+                           stringsAsFactors = FALSE, header = TRUE, sep = ",")
+negbinfitPetr$sampleID <- negbinfitPetr$fname
+negbinfitPetr$sampleID <- gsub("petr-AF-", "", negbinfitPetr$sampleID)
+negbinfitPetr$sampleID <- gsub(".tsv", "", negbinfitPetr$sampleID)
+rownames(negbinfitPetr) <- negbinfitPetr$sampleID
+
+dfrsq <- data.frame(sampleID = ntrtestrPetr$sampleID,
+                    rsq_ntrtestr = ntrtestrPetr$rsq,
+                    rsq_negbinfit = negbinfitPetr[ntrtestrPetr$sampleID, "rsq"])
+
+cutoff_selection_cummut <- 0.85
+cutoff_selection_negbin <- 0.25
+cutoff_neutral_cummut <- 0.9
+cutoff_neutral_negbin <- 0.55
+
+dfrsq$candidatelabel <- NA
+dfrsq$candidatelabel[dfrsq$sampleID == "joxm"] <- "joxm"
+
+filter_selection <- (dfrsq$rsq_ntrtestr < cutoff_selection_cummut) &
+  (dfrsq$rsq_negbinfit < cutoff_selection_negbin)
+filter_neutral <- (dfrsq$rsq_ntrtestr > cutoff_neutral_cummut) &
+  (dfrsq$rsq_negbinfit > cutoff_neutral_negbin)
+
+dfrsq$selection <- "undetermined"
+dfrsq$selection[filter_selection] <- "selected"
+dfrsq$selection[filter_neutral] <- "neutral"
+
+colnames(dfrsq)[1] <- "donor_short"
+donor_info <- merge(donor_info, dfrsq, by = "donor_short")
+donor_info$selection_colour <- "#CCCCCC"
+for (i in 1:nrow(donor_info)) {
+  if (donor_info$selection[i] == "neutral") 
+    donor_info$selection_colour[i] <- "dodgerblue"
+  if (donor_info$selection[i] == "selected") 
+    donor_info$selection_colour[i] <- "dodgerblue4"
+}
+
+donors <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
+            "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
+            "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
+            "ualf", "vass", "vils", "vuna", "wahn", "wetu", "xugn", "zoxy")
+
+dfrsq_filt <- dfrsq[(dfrsq$donor_short %in% donors),]
+
+plt_scatter <- ggplot(dfrsq_filt, aes(x = rsq_negbinfit, y = rsq_ntrtestr)) +
+  scale_colour_manual(values = c("neutral" = "dodgerblue",
+                                 "selected" = "dodgerblue4",
+                                 "undetermined" = "#CCCCCC")) +
+  geom_point(aes(colour = selection)) +
+  geom_label_repel(aes(label = candidatelabel), color = "white", size = 2.5,
+                   fill = "black", box.padding = 0.35, point.padding = 0.5,
+                   segment.color = "grey50") +
+  theme_bw() +
+  theme(text = element_text(size = 9,face = "bold"), 
+        axis.text = element_text(size = 9, face = "bold"),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.title = element_text(size = 9, hjust = 0.5)) +
+  labs(x = "Goodness of Fit - Negative Binomial Distribution", 
+       y = "Goodness of Fit - Cumulative Mutations") +
+  theme(strip.background = element_blank()) +
+  labs(title = "") +
+  theme(legend.justification = c(1,0), legend.position = c(1,0)) +
+  theme(legend.background = element_rect(fill = "white", linetype = 1, 
+                                         colour = "black", size =0.2),
+        legend.key.size = unit(0.25, "cm")) +
+  labs(colour = "Selection") #+
+# coord_fixed()
+
+ggsave("figures/overview_lines/neutral_selection_models_gof_scatter.png", 
+       plot = plt_scatter, width = 12, height = 12, dpi = 300, units = "cm")
+
+plt_scatter
+```
+
+
+## Mutational signatures
+
+Add donor level mutation signature exposures, using the `sigfit` package and 
+30 COSMIC signatures. We load the filtered exome variant sites and calculate 
+the tri-nucleotide context for each variant (required for computing signature
+exposures), using a function from the `deconstructSigs` package.
+
+```{r donor-mutation-signatures-cosmic, fig.height=3.5, fig.width=6}
+data("cosmic_signatures", package = "sigfit")
+
+##new input 
+mutation_list <- read.table("data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz", header = TRUE)
+mutation_list$chr_pos <- paste0("chr", mutation_list$chr, "_", mutation_list$pos)
+
+mutation_donors <- unique(mutation_list$donor_short_id)
+mutation_list_donors <- list()
+for (i in mutation_donors) {
+  cat("....reading ", i, "\n")
+  mutation_list_donors[[i]] <- mutation_list[which(mutation_list$donor_short_id == i),]
+  mutation_list_donors[[i]]$chr <- paste0("chr", mutation_list_donors[[i]]$chrom)
+  mutation_list_donors[[i]]$chr_pos = paste0(mutation_list_donors[[i]]$chr, "_", mutation_list_donors[[i]]$pos)
+}
+
+## Calculate triNucleotide contexts for mutations using deconstructSigs command
+mut_triNs <- list()
+for(i in mutation_donors) {
+  cat("....processing ", i, "\n")
+  mut_triNs[[i]] <- mut.to.sigs.input(mutation_list_donors[[i]], sample.id = "donor_short_id", 
+                                      chr = "chr", pos = "pos", ref = "ref", alt = "alt")
+}
+
+## Convert to correct format
+sig_triNs <- character()
+for (j in 1:96) {
+  c1 <- substr(colnames(mut_triNs[[1]])[j], 1,1)
+  ref <- substr(colnames(mut_triNs[[1]])[j], 3,3)
+  alt <- substr(colnames(mut_triNs[[1]])[j], 5,5)
+  c3 <- substr(colnames(mut_triNs[[1]])[j], 7,7)
+  triN_sigfit <- paste0(c1,ref,c3,">",c1,alt,c3)
+  sig_triNs[j] <- triN_sigfit
+}
+
+for(i in mutation_donors) {
+  colnames(mut_triNs[[i]]) <- sig_triNs
+}
+
+## Fit signatures using sigfit
+mcmc_samples_fit <- list()
+set.seed(1234)
+for (i in mutation_donors) {
+  mcmc_samples_fit[[i]] <- sigfit::fit_signatures(
+    counts = mut_triNs[[i]], signatures = cosmic_signatures,
+    iter = 2000, warmup = 1000, chains = 1, seed = 1)
+}
+
+## Estimate exposures using sigfit
+exposures <- list()
+for (i in mutation_donors) {
+  exposures[[i]] <- sigfit::retrieve_pars(
+    mcmc_samples_fit[[i]], par = "exposures", hpd_prob = 0.90)
+}
+```
+
+Plot an exposure barchart for each line.
+
+```{r plot-exposures, fig.height=3.5, fig.width=6}
+## Plot exposure bar charts
+donors <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
+            "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
+            "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
+            "ualf", "vass", "vils", "vuna", "wahn", "wetu", "xugn", "zoxy")
+
+signature_names <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", 
+                     "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", 
+                     "22", "23", "24", "25", "26", "27", "28", "29", "30")
+
+for (j in donors) {
+  cat("....plotting ", j, "\n")
+  png(paste0("figures/overview_lines/mutational_signatures/exposure_barchart_", 
+             j, ".png"),
+      units = "in", width = 12, height = 10, res = 500)
+  sigfit::plot_exposures(mcmc_samples_fit[[j]], 
+                         signature_names = signature_names)
+  dev.off()
+  sigfit::plot_exposures(mcmc_samples_fit[[j]], 
+                         signature_names = signature_names)
+}
+```
+
+Retrieve exposures for a given signal. Specifically, we will look an highest 
+posterior density (HPD) intervals and mean exposures for Signature 7 (UV) and
+Signature 11, the only two that are significant across multiple lines. We add
+this information to the `donor_info` dataframe.
+
+```{r}
+get_signature_df <- function(exposures, samples, signature) {
+  signature_mat_mean <- matrix(NA, nrow = length(samples), 30)
+  for (i in 1:length(samples)) {
+    signature_mat_mean[i,] <- as.numeric(exposures[[i]]$mean)
+  }
+  rownames(signature_mat_mean) <- samples
+  colnames(signature_mat_mean) <- colnames(exposures[[i]]$mean)
+  signature_mat_lower90 <- matrix(NA, nrow = length(samples), 30)
+  for (i in 1:length(samples)) {
+    signature_mat_lower90[i,] <- as.numeric(exposures[[i]]$lower_90)
+  }
+  rownames(signature_mat_lower90) <- samples
+  colnames(signature_mat_lower90) <- colnames(exposures[[i]]$lower_90)
+  signature_mat_upper90 <- matrix(NA, nrow = length(samples), 30)
+  for (i in 1:length(samples)) {
+    signature_mat_upper90[i,] <- as.numeric(exposures[[i]]$upper_90)
+  }
+  rownames(signature_mat_upper90) <- samples
+  colnames(signature_mat_upper90) <- colnames(exposures[[i]]$upper_90)
+  signature_df <- cbind(
+    as.data.frame(signature_mat_mean[,signature]),
+    as.data.frame(signature_mat_lower90[,signature]),
+    as.data.frame(signature_mat_upper90[,signature]))
+  colnames(signature_df) <- c(paste0("Sig",signature,"_mean"),
+                              paste0("Sig",signature,"_lower"),
+                              paste0("Sig",signature,"_upper"))
+  signature_df$donor <- rownames(signature_df)
+  signature_df
+}
+
+## Get lower, mean and upper values for signatures 7 & 11
+sig7_df <- get_signature_df(exposures, mutation_donors, 7)
+sig11_df <- get_signature_df(exposures, mutation_donors, 11)
+
+## Add Sigs 7/11 to donor info table
+sig_subset_df <- merge(sig7_df,sig11_df, by = "donor")
+sig_subset_df_means <- sig_subset_df[,c(1,grep("mean", colnames(sig_subset_df)))]
+sig_subset_df_means_melt <- reshape2::melt(sig_subset_df_means)
+sig_subset_df_means_melt$signature <- substr(sig_subset_df_means_melt$variable, 1, 5)
+sig_subset_df_means_melt <- sig_subset_df_means_melt[,c("donor", "signature", "value")]
+
+colnames(sig_subset_df)[1] <- "donor_short" 
+donor_info <- merge(donor_info, sig_subset_df, by = "donor_short")
+```
+
+## Expression data and cell assignments
+
+Read in annotated SingleCellExperiment (SCE) objects and create a list of SCE
+objects containing all cells used for analysis and their assignment (using 
+`cardelino`) to clones identified with Canopy from whole-exome sequencing data.
+
+```{r}
+fls <- list.files("data/sces")
+fls <- fls[grepl(params$callset, fls)]
+donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+sce_unst_list <- list()
+for (don in donors) {
+    sce_unst_list[[don]] <- readRDS(file.path("data/sces", 
+        paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), "cells.\n"))
+}
+
+## Calculate single cell data metrics
+sc_metrics_summary <- list()
+sc_metrics_summary_df <- data.frame()
+for (don in donors) {
+  sc_metrics_summary[[don]]$num_unst_cells <- ncol(sce_unst_list[[don]])
+  sc_metrics_summary[[don]]$num_assignable <- sum(sce_unst_list[[don]]$assignable)
+  sc_metrics_summary[[don]]$num_unassignable <- 
+    (sc_metrics_summary[[don]]$num_unst_cells -
+       sc_metrics_summary[[don]]$num_assignable)
+  sc_metrics_summary[[don]]$num_clones_with_cells <-
+    length(unique(sce_unst_list[[don]]$assigned[
+      which(sce_unst_list[[don]]$assigned != "unassigned")]))
+  sc_metrics_summary[[don]]$donor <- don
+  sc_metrics_summary_df <-
+    rbind(sc_metrics_summary_df, as.data.frame(sc_metrics_summary[[don]]))
+}
+
+colnames(sc_metrics_summary_df) <- c("total_unst_cells", "assigned_unst_cells",
+                                     "unassigned_unst_cells", 
+                                     "num_clones_with_cells", "donor_short")
+
+## Merge with donor info table
+donor_info <- merge(donor_info, sc_metrics_summary_df, by = "donor_short", 
+                    all.x = TRUE)
+donor_info$percent_assigned_cells <-
+  donor_info$assigned_unst_cells / donor_info$total_unst_cells
+```
+
+## Canopy clone inference information
+
+First, we read in the canopy output for each line we analyse.
+
+```{r load-canopy}
+canopy_files <- list.files("data/canopy")
+canopy_files <- canopy_files[grepl(params$callset, canopy_files)]
+canopy_list <- list()
+for (don in donors) {
+        cat(paste("reading canopy data for", don, "\n"))
+  canopy_list[[don]] <- readRDS(
+    file.path("data/canopy", 
+              paste0("canopy_results.", don, ".", params$callset, ".rds")))
+}
+```
+
+Second, summarise the number of mutations for each clone, for each line. Form
+these results into a dataframe.
+
+```{r canopy-mutations}
+clone_mut_list <- list()
+for (don in donors) {
+  cat(paste("summarising clones and mutations for", don, '\n'))
+  clone_mut_list[[don]] <- colSums(canopy_list[[don]]$tree$Z)
+  cat(colSums(canopy_list[[don]]$tree$Z))
+  cat('\n')
+}
+
+clone_mut_df <- data.frame(clone1 = numeric(), clone2 = numeric(), 
+                           clone3 = numeric(), clone4 = numeric())
+for (i in 1:length(donors)) {
+  num_clones <- length(clone_mut_list[[i]])
+  num_NAs <- 4 - num_clones
+  temp_row  <- c(clone_mut_list[[i]], rep(NA, num_NAs))
+  clone_mut_df[i,] <- temp_row
+}
+rownames(clone_mut_df) <- donors
+clone_mut_df$donor_short <- donors
+```
+
+Next, summarise the number of unique mutations tagging each clone identified by
+Canopy (that is, the number of variants for each clone that distinguish it from
+other clones in the line). Produce a dataframe with this information as well.
+
+```{r canopy-mutations-unique}
+clone_mut_unique_list <- list()
+for (don in donors) {
+        cat(paste("summarising clones and mutations for", don, '\n'))
+        clone_mut_unique_list[[don]] <-
+          colSums(canopy_list[[don]]$tree$Z[
+            (rowSums(canopy_list[[don]]$tree$Z) == 1),])
+        cat(colSums(canopy_list[[don]]$tree$Z[
+          (rowSums(canopy_list[[don]]$tree$Z) == 1),]))
+        cat('\n')
+}
+
+clone_mut_unique_df <- data.frame(clone1 = numeric(), clone2 = numeric(), 
+                                  clone3 = numeric(),
+                           clone4 = numeric(), min_unique_muts = numeric())
+for (i in 1:length(donors)) {
+  num_clones <- length(clone_mut_unique_list[[i]])
+  num_NAs <- 4 - num_clones
+  temp_row  <- c(clone_mut_unique_list[[i]], rep(NA, num_NAs), 
+                 min(clone_mut_unique_list[[i]][2:num_clones]))
+  clone_mut_unique_df[i,] <- temp_row
+}
+rownames(clone_mut_df) <- donors
+clone_mut_df$donor_short <- donors
+rownames(clone_mut_unique_df) <- donors
+clone_mut_unique_df$donor_short <- donors
+donor_info <- merge(donor_info, clone_mut_unique_df, by = "donor_short", all.x = T)
+```
+
+Finally, calculate the minimum Hamming distance between pairs of clones for each
+line. In general, assignment of cells to clones will be easier/more successful
+for lines with larger numbers of variants distinguishes between clones (that is, 
+a high minimum Hamming distance).
+
+We add all of this information to the `donor_info` dataframe and then have the
+data prepared to make some overview plots across lines.
+
+```{r calc-hamming-dist}
+## Calculate Hamming distance
+clone_mut_list_hamming <- list()
+for (don in donors) {
+  Config <- canopy_list[[don]]$tree$Z
+  unique_sites_paired <- c()
+  for (i in seq_len(ncol(Config) - 1)) {
+    for (j in seq(i + 1, ncol(Config))) {
+      n_sites <- sum(rowSums(Config[, c(i,j)]) == 1)
+      unique_sites_paired <- c(unique_sites_paired, n_sites)
+    }
+  }
+  clone_mut_list_hamming[[don]] <- unique_sites_paired  
+  cat("....hamming distances for ", don, ": ", unique_sites_paired, "\n") 
+}
+
+min_hamming_distance <- data.frame("donor_short" = donors,
+                                   "min_hamming_dist" = 0)
+for (i in 1:length(donors)) {
+  min_hamming_distance$min_hamming_dist[i] <- min(clone_mut_list_hamming[[i]])
+}
+
+donor_info <- merge(donor_info, min_hamming_distance, by = "donor_short", 
+                    all.x = TRUE)
+
+## Number of clones
+donor_info$num_clones_total <- 0
+for (i in donors) {
+  num_clones <- length(clone_mut_unique_list[[i]])
+  donor_info$num_clones_total[which(donor_info$donor_short == i)] <- num_clones
+}
+```
+
+## Plot line metrics
+
+We make a large combined plot stitching together individual plots showing:
+
+* donor age;
+* number of somatic mutations;
+* signature 7 (UV) exposure; and
+* number of mutations per clone
+
+for each line.
+
+```{r donor-info-summary-plot, fig.height=14, fig.width=30}
+donor_info_filt <- donor_info[which(donor_info$donor_short %in% donors), ]
+donor_filt_order <- dplyr::arrange(donor_info_filt, desc(num_mutations))
+donor_filt_order <- donor_filt_order$donor_short
+rownames(donor_info_filt) <- donor_info_filt$donor_short
+
+# Plot age
+selected_vars <- c("donor_short", "age_decade", "selection_colour")
+donor_info_filt_melt <- reshape2::melt(donor_info_filt[,selected_vars],
+                                       "donor_short")
+donor_info_filt_melt <- donor_info_filt[,selected_vars]
+
+age_plot_filt <- ggplot(
+  donor_info_filt_melt, 
+  aes(x = "Age", y = factor(donor_short, levels = rev(donor_filt_order)), 
+      fill = age_decade)) + 
+  geom_tile() +
+  labs(x = "", y = "Donor", fill = "") + 
+  scale_fill_manual(values = rev(c(magma(8)[-c(1,8)])))  +
+  guides(fill = guide_legend(nrow = 3,byrow = TRUE)) +
+  theme(axis.text.x = element_text(size = 28, face = "bold"), 
+        axis.line = element_blank(), 
+        legend.position = "top", legend.direction = "horizontal", 
+        legend.text = element_text(size = 24, face = "bold"), 
+        legend.key.size = unit(0.3,"in"),
+        axis.ticks.x = element_blank(),
+        legend.margin = margin(unit(0.01, "cm")),
+        axis.text.y = element_text(size = 28, face = "bold"), 
+        axis.title.y = element_text(size = 28, face = "bold"), 
+        axis.title.x = element_text(size = 28, face = "bold"))
+
+# Plot number of mutations
+selected_vars <- c("donor_short", "num_mutations")
+donor_info_filt_melt <- reshape2::melt(donor_info_filt[,selected_vars],
+                                       "donor_short")
+num_mut_plot_filt <- ggplot(
+  donor_info_filt_melt, 
+  aes(x = value, y = factor(donor_short, levels = rev(donor_filt_order)))) + 
+  geom_point(size = 4, alpha = 0.7) + 
+  scale_shape_manual(values = c(4, 19)) + 
+  scale_x_log10(breaks=c(50, 100, 500)) +
+  theme_bw(16) + 
+  ggtitle(" ") + 
+  labs(x = "Number of mutations", y = "") + 
+  theme(axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(), 
+        axis.line = element_blank(), 
+        legend.position = "top", 
+        axis.text.x = element_text(size = 28, face = "bold"), 
+        title = element_text(colour="black",size = 26, face = "bold"), 
+        axis.title.x = element_text(size = 28, face = "bold"))
+
+# Plot signature 7 
+donor_info_filt_melt <- reshape2::melt(
+  donor_info_filt[,c(1,grep("Sig7_mean",colnames(donor_info_filt)))])
+donor_info_filt_melt$signature <- substr(donor_info_filt_melt$variable, 1, 5)
+donor_info_filt_melt <- 
+  donor_info_filt_melt[, c("donor_short", "signature", "value")]
+sig_decomp_plot_filt <- ggplot(
+  donor_info_filt_melt, 
+  aes(y = value, x = factor(donor_short, levels = rev(donor_filt_order)), 
+      fill = factor(signature))) + 
+  geom_bar(stat = "identity") + 
+  coord_flip() + 
+  scale_fill_manual(values = rev(c(magma(10)[-c(1,10)]))) +
+  theme_bw(16) + 
+  ggtitle(" ") + 
+  labs(x = "",y = "Signature 7 exposure", fill = "") +
+  theme(axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(), 
+        axis.line = element_blank(), 
+        axis.text.x = element_text(size = 28, face = "bold"),
+        title = element_text(colour = "black", size = 26, face = "bold"),
+        axis.title.x = element_text(size = 28, face = "bold")) +
+  guides(fill = FALSE)
+
+# Plot total number of mutations per clone
+donor_info_filt_subset <-
+  donor_info_filt[,c(1,grep("clone",colnames(donor_info_filt)))]
+# Remove columns that do not relate to number of mutations per clone: 
+donor_info_filt_subset <- donor_info_filt_subset[,c(-2,-7)]
+donor_info_filt_melt <- reshape2::melt(donor_info_filt_subset, "donor_short")
+donor_info_filt_melt$variable <- substr(donor_info_filt_melt$variable, 6, 6)
+num_clones_plot_filt <- ggplot(
+  donor_info_filt_melt, 
+  aes(variable, factor(donor_short, levels = rev(donor_filt_order)))) +
+  geom_tile(aes(fill = value), colour = "white") + 
+  scale_fill_distiller(palette = "BuPu", values = c(0,0.05,0.1,0.15,0.25,0.5,1),
+                       na.value = "white", breaks = c(0,25,50,75), 
+                       direction = 1) +
+  labs(x = "Clone", y = "", fill = "Number of mutations per clone") +  
+  theme(axis.ticks.y = element_blank(), 
+        axis.line = element_blank(), 
+        legend.position = "top",
+        legend.key.size = unit(0.5,"in"), 
+        axis.title.x = element_text(size = 28, face = "bold"),
+        axis.text.x = element_text(size = 28, face = "bold"),
+        axis.text.y = element_blank(), 
+        legend.justification = "center", 
+        legend.text = element_text(size = 26, face = "bold"), 
+        legend.title = element_text(size = 26, face = "bold"))
+
+## Combine above plots into Fig 2a
+fig_2a <- cowplot::plot_grid(age_plot_filt, num_mut_plot_filt,
+                             sig_decomp_plot_filt, num_clones_plot_filt, 
+                             nrow = 1, rel_widths = c(3, 4, 4, 6), align = "h",
+                             axis = "t", scale =  c(1, 0.988, 0.988, 0.988))
+ggsave("figures/overview_lines/overview_lines_BuPu.png", 
+       plot = fig_2a, width = 30, height = 14)
+
+fig_2a
+```
+
+## Plot cell assignment rate vs Hamming Distance
+
+Finally, we plot the cell assignment rate (from `cardelino`) against the 
+minimum Hamming distance (minimum number of variants distinguishing a pair of 
+clones) for each line.
+
+```{r plot-cell-assignment-vs-hamming, fig.height=12, fig.width=12}
+fig_2c_no_size <- ggplot(
+  donor_info_filt, 
+  aes(y = as.numeric(percent_assigned_cells), x = as.numeric(min_hamming_dist), 
+      fill = total_unst_cells)) + 
+  geom_point(pch = 21, colour = "gray50", size = 4) +
+  scale_shape_manual(values = c(4, 19)) + 
+  ylim(c(0, 1)) + 
+  scale_x_log10() + 
+  scale_fill_viridis(option = "magma") +
+  ylab("Proportion cells assigned") + 
+  xlab("Minimum number of variants distinguishing clones") + 
+  labs(title = "") +
+  labs(fill = "Number of cells") + 
+  theme_bw() +
+  theme(text = element_text(size = 9,face = "bold"), 
+        axis.text = element_text(size = 9, face = "bold"),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.title = element_text(size = 9, hjust = 0.5)) +
+  theme(strip.background = element_blank()) +
+  theme(legend.justification = c(1,0), 
+        legend.position = c(1,0), 
+        legend.direction = "horizontal",
+        legend.background = element_rect(fill = "white", linetype = 1, 
+                                         colour = "black", size = 0.2),
+        legend.key.size = unit(0.25, "cm"))
+
+ggsave("figures/overview_lines/cell_assignment_vs_min_hamming_dist.png",
+       plot = fig_2c_no_size, width = 12, height = 12, dpi = 300, units = "cm")
+fig_2c_no_size
+```
