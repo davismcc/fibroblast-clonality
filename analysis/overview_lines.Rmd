@@ -315,7 +315,7 @@ posterior density (HPD) intervals and mean exposures for Signature 7 (UV) and
 Signature 11, the only two that are significant across multiple lines. We add
 this information to the `donor_info` dataframe.
 
-```{r}
+```{r retrieve-exposures}
 get_signature_df <- function(exposures, samples, signature) {
   signature_mat_mean <- matrix(NA, nrow = length(samples), 30)
   for (i in 1:length(samples)) {
@@ -367,7 +367,9 @@ Read in annotated SingleCellExperiment (SCE) objects and create a list of SCE
 objects containing all cells used for analysis and their assignment (using 
 `cardelino`) to clones identified with Canopy from whole-exome sequencing data.
 
-```{r}
+```{r load-cell-data}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites"
 fls <- list.files("data/sces")
 fls <- fls[grepl(params$callset, fls)]
 donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
