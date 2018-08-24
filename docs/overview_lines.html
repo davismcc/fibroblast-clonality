@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Raghd Rostom, Daniel J. Kunz &amp; Davis J. McCarthy" />
+
+
+<title>Overview of lines</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/font-awesome-5.0.13/css/fa-svg-with-js.css" rel="stylesheet" />
+<script src="site_libs/font-awesome-5.0.13/js/fontawesome-all.min.js"></script>
+<script src="site_libs/font-awesome-5.0.13/js/fa-v4-shims.min.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+div.sourceCode {
+  overflow-x: visible;
+}
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">fibroblast-clonality</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Overview of lines</h1>
+<h4 class="author"><em>Raghd Rostom, Daniel J. Kunz &amp; Davis J. McCarthy</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-08-20</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180807)</code> </summary></p>
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/5aa174b67899683cacd0e0e84870a1f824b46639" target="_blank">5aa174b</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rproj.user/
+
+Untracked files:
+    Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  data/canopy/
+    Untracked:  data/cell_assignment/
+    Untracked:  data/de_analysis_FTv62/
+    Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
+    Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/fdr10.annot.txt.gz
+    Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
+    Untracked:  data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz
+    Untracked:  data/human_H_v5p2.rdata
+    Untracked:  data/human_c2_v5p2.rdata
+    Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
+    Untracked:  data/sces/
+    Untracked:  data/simulations/
+    Untracked:  data/variance_components/
+    Untracked:  figures/
+    Untracked:  output/differential_expression/
+    Untracked:  output/donor_specific/
+    Untracked:  output/nvars_by_category_by_donor.tsv
+    Untracked:  output/nvars_by_category_by_line.tsv
+    Untracked:  output/variance_components/
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/5aa174b67899683cacd0e0e84870a1f824b46639/analysis/overview_lines.Rmd" target="_blank">5aa174b</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-20
+</td>
+<td style="text-align:left;">
+Tidying up and saving dataframe to output file
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/fc582db56cff1220f322835fb1de45272be5d656/analysis/overview_lines.Rmd" target="_blank">fc582db</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-20
+</td>
+<td style="text-align:left;">
+Fixing up small bug.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/3856e54eb1dafd6f968bea533cef4215ad4cebbe/analysis/overview_lines.Rmd" target="_blank">3856e54</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-20
+</td>
+<td style="text-align:left;">
+Adding overview analysis of lines
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<p>This document provides overview information for 32 healthy human fibroblast cell lines used in this project. Note that each cell line was each derived from a distinct donor, so we use the terms “line” and “donor” interchangeably.</p>
+<div id="load-libraries-and-data" class="section level2">
+<h2>Load libraries and data</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readr)
+<span class="kw">library</span>(dplyr)
+<span class="kw">library</span>(scran)
+<span class="kw">library</span>(scater)
+<span class="kw">library</span>(viridis)
+<span class="kw">library</span>(ggplot2)
+<span class="kw">library</span>(ggforce)
+<span class="kw">library</span>(ggridges)
+<span class="kw">library</span>(SingleCellExperiment)
+<span class="kw">library</span>(edgeR)
+<span class="kw">library</span>(limma)
+<span class="kw">library</span>(org.Hs.eg.db)
+<span class="kw">library</span>(cowplot)
+<span class="kw">library</span>(gplots)
+<span class="kw">library</span>(ggrepel)
+<span class="kw">library</span>(sigfit)
+<span class="kw">library</span>(Rcpp)
+<span class="kw">library</span>(deconstructSigs)
+<span class="kw">options</span>(<span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)</code></pre></div>
+<p>Load donor level information.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">donor_info &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">read_csv</span>(<span class="st">&quot;data/donor_info_core.csv&quot;</span>))
+<span class="co"># merge age bins</span>
+donor_info<span class="op">$</span>age_decade &lt;-<span class="st"> &quot;&quot;</span>
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(donor_info)) {
+  <span class="cf">if</span> (donor_info<span class="op">$</span>age[i] <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;30-34&quot;</span>, <span class="st">&quot;35-39&quot;</span>)) 
+    donor_info<span class="op">$</span>age_decade[i] &lt;-<span class="st"> &quot;30-39&quot;</span>
+  <span class="cf">if</span> (donor_info<span class="op">$</span>age[i] <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;40-44&quot;</span>, <span class="st">&quot;45-49&quot;</span>)) 
+    donor_info<span class="op">$</span>age_decade[i] &lt;-<span class="st"> &quot;40-49&quot;</span>
+  <span class="cf">if</span> (donor_info<span class="op">$</span>age[i] <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;50-54&quot;</span>, <span class="st">&quot;55-59&quot;</span>)) 
+    donor_info<span class="op">$</span>age_decade[i] &lt;-<span class="st"> &quot;50-59&quot;</span>
+  <span class="cf">if</span> (donor_info<span class="op">$</span>age[i] <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;60-64&quot;</span>, <span class="st">&quot;65-69&quot;</span>)) 
+    donor_info<span class="op">$</span>age_decade[i] &lt;-<span class="st"> &quot;60-69&quot;</span>
+  <span class="cf">if</span> (donor_info<span class="op">$</span>age[i] <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;70-74&quot;</span>, <span class="st">&quot;75-79&quot;</span>)) 
+    donor_info<span class="op">$</span>age_decade[i] &lt;-<span class="st"> &quot;70-79&quot;</span>
+}</code></pre></div>
+<p>Load exome variant sites.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exome_sites &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz&quot;</span>,
+                        <span class="dt">col_types =</span> <span class="st">&quot;ciccdcciiiiccccccccddcdcll&quot;</span>, <span class="dt">comment =</span> <span class="st">&quot;#&quot;</span>,
+                        <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
+exome_sites &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(
+  exome_sites,
+  <span class="dt">chrom =</span> <span class="kw">paste0</span>(<span class="st">&quot;chr&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;chr&quot;</span>, <span class="st">&quot;&quot;</span>, chrom)),
+  <span class="dt">var_id =</span> <span class="kw">paste0</span>(chrom, <span class="st">&quot;:&quot;</span>, pos, <span class="st">&quot;_&quot;</span>, ref, <span class="st">&quot;_&quot;</span>, alt),
+  <span class="dt">chr_pos =</span> <span class="kw">paste0</span>(chrom, <span class="st">&quot;_&quot;</span>, pos))
+
+exome_sites &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(exome_sites)
+## deduplicate sites list
+exome_sites &lt;-<span class="st"> </span>exome_sites[<span class="op">!</span><span class="kw">duplicated</span>(exome_sites[[<span class="st">&quot;var_id&quot;</span>]]),]
+## calculate coverage at sites for each donor
+donor_vars_coverage &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">unique</span>(exome_sites<span class="op">$</span>donor_short_id)) {
+  exome_sites_subset &lt;-<span class="st"> </span>exome_sites[exome_sites<span class="op">$</span>donor_short_id <span class="op">==</span><span class="st"> </span>i, ]
+  donor_vars_coverage[[i]] &lt;-<span class="st"> </span>exome_sites_subset<span class="op">$</span>nREF_fibro <span class="op">+</span><span class="st"> </span>exome_sites_subset<span class="op">$</span>nALT_fibro
+}</code></pre></div>
+<p>Load VEP annotations and show table with number of variants assigned to each functional annotation category.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">vep_best &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt&quot;</span>)
+<span class="kw">colnames</span>(vep_best)[<span class="dv">1</span>] &lt;-<span class="st"> &quot;Uploaded_variation&quot;</span>
+## deduplicate dataframe
+vep_best &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(vep_best[<span class="op">!</span><span class="kw">duplicated</span>(vep_best[[<span class="st">&quot;Uploaded_variation&quot;</span>]]),])
+<span class="kw">as.data.frame</span>(<span class="kw">table</span>(vep_best[[<span class="st">&quot;Consequence&quot;</span>]]))</code></pre></div>
+<pre><code>                                 Var1 Freq
+1                 3_prime_UTR_variant  181
+2                 5_prime_UTR_variant  121
+3             downstream_gene_variant   13
+4                  intergenic_variant   13
+5                      intron_variant 1539
+6                mature_miRNA_variant    3
+7                    missense_variant 3648
+8  non_coding_transcript_exon_variant  428
+9           regulatory_region_variant    1
+10            splice_acceptor_variant   41
+11               splice_donor_variant   24
+12              splice_region_variant  291
+13                         start_lost    9
+14                        stop_gained  227
+15                          stop_lost    2
+16              stop_retained_variant    5
+17                 synonymous_variant 1923
+18              upstream_gene_variant   34</code></pre>
+<p>Add consequences to exome sites.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">vep_best[[<span class="st">&quot;var_id&quot;</span>]] &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;chr&quot;</span>, vep_best[[<span class="st">&quot;Uploaded_variation&quot;</span>]])
+exome_sites &lt;-<span class="st"> </span><span class="kw">inner_join</span>(exome_sites, 
+                          vep_best[, <span class="kw">c</span>(<span class="st">&quot;var_id&quot;</span>, <span class="st">&quot;Location&quot;</span>, <span class="st">&quot;Consequence&quot;</span>)], 
+                          <span class="dt">by =</span> <span class="st">&quot;var_id&quot;</span>)</code></pre></div>
+<p>Add donor level mutation information (aggregate across impacts) Not used in manuscript, but still calculated to store in <code>donor_info</code> table.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">impactful_csq &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;stop_lost&quot;</span>, <span class="st">&quot;start_lost&quot;</span>, <span class="st">&quot;stop_gained&quot;</span>,
+                   <span class="st">&quot;splice_donor_variant&quot;</span>, <span class="st">&quot;splice_acceptor_variant&quot;</span>,
+                   <span class="st">&quot;splice_region_variant&quot;</span>, <span class="st">&quot;missense_variant&quot;</span>)
+donor_info<span class="op">$</span>num_mutations &lt;-<span class="st"> </span><span class="ot">NA</span>
+donor_info<span class="op">$</span>num_synonymous &lt;-<span class="st"> </span><span class="ot">NA</span>
+donor_info<span class="op">$</span>num_missense &lt;-<span class="st"> </span><span class="ot">NA</span>
+donor_info<span class="op">$</span>num_splice_region &lt;-<span class="st"> </span><span class="ot">NA</span>
+donor_info<span class="op">$</span>num_splice_acceptor &lt;-<span class="st"> </span><span class="ot">NA</span>
+donor_info<span class="op">$</span>num_splice_donor &lt;-<span class="st"> </span><span class="ot">NA</span>
+donor_info<span class="op">$</span>num_stop_gained &lt;-<span class="st"> </span><span class="ot">NA</span>
+donor_info<span class="op">$</span>num_start_lost &lt;-<span class="st"> </span><span class="ot">NA</span>
+donor_info<span class="op">$</span>num_stop_lost &lt;-<span class="st"> </span><span class="ot">NA</span>
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">unique</span>(donor_info<span class="op">$</span>donor_short)) {
+  <span class="cf">if</span> (i <span class="op">%in%</span><span class="st"> </span><span class="kw">unique</span>(exome_sites<span class="op">$</span>donor_short_id)) {
+    exome_sites_subset &lt;-<span class="st"> </span>exome_sites[exome_sites<span class="op">$</span>donor_short_id <span class="op">==</span><span class="st"> </span>i, ]
+    donor_info<span class="op">$</span>num_mutations[donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i] &lt;-<span class="st"> </span><span class="kw">length</span>(exome_sites_subset<span class="op">$</span>Consequence)
+    donor_info<span class="op">$</span>num_synonymous[donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i] &lt;-<span class="st"> </span><span class="kw">sum</span>(exome_sites_subset<span class="op">$</span>Consequence <span class="op">==</span><span class="st"> &quot;synonymous_variant&quot;</span>)
+    donor_info<span class="op">$</span>num_missense[donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i] &lt;-<span class="st"> </span><span class="kw">sum</span>(exome_sites_subset<span class="op">$</span>Consequence <span class="op">==</span><span class="st"> &quot;missense_variant&quot;</span>)
+    donor_info<span class="op">$</span>num_splice_region[donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i] &lt;-<span class="st"> </span><span class="kw">sum</span>(exome_sites_subset<span class="op">$</span>Consequence <span class="op">==</span><span class="st"> &quot;splice_region_variant&quot;</span>)
+    donor_info<span class="op">$</span>num_splice_acceptor[donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i] &lt;-<span class="st"> </span><span class="kw">sum</span>(exome_sites_subset<span class="op">$</span>Consequence <span class="op">==</span><span class="st"> &quot;splice_acceptor_variant&quot;</span>)
+    donor_info<span class="op">$</span>num_splice_donor[donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i] &lt;-<span class="st"> </span><span class="kw">sum</span>(exome_sites_subset<span class="op">$</span>Consequence <span class="op">==</span><span class="st"> &quot;splice_donor_variant&quot;</span>)
+    donor_info<span class="op">$</span>num_stop_gained[donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i] &lt;-<span class="st"> </span><span class="kw">sum</span>(exome_sites_subset<span class="op">$</span>Consequence <span class="op">==</span><span class="st"> &quot;stop_gained&quot;</span>)
+    donor_info<span class="op">$</span>num_start_lost[donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i] &lt;-<span class="st"> </span><span class="kw">sum</span>(exome_sites_subset<span class="op">$</span>Consequence <span class="op">==</span><span class="st"> &quot;start_lost&quot;</span>)
+    donor_info<span class="op">$</span>num_stop_lost[donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i] &lt;-<span class="st"> </span><span class="kw">sum</span>(exome_sites_subset<span class="op">$</span>Consequence <span class="op">==</span><span class="st"> &quot;stop_lost&quot;</span>)
+  }
+}</code></pre></div>
+</div>
+<div id="goodness-of-fit-of-neutral-evolution-models" class="section level2">
+<h2>Goodness of fit of neutral evolution models</h2>
+<p>Add donor level mutation selection info (Daniel Kunz). We produce a scatter plot of goodness of fit for each line for the cumulative mutations (Williams et al, 2016) and the negative binomial (Simons, 2016) models of neutral evolution. We label the example line <code>joxm</code>, which is analysed in more depth in other scripts.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ntrtestrPetr &lt;-<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;data/neutralitytestr-petr.tsv&quot;</span>, 
+                           <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
+negbinfitPetr =<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;data/neg-bin-rsquared-petr.csv&quot;</span>, 
+                           <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>, <span class="dt">sep =</span> <span class="st">&quot;,&quot;</span>)
+negbinfitPetr<span class="op">$</span>sampleID &lt;-<span class="st"> </span>negbinfitPetr<span class="op">$</span>fname
+negbinfitPetr<span class="op">$</span>sampleID &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;petr-AF-&quot;</span>, <span class="st">&quot;&quot;</span>, negbinfitPetr<span class="op">$</span>sampleID)
+negbinfitPetr<span class="op">$</span>sampleID &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;.tsv&quot;</span>, <span class="st">&quot;&quot;</span>, negbinfitPetr<span class="op">$</span>sampleID)
+<span class="kw">rownames</span>(negbinfitPetr) &lt;-<span class="st"> </span>negbinfitPetr<span class="op">$</span>sampleID
+
+dfrsq &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">sampleID =</span> ntrtestrPetr<span class="op">$</span>sampleID,
+                    <span class="dt">rsq_ntrtestr =</span> ntrtestrPetr<span class="op">$</span>rsq,
+                    <span class="dt">rsq_negbinfit =</span> negbinfitPetr[ntrtestrPetr<span class="op">$</span>sampleID, <span class="st">&quot;rsq&quot;</span>])
+
+cutoff_selection_cummut &lt;-<span class="st"> </span><span class="fl">0.85</span>
+cutoff_selection_negbin &lt;-<span class="st"> </span><span class="fl">0.25</span>
+cutoff_neutral_cummut &lt;-<span class="st"> </span><span class="fl">0.9</span>
+cutoff_neutral_negbin &lt;-<span class="st"> </span><span class="fl">0.55</span>
+
+dfrsq<span class="op">$</span>candidatelabel &lt;-<span class="st"> </span><span class="ot">NA</span>
+dfrsq<span class="op">$</span>candidatelabel[dfrsq<span class="op">$</span>sampleID <span class="op">==</span><span class="st"> &quot;joxm&quot;</span>] &lt;-<span class="st"> &quot;joxm&quot;</span>
+
+filter_selection &lt;-<span class="st"> </span>(dfrsq<span class="op">$</span>rsq_ntrtestr <span class="op">&lt;</span><span class="st"> </span>cutoff_selection_cummut) <span class="op">&amp;</span>
+<span class="st">  </span>(dfrsq<span class="op">$</span>rsq_negbinfit <span class="op">&lt;</span><span class="st"> </span>cutoff_selection_negbin)
+filter_neutral &lt;-<span class="st"> </span>(dfrsq<span class="op">$</span>rsq_ntrtestr <span class="op">&gt;</span><span class="st"> </span>cutoff_neutral_cummut) <span class="op">&amp;</span>
+<span class="st">  </span>(dfrsq<span class="op">$</span>rsq_negbinfit <span class="op">&gt;</span><span class="st"> </span>cutoff_neutral_negbin)
+
+dfrsq<span class="op">$</span>selection &lt;-<span class="st"> &quot;undetermined&quot;</span>
+dfrsq<span class="op">$</span>selection[filter_selection] &lt;-<span class="st"> &quot;selected&quot;</span>
+dfrsq<span class="op">$</span>selection[filter_neutral] &lt;-<span class="st"> &quot;neutral&quot;</span>
+
+<span class="kw">colnames</span>(dfrsq)[<span class="dv">1</span>] &lt;-<span class="st"> &quot;donor_short&quot;</span>
+donor_info &lt;-<span class="st"> </span><span class="kw">merge</span>(donor_info, dfrsq, <span class="dt">by =</span> <span class="st">&quot;donor_short&quot;</span>)
+donor_info<span class="op">$</span>selection_colour &lt;-<span class="st"> &quot;#CCCCCC&quot;</span>
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(donor_info)) {
+  <span class="cf">if</span> (donor_info<span class="op">$</span>selection[i] <span class="op">==</span><span class="st"> &quot;neutral&quot;</span>) 
+    donor_info<span class="op">$</span>selection_colour[i] &lt;-<span class="st"> &quot;dodgerblue&quot;</span>
+  <span class="cf">if</span> (donor_info<span class="op">$</span>selection[i] <span class="op">==</span><span class="st"> &quot;selected&quot;</span>) 
+    donor_info<span class="op">$</span>selection_colour[i] &lt;-<span class="st"> &quot;dodgerblue4&quot;</span>
+}
+
+donors &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;euts&quot;</span>, <span class="st">&quot;fawm&quot;</span>, <span class="st">&quot;feec&quot;</span>, <span class="st">&quot;fikt&quot;</span>, <span class="st">&quot;garx&quot;</span>, <span class="st">&quot;gesg&quot;</span>, <span class="st">&quot;heja&quot;</span>, <span class="st">&quot;hipn&quot;</span>, 
+            <span class="st">&quot;ieki&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;kuco&quot;</span>, <span class="st">&quot;laey&quot;</span>, <span class="st">&quot;lexy&quot;</span>, <span class="st">&quot;naju&quot;</span>, <span class="st">&quot;nusw&quot;</span>, <span class="st">&quot;oaaz&quot;</span>, 
+            <span class="st">&quot;oilg&quot;</span>, <span class="st">&quot;pipw&quot;</span>, <span class="st">&quot;puie&quot;</span>, <span class="st">&quot;qayj&quot;</span>, <span class="st">&quot;qolg&quot;</span>, <span class="st">&quot;qonc&quot;</span>, <span class="st">&quot;rozh&quot;</span>, <span class="st">&quot;sehl&quot;</span>, 
+            <span class="st">&quot;ualf&quot;</span>, <span class="st">&quot;vass&quot;</span>, <span class="st">&quot;vils&quot;</span>, <span class="st">&quot;vuna&quot;</span>, <span class="st">&quot;wahn&quot;</span>, <span class="st">&quot;wetu&quot;</span>, <span class="st">&quot;xugn&quot;</span>, <span class="st">&quot;zoxy&quot;</span>)
+
+dfrsq_filt &lt;-<span class="st"> </span>dfrsq[(dfrsq<span class="op">$</span>donor_short <span class="op">%in%</span><span class="st"> </span>donors),]
+
+plt_scatter &lt;-<span class="st"> </span><span class="kw">ggplot</span>(dfrsq_filt, <span class="kw">aes</span>(<span class="dt">x =</span> rsq_negbinfit, <span class="dt">y =</span> rsq_ntrtestr)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_colour_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span> =<span class="st"> &quot;dodgerblue&quot;</span>,
+                                 <span class="st">&quot;selected&quot;</span> =<span class="st"> &quot;dodgerblue4&quot;</span>,
+                                 <span class="st">&quot;undetermined&quot;</span> =<span class="st"> &quot;#CCCCCC&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">colour =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> candidatelabel), <span class="dt">color =</span> <span class="st">&quot;white&quot;</span>, <span class="dt">size =</span> <span class="fl">2.5</span>,
+                   <span class="dt">fill =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">box.padding =</span> <span class="fl">0.35</span>, <span class="dt">point.padding =</span> <span class="fl">0.5</span>,
+                   <span class="dt">segment.color =</span> <span class="st">&quot;grey50&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>,<span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
+        <span class="dt">axis.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
+        <span class="dt">plot.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">hjust =</span> <span class="fl">0.5</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Goodness of Fit - Negative Binomial Distribution&quot;</span>, 
+       <span class="dt">y =</span> <span class="st">&quot;Goodness of Fit - Cumulative Mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_blank</span>()) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.justification =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>), <span class="dt">legend.position =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>, <span class="dt">linetype =</span> <span class="dv">1</span>, 
+                                         <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span><span class="fl">0.2</span>),
+        <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.25</span>, <span class="st">&quot;cm&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">colour =</span> <span class="st">&quot;Selection&quot;</span>) <span class="co">#+</span>
+<span class="co"># coord_fixed()</span>
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/overview_lines/neutral_selection_models_gof_scatter.png&quot;</span>, 
+       <span class="dt">plot =</span> plt_scatter, <span class="dt">width =</span> <span class="dv">12</span>, <span class="dt">height =</span> <span class="dv">12</span>, <span class="dt">dpi =</span> <span class="dv">300</span>, <span class="dt">units =</span> <span class="st">&quot;cm&quot;</span>)
+
+plt_scatter</code></pre></div>
+<p><img src="figure/overview_lines.Rmd/donor-mutation-selection-1.png" width="576" style="display: block; margin: auto;" /></p>
+</div>
+<div id="mutational-signatures" class="section level2">
+<h2>Mutational signatures</h2>
+<p>Add donor level mutation signature exposures, using the <code>sigfit</code> package and 30 COSMIC signatures. We load the filtered exome variant sites and calculate the tri-nucleotide context for each variant (required for computing signature exposures), using a function from the <code>deconstructSigs</code> package.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(<span class="st">&quot;cosmic_signatures&quot;</span>, <span class="dt">package =</span> <span class="st">&quot;sigfit&quot;</span>)
+
+##new input 
+mutation_list &lt;-<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz&quot;</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
+mutation_list<span class="op">$</span>chr_pos &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;chr&quot;</span>, mutation_list<span class="op">$</span>chr, <span class="st">&quot;_&quot;</span>, mutation_list<span class="op">$</span>pos)
+
+mutation_donors &lt;-<span class="st"> </span><span class="kw">unique</span>(mutation_list<span class="op">$</span>donor_short_id)
+mutation_list_donors &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> mutation_donors) {
+  <span class="kw">cat</span>(<span class="st">&quot;....reading &quot;</span>, i, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+  mutation_list_donors[[i]] &lt;-<span class="st"> </span>mutation_list[<span class="kw">which</span>(mutation_list<span class="op">$</span>donor_short_id <span class="op">==</span><span class="st"> </span>i),]
+  mutation_list_donors[[i]]<span class="op">$</span>chr &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;chr&quot;</span>, mutation_list_donors[[i]]<span class="op">$</span>chrom)
+  mutation_list_donors[[i]]<span class="op">$</span>chr_pos =<span class="st"> </span><span class="kw">paste0</span>(mutation_list_donors[[i]]<span class="op">$</span>chr, <span class="st">&quot;_&quot;</span>, mutation_list_donors[[i]]<span class="op">$</span>pos)
+}
+
+## Calculate triNucleotide contexts for mutations using deconstructSigs command
+mut_triNs &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> mutation_donors) {
+  <span class="kw">cat</span>(<span class="st">&quot;....processing &quot;</span>, i, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+  mut_triNs[[i]] &lt;-<span class="st"> </span><span class="kw">mut.to.sigs.input</span>(mutation_list_donors[[i]], <span class="dt">sample.id =</span> <span class="st">&quot;donor_short_id&quot;</span>, 
+                                      <span class="dt">chr =</span> <span class="st">&quot;chr&quot;</span>, <span class="dt">pos =</span> <span class="st">&quot;pos&quot;</span>, <span class="dt">ref =</span> <span class="st">&quot;ref&quot;</span>, <span class="dt">alt =</span> <span class="st">&quot;alt&quot;</span>)
+}
+
+## Convert to correct format
+sig_triNs &lt;-<span class="st"> </span><span class="kw">character</span>()
+<span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">96</span>) {
+  c1 &lt;-<span class="st"> </span><span class="kw">substr</span>(<span class="kw">colnames</span>(mut_triNs[[<span class="dv">1</span>]])[j], <span class="dv">1</span>,<span class="dv">1</span>)
+  ref &lt;-<span class="st"> </span><span class="kw">substr</span>(<span class="kw">colnames</span>(mut_triNs[[<span class="dv">1</span>]])[j], <span class="dv">3</span>,<span class="dv">3</span>)
+  alt &lt;-<span class="st"> </span><span class="kw">substr</span>(<span class="kw">colnames</span>(mut_triNs[[<span class="dv">1</span>]])[j], <span class="dv">5</span>,<span class="dv">5</span>)
+  c3 &lt;-<span class="st"> </span><span class="kw">substr</span>(<span class="kw">colnames</span>(mut_triNs[[<span class="dv">1</span>]])[j], <span class="dv">7</span>,<span class="dv">7</span>)
+  triN_sigfit &lt;-<span class="st"> </span><span class="kw">paste0</span>(c1,ref,c3,<span class="st">&quot;&gt;&quot;</span>,c1,alt,c3)
+  sig_triNs[j] &lt;-<span class="st"> </span>triN_sigfit
+}
+
+<span class="cf">for</span>(i <span class="cf">in</span> mutation_donors) {
+  <span class="kw">colnames</span>(mut_triNs[[i]]) &lt;-<span class="st"> </span>sig_triNs
+}
+
+## Fit signatures using sigfit
+mcmc_samples_fit &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="kw">set.seed</span>(<span class="dv">1234</span>)
+<span class="cf">for</span> (i <span class="cf">in</span> mutation_donors) {
+  mcmc_samples_fit[[i]] &lt;-<span class="st"> </span>sigfit<span class="op">::</span><span class="kw">fit_signatures</span>(
+    <span class="dt">counts =</span> mut_triNs[[i]], <span class="dt">signatures =</span> cosmic_signatures,
+    <span class="dt">iter =</span> <span class="dv">2000</span>, <span class="dt">warmup =</span> <span class="dv">1000</span>, <span class="dt">chains =</span> <span class="dv">1</span>, <span class="dt">seed =</span> <span class="dv">1</span>)
+}
+
+## Estimate exposures using sigfit
+exposures &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> mutation_donors) {
+  exposures[[i]] &lt;-<span class="st"> </span>sigfit<span class="op">::</span><span class="kw">retrieve_pars</span>(
+    mcmc_samples_fit[[i]], <span class="dt">par =</span> <span class="st">&quot;exposures&quot;</span>, <span class="dt">hpd_prob =</span> <span class="fl">0.90</span>)
+}</code></pre></div>
+<p>Plot an exposure barchart for each line.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Plot exposure bar charts
+donors &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;euts&quot;</span>, <span class="st">&quot;fawm&quot;</span>, <span class="st">&quot;feec&quot;</span>, <span class="st">&quot;fikt&quot;</span>, <span class="st">&quot;garx&quot;</span>, <span class="st">&quot;gesg&quot;</span>, <span class="st">&quot;heja&quot;</span>, <span class="st">&quot;hipn&quot;</span>, 
+            <span class="st">&quot;ieki&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;kuco&quot;</span>, <span class="st">&quot;laey&quot;</span>, <span class="st">&quot;lexy&quot;</span>, <span class="st">&quot;naju&quot;</span>, <span class="st">&quot;nusw&quot;</span>, <span class="st">&quot;oaaz&quot;</span>, 
+            <span class="st">&quot;oilg&quot;</span>, <span class="st">&quot;pipw&quot;</span>, <span class="st">&quot;puie&quot;</span>, <span class="st">&quot;qayj&quot;</span>, <span class="st">&quot;qolg&quot;</span>, <span class="st">&quot;qonc&quot;</span>, <span class="st">&quot;rozh&quot;</span>, <span class="st">&quot;sehl&quot;</span>, 
+            <span class="st">&quot;ualf&quot;</span>, <span class="st">&quot;vass&quot;</span>, <span class="st">&quot;vils&quot;</span>, <span class="st">&quot;vuna&quot;</span>, <span class="st">&quot;wahn&quot;</span>, <span class="st">&quot;wetu&quot;</span>, <span class="st">&quot;xugn&quot;</span>, <span class="st">&quot;zoxy&quot;</span>)
+
+signature_names &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;1&quot;</span>, <span class="st">&quot;2&quot;</span>, <span class="st">&quot;3&quot;</span>, <span class="st">&quot;4&quot;</span>, <span class="st">&quot;5&quot;</span>, <span class="st">&quot;6&quot;</span>, <span class="st">&quot;7&quot;</span>, <span class="st">&quot;8&quot;</span>, <span class="st">&quot;9&quot;</span>, <span class="st">&quot;10&quot;</span>, <span class="st">&quot;11&quot;</span>, 
+                     <span class="st">&quot;12&quot;</span>, <span class="st">&quot;13&quot;</span>, <span class="st">&quot;14&quot;</span>, <span class="st">&quot;15&quot;</span>, <span class="st">&quot;16&quot;</span>, <span class="st">&quot;17&quot;</span>, <span class="st">&quot;18&quot;</span>, <span class="st">&quot;19&quot;</span>, <span class="st">&quot;20&quot;</span>, <span class="st">&quot;21&quot;</span>, 
+                     <span class="st">&quot;22&quot;</span>, <span class="st">&quot;23&quot;</span>, <span class="st">&quot;24&quot;</span>, <span class="st">&quot;25&quot;</span>, <span class="st">&quot;26&quot;</span>, <span class="st">&quot;27&quot;</span>, <span class="st">&quot;28&quot;</span>, <span class="st">&quot;29&quot;</span>, <span class="st">&quot;30&quot;</span>)
+
+<span class="cf">for</span> (j <span class="cf">in</span> donors) {
+  <span class="kw">cat</span>(<span class="st">&quot;....plotting &quot;</span>, j, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+   sigfit<span class="op">::</span><span class="kw">plot_exposures</span>(mcmc_samples_fit[[j]], 
+                          <span class="dt">signature_names =</span> signature_names)
+   <span class="kw">png</span>(<span class="kw">paste0</span>(<span class="st">&quot;figures/overview_lines/mutational_signatures/exposure_barchart_&quot;</span>, 
+             j, <span class="st">&quot;.png&quot;</span>),
+      <span class="dt">units =</span> <span class="st">&quot;in&quot;</span>, <span class="dt">width =</span> <span class="dv">12</span>, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">res =</span> <span class="dv">500</span>)
+  sigfit<span class="op">::</span><span class="kw">plot_exposures</span>(mcmc_samples_fit[[j]], 
+                         <span class="dt">signature_names =</span> signature_names)
+  <span class="kw">dev.off</span>()
+ 
+}</code></pre></div>
+<pre><code>....plotting  euts </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-1.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  fawm </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-2.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  feec </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-3.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  fikt </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-4.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  garx </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-5.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  gesg </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-6.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  heja </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-7.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  hipn </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-8.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  ieki </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-9.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  joxm </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-10.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  kuco </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-11.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  laey </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-12.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  lexy </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-13.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  naju </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-14.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  nusw </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-15.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  oaaz </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-16.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  oilg </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-17.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  pipw </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-18.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  puie </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-19.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  qayj </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-20.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  qolg </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-21.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  qonc </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-22.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  rozh </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-23.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  sehl </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-24.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  ualf </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-25.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  vass </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-26.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  vils </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-27.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  vuna </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-28.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  wahn </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-29.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  wetu </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-30.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  xugn </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-31.png" width="576" style="display: block; margin: auto;" /></p>
+<pre><code>....plotting  zoxy </code></pre>
+<p><img src="figure/overview_lines.Rmd/plot-exposures-32.png" width="576" style="display: block; margin: auto;" /></p>
+<p>Retrieve exposures for a given signal. Specifically, we will look an highest posterior density (HPD) intervals and mean exposures for Signature 7 (UV) and Signature 11, the only two that are significant across multiple lines. We add this information to the <code>donor_info</code> dataframe.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_signature_df &lt;-<span class="st"> </span><span class="cf">function</span>(exposures, samples, signature) {
+  signature_mat_mean &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="ot">NA</span>, <span class="dt">nrow =</span> <span class="kw">length</span>(samples), <span class="dv">30</span>)
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(samples)) {
+    signature_mat_mean[i,] &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(exposures[[i]]<span class="op">$</span>mean)
+  }
+  <span class="kw">rownames</span>(signature_mat_mean) &lt;-<span class="st"> </span>samples
+  <span class="kw">colnames</span>(signature_mat_mean) &lt;-<span class="st"> </span><span class="kw">colnames</span>(exposures[[i]]<span class="op">$</span>mean)
+  signature_mat_lower90 &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="ot">NA</span>, <span class="dt">nrow =</span> <span class="kw">length</span>(samples), <span class="dv">30</span>)
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(samples)) {
+    signature_mat_lower90[i,] &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(exposures[[i]]<span class="op">$</span>lower_<span class="dv">90</span>)
+  }
+  <span class="kw">rownames</span>(signature_mat_lower90) &lt;-<span class="st"> </span>samples
+  <span class="kw">colnames</span>(signature_mat_lower90) &lt;-<span class="st"> </span><span class="kw">colnames</span>(exposures[[i]]<span class="op">$</span>lower_<span class="dv">90</span>)
+  signature_mat_upper90 &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="ot">NA</span>, <span class="dt">nrow =</span> <span class="kw">length</span>(samples), <span class="dv">30</span>)
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(samples)) {
+    signature_mat_upper90[i,] &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(exposures[[i]]<span class="op">$</span>upper_<span class="dv">90</span>)
+  }
+  <span class="kw">rownames</span>(signature_mat_upper90) &lt;-<span class="st"> </span>samples
+  <span class="kw">colnames</span>(signature_mat_upper90) &lt;-<span class="st"> </span><span class="kw">colnames</span>(exposures[[i]]<span class="op">$</span>upper_<span class="dv">90</span>)
+  signature_df &lt;-<span class="st"> </span><span class="kw">cbind</span>(
+    <span class="kw">as.data.frame</span>(signature_mat_mean[,signature]),
+    <span class="kw">as.data.frame</span>(signature_mat_lower90[,signature]),
+    <span class="kw">as.data.frame</span>(signature_mat_upper90[,signature]))
+  <span class="kw">colnames</span>(signature_df) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">paste0</span>(<span class="st">&quot;Sig&quot;</span>,signature,<span class="st">&quot;_mean&quot;</span>),
+                              <span class="kw">paste0</span>(<span class="st">&quot;Sig&quot;</span>,signature,<span class="st">&quot;_lower&quot;</span>),
+                              <span class="kw">paste0</span>(<span class="st">&quot;Sig&quot;</span>,signature,<span class="st">&quot;_upper&quot;</span>))
+  signature_df<span class="op">$</span>donor &lt;-<span class="st"> </span><span class="kw">rownames</span>(signature_df)
+  signature_df
+}
+
+## Get lower, mean and upper values for signatures 7 &amp; 11
+sig7_df &lt;-<span class="st"> </span><span class="kw">get_signature_df</span>(exposures, mutation_donors, <span class="dv">7</span>)
+sig11_df &lt;-<span class="st"> </span><span class="kw">get_signature_df</span>(exposures, mutation_donors, <span class="dv">11</span>)
+
+## Add Sigs 7/11 to donor info table
+sig_subset_df &lt;-<span class="st"> </span><span class="kw">merge</span>(sig7_df,sig11_df, <span class="dt">by =</span> <span class="st">&quot;donor&quot;</span>)
+sig_subset_df_means &lt;-<span class="st"> </span>sig_subset_df[,<span class="kw">c</span>(<span class="dv">1</span>,<span class="kw">grep</span>(<span class="st">&quot;mean&quot;</span>, <span class="kw">colnames</span>(sig_subset_df)))]
+sig_subset_df_means_melt &lt;-<span class="st"> </span>reshape2<span class="op">::</span><span class="kw">melt</span>(sig_subset_df_means)
+sig_subset_df_means_melt<span class="op">$</span>signature &lt;-<span class="st"> </span><span class="kw">substr</span>(sig_subset_df_means_melt<span class="op">$</span>variable, <span class="dv">1</span>, <span class="dv">5</span>)
+sig_subset_df_means_melt &lt;-<span class="st"> </span>sig_subset_df_means_melt[,<span class="kw">c</span>(<span class="st">&quot;donor&quot;</span>, <span class="st">&quot;signature&quot;</span>, <span class="st">&quot;value&quot;</span>)]
+
+<span class="kw">colnames</span>(sig_subset_df)[<span class="dv">1</span>] &lt;-<span class="st"> &quot;donor_short&quot;</span> 
+donor_info &lt;-<span class="st"> </span><span class="kw">merge</span>(donor_info, sig_subset_df, <span class="dt">by =</span> <span class="st">&quot;donor_short&quot;</span>)</code></pre></div>
+</div>
+<div id="expression-data-and-cell-assignments" class="section level2">
+<h2>Expression data and cell assignments</h2>
+<p>Read in annotated SingleCellExperiment (SCE) objects and create a list of SCE objects containing all cells used for analysis and their assignment (using <code>cardelino</code>) to clones identified with Canopy from whole-exome sequencing data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">params &lt;-<span class="st"> </span><span class="kw">list</span>()
+params<span class="op">$</span>callset &lt;-<span class="st"> &quot;filt_lenient.cell_coverage_sites&quot;</span>
+fls &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&quot;data/sces&quot;</span>)
+fls &lt;-<span class="st"> </span>fls[<span class="kw">grepl</span>(params<span class="op">$</span>callset, fls)]
+donors &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;.*ce_([a-z]+)_.*&quot;</span>, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">1&quot;</span>, fls)
+sce_unst_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+    sce_unst_list[[don]] &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">file.path</span>(<span class="st">&quot;data/sces&quot;</span>, 
+        <span class="kw">paste0</span>(<span class="st">&quot;sce_&quot;</span>, don, <span class="st">&quot;_with_clone_assignments.&quot;</span>, params<span class="op">$</span>callset, <span class="st">&quot;.rds&quot;</span>)))
+    <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">&quot;reading&quot;</span>, don, <span class="st">&quot;:   &quot;</span>, <span class="kw">ncol</span>(sce_unst_list[[don]]), <span class="st">&quot;cells.</span><span class="ch">\n</span><span class="st">&quot;</span>))
+}</code></pre></div>
+<pre><code>reading euts :    79 cells.
+reading fawm :    53 cells.
+reading feec :    75 cells.
+reading fikt :    39 cells.
+reading garx :    70 cells.
+reading gesg :    105 cells.
+reading heja :    50 cells.
+reading hipn :    62 cells.
+reading ieki :    58 cells.
+reading joxm :    79 cells.
+reading kuco :    48 cells.
+reading laey :    55 cells.
+reading lexy :    63 cells.
+reading naju :    44 cells.
+reading nusw :    60 cells.
+reading oaaz :    38 cells.
+reading oilg :    90 cells.
+reading pipw :    107 cells.
+reading puie :    41 cells.
+reading qayj :    97 cells.
+reading qolg :    36 cells.
+reading qonc :    58 cells.
+reading rozh :    91 cells.
+reading sehl :    30 cells.
+reading ualf :    89 cells.
+reading vass :    37 cells.
+reading vils :    37 cells.
+reading vuna :    71 cells.
+reading wahn :    82 cells.
+reading wetu :    77 cells.
+reading xugn :    35 cells.
+reading zoxy :    88 cells.</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Calculate single cell data metrics
+sc_metrics_summary &lt;-<span class="st"> </span><span class="kw">list</span>()
+sc_metrics_summary_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+  sc_metrics_summary[[don]]<span class="op">$</span>num_unst_cells &lt;-<span class="st"> </span><span class="kw">ncol</span>(sce_unst_list[[don]])
+  sc_metrics_summary[[don]]<span class="op">$</span>num_assignable &lt;-<span class="st"> </span><span class="kw">sum</span>(sce_unst_list[[don]]<span class="op">$</span>assignable)
+  sc_metrics_summary[[don]]<span class="op">$</span>num_unassignable &lt;-<span class="st"> </span>
+<span class="st">    </span>(sc_metrics_summary[[don]]<span class="op">$</span>num_unst_cells <span class="op">-</span>
+<span class="st">       </span>sc_metrics_summary[[don]]<span class="op">$</span>num_assignable)
+  sc_metrics_summary[[don]]<span class="op">$</span>num_clones_with_cells &lt;-
+<span class="st">    </span><span class="kw">length</span>(<span class="kw">unique</span>(sce_unst_list[[don]]<span class="op">$</span>assigned[
+      <span class="kw">which</span>(sce_unst_list[[don]]<span class="op">$</span>assigned <span class="op">!=</span><span class="st"> &quot;unassigned&quot;</span>)]))
+  sc_metrics_summary[[don]]<span class="op">$</span>donor &lt;-<span class="st"> </span>don
+  sc_metrics_summary_df &lt;-
+<span class="st">    </span><span class="kw">rbind</span>(sc_metrics_summary_df, <span class="kw">as.data.frame</span>(sc_metrics_summary[[don]]))
+}
+
+<span class="kw">colnames</span>(sc_metrics_summary_df) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;total_unst_cells&quot;</span>, <span class="st">&quot;assigned_unst_cells&quot;</span>,
+                                     <span class="st">&quot;unassigned_unst_cells&quot;</span>, 
+                                     <span class="st">&quot;num_clones_with_cells&quot;</span>, <span class="st">&quot;donor_short&quot;</span>)
+
+## Merge with donor info table
+donor_info &lt;-<span class="st"> </span><span class="kw">merge</span>(donor_info, sc_metrics_summary_df, <span class="dt">by =</span> <span class="st">&quot;donor_short&quot;</span>, 
+                    <span class="dt">all.x =</span> <span class="ot">TRUE</span>)
+donor_info<span class="op">$</span>percent_assigned_cells &lt;-
+<span class="st">  </span>donor_info<span class="op">$</span>assigned_unst_cells <span class="op">/</span><span class="st"> </span>donor_info<span class="op">$</span>total_unst_cells</code></pre></div>
+</div>
+<div id="canopy-clone-inference-information" class="section level2">
+<h2>Canopy clone inference information</h2>
+<p>First, we read in the canopy output for each line we analyse.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">canopy_files &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&quot;data/canopy&quot;</span>)
+canopy_files &lt;-<span class="st"> </span>canopy_files[<span class="kw">grepl</span>(params<span class="op">$</span>callset, canopy_files)]
+canopy_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+  canopy_list[[don]] &lt;-<span class="st"> </span><span class="kw">readRDS</span>(
+    <span class="kw">file.path</span>(<span class="st">&quot;data/canopy&quot;</span>, 
+              <span class="kw">paste0</span>(<span class="st">&quot;canopy_results.&quot;</span>, don, <span class="st">&quot;.&quot;</span>, params<span class="op">$</span>callset, <span class="st">&quot;.rds&quot;</span>)))
+}</code></pre></div>
+<p>Second, summarise the number of mutations for each clone, for each line. Form these results into a dataframe.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">clone_mut_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+  <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">&quot;summarising clones and mutations for&quot;</span>, don, <span class="st">&#39;</span><span class="ch">\n</span><span class="st">&#39;</span>))
+  clone_mut_list[[don]] &lt;-<span class="st"> </span><span class="kw">colSums</span>(canopy_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z)
+  <span class="kw">cat</span>(<span class="kw">colSums</span>(canopy_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z))
+  <span class="kw">cat</span>(<span class="st">&#39;</span><span class="ch">\n</span><span class="st">&#39;</span>)
+}</code></pre></div>
+<pre><code>summarising clones and mutations for euts 
+0 39 29
+summarising clones and mutations for fawm 
+0 17 16
+summarising clones and mutations for feec 
+0 19 9 6
+summarising clones and mutations for fikt 
+0 13 23
+summarising clones and mutations for garx 
+0 79 57
+summarising clones and mutations for gesg 
+0 37 23
+summarising clones and mutations for heja 
+0 16 20
+summarising clones and mutations for hipn 
+0 8 8
+summarising clones and mutations for ieki 
+0 7 10
+summarising clones and mutations for joxm 
+0 41 98
+summarising clones and mutations for kuco 
+0 9
+summarising clones and mutations for laey 
+0 45 49
+summarising clones and mutations for lexy 
+0 9 6
+summarising clones and mutations for naju 
+0 13
+summarising clones and mutations for nusw 
+0 3 13
+summarising clones and mutations for oaaz 
+0 17 19
+summarising clones and mutations for oilg 
+0 2 37
+summarising clones and mutations for pipw 
+0 34 36
+summarising clones and mutations for puie 
+0 13 15
+summarising clones and mutations for qayj 
+0 11 7
+summarising clones and mutations for qolg 
+0 23
+summarising clones and mutations for qonc 
+0 17 7
+summarising clones and mutations for rozh 
+0 11 10 12
+summarising clones and mutations for sehl 
+0 2 11 23
+summarising clones and mutations for ualf 
+0 29 39
+summarising clones and mutations for vass 
+0 98 35
+summarising clones and mutations for vils 
+0 1 2 8
+summarising clones and mutations for vuna 
+0 33
+summarising clones and mutations for wahn 
+0 52 114
+summarising clones and mutations for wetu 
+0 8 17
+summarising clones and mutations for xugn 
+0 16 12
+summarising clones and mutations for zoxy 
+0 14 8</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">clone_mut_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">clone1 =</span> <span class="kw">numeric</span>(), <span class="dt">clone2 =</span> <span class="kw">numeric</span>(), 
+                           <span class="dt">clone3 =</span> <span class="kw">numeric</span>(), <span class="dt">clone4 =</span> <span class="kw">numeric</span>())
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(donors)) {
+  num_clones &lt;-<span class="st"> </span><span class="kw">length</span>(clone_mut_list[[i]])
+  num_NAs &lt;-<span class="st"> </span><span class="dv">4</span> <span class="op">-</span><span class="st"> </span>num_clones
+  temp_row  &lt;-<span class="st"> </span><span class="kw">c</span>(clone_mut_list[[i]], <span class="kw">rep</span>(<span class="ot">NA</span>, num_NAs))
+  clone_mut_df[i,] &lt;-<span class="st"> </span>temp_row
+}
+<span class="kw">rownames</span>(clone_mut_df) &lt;-<span class="st"> </span>donors
+clone_mut_df<span class="op">$</span>donor_short &lt;-<span class="st"> </span>donors</code></pre></div>
+<p>Next, summarise the number of <em>unique</em> mutations tagging each clone identified by Canopy (that is, the number of variants for each clone that distinguish it from other clones in the line). Produce a dataframe with this information as well.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">clone_mut_unique_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+        <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">&quot;summarising clones and mutations for&quot;</span>, don, <span class="st">&#39;</span><span class="ch">\n</span><span class="st">&#39;</span>))
+        clone_mut_unique_list[[don]] &lt;-
+<span class="st">          </span><span class="kw">colSums</span>(canopy_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z[
+            (<span class="kw">rowSums</span>(canopy_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z) <span class="op">==</span><span class="st"> </span><span class="dv">1</span>),])
+        <span class="kw">cat</span>(<span class="kw">colSums</span>(canopy_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z[
+          (<span class="kw">rowSums</span>(canopy_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z) <span class="op">==</span><span class="st"> </span><span class="dv">1</span>),]))
+        <span class="kw">cat</span>(<span class="st">&#39;</span><span class="ch">\n</span><span class="st">&#39;</span>)
+}</code></pre></div>
+<pre><code>summarising clones and mutations for euts 
+0 20 10
+summarising clones and mutations for fawm 
+0 3 2
+summarising clones and mutations for feec 
+0 16 4 1
+summarising clones and mutations for fikt 
+0 3 13
+summarising clones and mutations for garx 
+0 41 19
+summarising clones and mutations for gesg 
+0 20 6
+summarising clones and mutations for heja 
+0 8 12
+summarising clones and mutations for hipn 
+0 6 6
+summarising clones and mutations for ieki 
+0 6 9
+summarising clones and mutations for joxm 
+0 14 71
+summarising clones and mutations for kuco 
+0 9
+summarising clones and mutations for laey 
+0 16 20
+summarising clones and mutations for lexy 
+0 5 2
+summarising clones and mutations for naju 
+0 13
+summarising clones and mutations for nusw 
+0 0 10
+summarising clones and mutations for oaaz 
+0 8 10
+summarising clones and mutations for oilg 
+0 2 37
+summarising clones and mutations for pipw 
+0 17 19
+summarising clones and mutations for puie 
+0 4 6
+summarising clones and mutations for qayj 
+0 7 3
+summarising clones and mutations for qolg 
+0 23
+summarising clones and mutations for qonc 
+0 13 3
+summarising clones and mutations for rozh 
+0 7 0 2
+summarising clones and mutations for sehl 
+0 0 3 15
+summarising clones and mutations for ualf 
+0 15 25
+summarising clones and mutations for vass 
+0 65 2
+summarising clones and mutations for vils 
+0 0 1 7
+summarising clones and mutations for vuna 
+0 33
+summarising clones and mutations for wahn 
+0 1 63
+summarising clones and mutations for wetu 
+0 2 11
+summarising clones and mutations for xugn 
+0 6 2
+summarising clones and mutations for zoxy 
+0 7 1</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">clone_mut_unique_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">clone1 =</span> <span class="kw">numeric</span>(), <span class="dt">clone2 =</span> <span class="kw">numeric</span>(), 
+                                  <span class="dt">clone3 =</span> <span class="kw">numeric</span>(),
+                           <span class="dt">clone4 =</span> <span class="kw">numeric</span>(), <span class="dt">min_unique_muts =</span> <span class="kw">numeric</span>())
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(donors)) {
+  num_clones &lt;-<span class="st"> </span><span class="kw">length</span>(clone_mut_unique_list[[i]])
+  num_NAs &lt;-<span class="st"> </span><span class="dv">4</span> <span class="op">-</span><span class="st"> </span>num_clones
+  temp_row  &lt;-<span class="st"> </span><span class="kw">c</span>(clone_mut_unique_list[[i]], <span class="kw">rep</span>(<span class="ot">NA</span>, num_NAs), 
+                 <span class="kw">min</span>(clone_mut_unique_list[[i]][<span class="dv">2</span><span class="op">:</span>num_clones]))
+  clone_mut_unique_df[i,] &lt;-<span class="st"> </span>temp_row
+}
+<span class="kw">rownames</span>(clone_mut_df) &lt;-<span class="st"> </span>donors
+clone_mut_df<span class="op">$</span>donor_short &lt;-<span class="st"> </span>donors
+<span class="kw">rownames</span>(clone_mut_unique_df) &lt;-<span class="st"> </span>donors
+clone_mut_unique_df<span class="op">$</span>donor_short &lt;-<span class="st"> </span>donors
+donor_info &lt;-<span class="st"> </span><span class="kw">merge</span>(donor_info, clone_mut_unique_df, <span class="dt">by =</span> <span class="st">&quot;donor_short&quot;</span>, <span class="dt">all.x =</span> T)</code></pre></div>
+<p>Finally, calculate the minimum Hamming distance between pairs of clones for each line. In general, assignment of cells to clones will be easier/more successful for lines with larger numbers of variants distinguishes between clones (that is, a high minimum Hamming distance).</p>
+<p>We add all of this information to the <code>donor_info</code> dataframe and then have the data prepared to make some overview plots across lines.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Calculate Hamming distance
+clone_mut_list_hamming &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+  Config &lt;-<span class="st"> </span>canopy_list[[don]]<span class="op">$</span>tree<span class="op">$</span>Z
+  unique_sites_paired &lt;-<span class="st"> </span><span class="kw">c</span>()
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">ncol</span>(Config) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)) {
+    <span class="cf">for</span> (j <span class="cf">in</span> <span class="kw">seq</span>(i <span class="op">+</span><span class="st"> </span><span class="dv">1</span>, <span class="kw">ncol</span>(Config))) {
+      n_sites &lt;-<span class="st"> </span><span class="kw">sum</span>(<span class="kw">rowSums</span>(Config[, <span class="kw">c</span>(i,j)]) <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
+      unique_sites_paired &lt;-<span class="st"> </span><span class="kw">c</span>(unique_sites_paired, n_sites)
+    }
+  }
+  clone_mut_list_hamming[[don]] &lt;-<span class="st"> </span>unique_sites_paired  
+  <span class="kw">cat</span>(<span class="st">&quot;....hamming distances for &quot;</span>, don, <span class="st">&quot;: &quot;</span>, unique_sites_paired, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>) 
+}</code></pre></div>
+<pre><code>....hamming distances for  euts :  39 29 30 
+....hamming distances for  fawm :  17 16 5 
+....hamming distances for  feec :  19 9 6 22 19 5 
+....hamming distances for  fikt :  13 23 16 
+....hamming distances for  garx :  79 57 60 
+....hamming distances for  gesg :  37 23 26 
+....hamming distances for  heja :  16 20 20 
+....hamming distances for  hipn :  8 8 12 
+....hamming distances for  ieki :  7 10 15 
+....hamming distances for  joxm :  41 98 85 
+....hamming distances for  kuco :  9 
+....hamming distances for  laey :  45 49 36 
+....hamming distances for  lexy :  9 6 7 
+....hamming distances for  naju :  13 
+....hamming distances for  nusw :  3 13 10 
+....hamming distances for  oaaz :  17 19 18 
+....hamming distances for  oilg :  2 37 39 
+....hamming distances for  pipw :  34 36 36 
+....hamming distances for  puie :  13 15 10 
+....hamming distances for  qayj :  11 7 10 
+....hamming distances for  qolg :  23 
+....hamming distances for  qonc :  17 7 16 
+....hamming distances for  rozh :  11 10 12 13 15 2 
+....hamming distances for  sehl :  2 11 23 9 21 18 
+....hamming distances for  ualf :  29 39 40 
+....hamming distances for  vass :  98 35 67 
+....hamming distances for  vils :  1 2 8 1 7 8 
+....hamming distances for  vuna :  33 
+....hamming distances for  wahn :  52 114 64 
+....hamming distances for  wetu :  8 17 13 
+....hamming distances for  xugn :  16 12 8 
+....hamming distances for  zoxy :  14 8 8 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">min_hamming_distance &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="st">&quot;donor_short&quot;</span> =<span class="st"> </span>donors,
+                                   <span class="st">&quot;min_hamming_dist&quot;</span> =<span class="st"> </span><span class="dv">0</span>)
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(donors)) {
+  min_hamming_distance<span class="op">$</span>min_hamming_dist[i] &lt;-<span class="st"> </span><span class="kw">min</span>(clone_mut_list_hamming[[i]])
+}
+
+donor_info &lt;-<span class="st"> </span><span class="kw">merge</span>(donor_info, min_hamming_distance, <span class="dt">by =</span> <span class="st">&quot;donor_short&quot;</span>, 
+                    <span class="dt">all.x =</span> <span class="ot">TRUE</span>)
+
+## Number of clones
+donor_info<span class="op">$</span>num_clones_total &lt;-<span class="st"> </span><span class="dv">0</span>
+<span class="cf">for</span> (i <span class="cf">in</span> donors) {
+  num_clones &lt;-<span class="st"> </span><span class="kw">length</span>(clone_mut_unique_list[[i]])
+  donor_info<span class="op">$</span>num_clones_total[<span class="kw">which</span>(donor_info<span class="op">$</span>donor_short <span class="op">==</span><span class="st"> </span>i)] &lt;-<span class="st"> </span>num_clones
+}</code></pre></div>
+</div>
+<div id="plot-line-metrics" class="section level2">
+<h2>Plot line metrics</h2>
+<p>We make a large combined plot stitching together individual plots showing:</p>
+<ul>
+<li>donor age;</li>
+<li>number of somatic mutations;</li>
+<li>signature 7 (UV) exposure; and</li>
+<li>number of mutations per clone</li>
+</ul>
+<p>for each line.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">donor_info_filt &lt;-<span class="st"> </span>donor_info[<span class="kw">which</span>(donor_info<span class="op">$</span>donor_short <span class="op">%in%</span><span class="st"> </span>donors), ]
+donor_filt_order &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(donor_info_filt, <span class="kw">desc</span>(num_mutations))
+donor_filt_order &lt;-<span class="st"> </span>donor_filt_order<span class="op">$</span>donor_short
+<span class="kw">rownames</span>(donor_info_filt) &lt;-<span class="st"> </span>donor_info_filt<span class="op">$</span>donor_short
+
+<span class="co"># Plot age</span>
+selected_vars &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;donor_short&quot;</span>, <span class="st">&quot;age_decade&quot;</span>, <span class="st">&quot;selection_colour&quot;</span>)
+donor_info_filt_melt &lt;-<span class="st"> </span>reshape2<span class="op">::</span><span class="kw">melt</span>(donor_info_filt[,selected_vars],
+                                       <span class="st">&quot;donor_short&quot;</span>)
+donor_info_filt_melt &lt;-<span class="st"> </span>donor_info_filt[,selected_vars]
+
+age_plot_filt &lt;-<span class="st"> </span><span class="kw">ggplot</span>(
+  donor_info_filt_melt, 
+  <span class="kw">aes</span>(<span class="dt">x =</span> <span class="st">&quot;Age&quot;</span>, <span class="dt">y =</span> <span class="kw">factor</span>(donor_short, <span class="dt">levels =</span> <span class="kw">rev</span>(donor_filt_order)), 
+      <span class="dt">fill =</span> age_decade)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_tile</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Donor&quot;</span>, <span class="dt">fill =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">rev</span>(<span class="kw">c</span>(<span class="kw">magma</span>(<span class="dv">8</span>)[<span class="op">-</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">8</span>)])))  <span class="op">+</span>
+<span class="st">  </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">nrow =</span> <span class="dv">3</span>,<span class="dt">byrow =</span> <span class="ot">TRUE</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">axis.line =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">legend.position =</span> <span class="st">&quot;top&quot;</span>, <span class="dt">legend.direction =</span> <span class="st">&quot;horizontal&quot;</span>, 
+        <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">24</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.3</span>,<span class="st">&quot;in&quot;</span>),
+        <span class="dt">axis.ticks.x =</span> <span class="kw">element_blank</span>(),
+        <span class="dt">legend.margin =</span> <span class="kw">margin</span>(<span class="kw">unit</span>(<span class="fl">0.01</span>, <span class="st">&quot;cm&quot;</span>)),
+        <span class="dt">axis.text.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>))
+
+<span class="co"># Plot number of mutations</span>
+selected_vars &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;donor_short&quot;</span>, <span class="st">&quot;num_mutations&quot;</span>)
+donor_info_filt_melt &lt;-<span class="st"> </span>reshape2<span class="op">::</span><span class="kw">melt</span>(donor_info_filt[,selected_vars],
+                                       <span class="st">&quot;donor_short&quot;</span>)
+num_mut_plot_filt &lt;-<span class="st"> </span><span class="kw">ggplot</span>(
+  donor_info_filt_melt, 
+  <span class="kw">aes</span>(<span class="dt">x =</span> value, <span class="dt">y =</span> <span class="kw">factor</span>(donor_short, <span class="dt">levels =</span> <span class="kw">rev</span>(donor_filt_order)))) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="dv">4</span>, <span class="dv">19</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks=</span><span class="kw">c</span>(<span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>(<span class="dv">16</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">&quot; &quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Number of mutations&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.y =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">axis.ticks.y =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">axis.line =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">legend.position =</span> <span class="st">&quot;top&quot;</span>, 
+        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">title =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">&quot;black&quot;</span>,<span class="dt">size =</span> <span class="dv">26</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>))
+
+<span class="co"># Plot signature 7 </span>
+donor_info_filt_melt &lt;-<span class="st"> </span>reshape2<span class="op">::</span><span class="kw">melt</span>(
+  donor_info_filt[,<span class="kw">c</span>(<span class="dv">1</span>,<span class="kw">grep</span>(<span class="st">&quot;Sig7_mean&quot;</span>,<span class="kw">colnames</span>(donor_info_filt)))])
+donor_info_filt_melt<span class="op">$</span>signature &lt;-<span class="st"> </span><span class="kw">substr</span>(donor_info_filt_melt<span class="op">$</span>variable, <span class="dv">1</span>, <span class="dv">5</span>)
+donor_info_filt_melt &lt;-<span class="st"> </span>
+<span class="st">  </span>donor_info_filt_melt[, <span class="kw">c</span>(<span class="st">&quot;donor_short&quot;</span>, <span class="st">&quot;signature&quot;</span>, <span class="st">&quot;value&quot;</span>)]
+sig_decomp_plot_filt &lt;-<span class="st"> </span><span class="kw">ggplot</span>(
+  donor_info_filt_melt, 
+  <span class="kw">aes</span>(<span class="dt">y =</span> value, <span class="dt">x =</span> <span class="kw">factor</span>(donor_short, <span class="dt">levels =</span> <span class="kw">rev</span>(donor_filt_order)), 
+      <span class="dt">fill =</span> <span class="kw">factor</span>(signature))) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">stat =</span> <span class="st">&quot;identity&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">coord_flip</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">rev</span>(<span class="kw">c</span>(<span class="kw">magma</span>(<span class="dv">10</span>)[<span class="op">-</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">10</span>)]))) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>(<span class="dv">16</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">&quot; &quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;&quot;</span>,<span class="dt">y =</span> <span class="st">&quot;Signature 7 exposure&quot;</span>, <span class="dt">fill =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.y =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">axis.ticks.y =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">axis.line =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
+        <span class="dt">title =</span> <span class="kw">element_text</span>(<span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">26</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
+        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="ot">FALSE</span>)
+
+<span class="co"># Plot total number of mutations per clone</span>
+donor_info_filt_subset &lt;-
+<span class="st">  </span>donor_info_filt[,<span class="kw">c</span>(<span class="dv">1</span>,<span class="kw">grep</span>(<span class="st">&quot;clone&quot;</span>,<span class="kw">colnames</span>(donor_info_filt)))]
+<span class="co"># Remove columns that do not relate to number of mutations per clone: </span>
+donor_info_filt_subset &lt;-<span class="st"> </span>donor_info_filt_subset[,<span class="kw">c</span>(<span class="op">-</span><span class="dv">2</span>,<span class="op">-</span><span class="dv">7</span>)]
+donor_info_filt_melt &lt;-<span class="st"> </span>reshape2<span class="op">::</span><span class="kw">melt</span>(donor_info_filt_subset, <span class="st">&quot;donor_short&quot;</span>)
+donor_info_filt_melt<span class="op">$</span>variable &lt;-<span class="st"> </span><span class="kw">substr</span>(donor_info_filt_melt<span class="op">$</span>variable, <span class="dv">6</span>, <span class="dv">6</span>)
+num_clones_plot_filt &lt;-<span class="st"> </span><span class="kw">ggplot</span>(
+  donor_info_filt_melt, 
+  <span class="kw">aes</span>(variable, <span class="kw">factor</span>(donor_short, <span class="dt">levels =</span> <span class="kw">rev</span>(donor_filt_order)))) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_tile</span>(<span class="kw">aes</span>(<span class="dt">fill =</span> value), <span class="dt">colour =</span> <span class="st">&quot;white&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_fill_distiller</span>(<span class="dt">palette =</span> <span class="st">&quot;BuPu&quot;</span>, <span class="dt">values =</span> <span class="kw">c</span>(<span class="dv">0</span>,<span class="fl">0.05</span>,<span class="fl">0.1</span>,<span class="fl">0.15</span>,<span class="fl">0.25</span>,<span class="fl">0.5</span>,<span class="dv">1</span>),
+                       <span class="dt">na.value =</span> <span class="st">&quot;white&quot;</span>, <span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">25</span>,<span class="dv">50</span>,<span class="dv">75</span>), 
+                       <span class="dt">direction =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Clone&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;&quot;</span>, <span class="dt">fill =</span> <span class="st">&quot;Number of mutations per clone&quot;</span>) <span class="op">+</span><span class="st">  </span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.ticks.y =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">axis.line =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">legend.position =</span> <span class="st">&quot;top&quot;</span>,
+        <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>,<span class="st">&quot;in&quot;</span>), 
+        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
+        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
+        <span class="dt">axis.text.y =</span> <span class="kw">element_blank</span>(), 
+        <span class="dt">legend.justification =</span> <span class="st">&quot;center&quot;</span>, 
+        <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">26</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">legend.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">26</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>))
+
+## Combine above plots into Fig 2a
+fig_2a &lt;-<span class="st"> </span>cowplot<span class="op">::</span><span class="kw">plot_grid</span>(age_plot_filt, num_mut_plot_filt,
+                             sig_decomp_plot_filt, num_clones_plot_filt, 
+                             <span class="dt">nrow =</span> <span class="dv">1</span>, <span class="dt">rel_widths =</span> <span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">6</span>), <span class="dt">align =</span> <span class="st">&quot;h&quot;</span>,
+                             <span class="dt">axis =</span> <span class="st">&quot;t&quot;</span>, <span class="dt">scale =</span>  <span class="kw">c</span>(<span class="dv">1</span>, <span class="fl">0.988</span>, <span class="fl">0.988</span>, <span class="fl">0.988</span>))
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/overview_lines/overview_lines_BuPu.png&quot;</span>, 
+       <span class="dt">plot =</span> fig_2a, <span class="dt">width =</span> <span class="dv">30</span>, <span class="dt">height =</span> <span class="dv">14</span>)
+
+fig_2a</code></pre></div>
+<p><img src="figure/overview_lines.Rmd/donor-info-summary-plot-1.png" width="2880" style="display: block; margin: auto;" /></p>
+</div>
+<div id="plot-cell-assignment-rate-vs-hamming-distance" class="section level2">
+<h2>Plot cell assignment rate vs Hamming Distance</h2>
+<p>Finally, we plot the cell assignment rate (from <code>cardelino</code>) against the minimum Hamming distance (minimum number of variants distinguishing a pair of clones) for each line.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_2c_no_size &lt;-<span class="st"> </span><span class="kw">ggplot</span>(
+  donor_info_filt, 
+  <span class="kw">aes</span>(<span class="dt">y =</span> <span class="kw">as.numeric</span>(percent_assigned_cells), <span class="dt">x =</span> <span class="kw">as.numeric</span>(min_hamming_dist), 
+      <span class="dt">fill =</span> total_unst_cells)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">colour =</span> <span class="st">&quot;gray50&quot;</span>, <span class="dt">size =</span> <span class="dv">4</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="dv">4</span>, <span class="dv">19</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ylim</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;magma&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Proportion cells assigned&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Minimum number of variants distinguishing clones&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">fill =</span> <span class="st">&quot;Number of cells&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">theme_bw</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>,<span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
+        <span class="dt">axis.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
+        <span class="dt">plot.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">hjust =</span> <span class="fl">0.5</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_blank</span>()) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.justification =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>), 
+        <span class="dt">legend.position =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>), 
+        <span class="dt">legend.direction =</span> <span class="st">&quot;horizontal&quot;</span>,
+        <span class="dt">legend.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>, <span class="dt">linetype =</span> <span class="dv">1</span>, 
+                                         <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="fl">0.2</span>),
+        <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.25</span>, <span class="st">&quot;cm&quot;</span>))
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/overview_lines/cell_assignment_vs_min_hamming_dist.png&quot;</span>,
+       <span class="dt">plot =</span> fig_2c_no_size, <span class="dt">width =</span> <span class="dv">12</span>, <span class="dt">height =</span> <span class="dv">12</span>, <span class="dt">dpi =</span> <span class="dv">300</span>, <span class="dt">units =</span> <span class="st">&quot;cm&quot;</span>)
+fig_2c_no_size</code></pre></div>
+<p><img src="figure/overview_lines.Rmd/plot-cell-assignment-vs-hamming-1.png" width="576" style="display: block; margin: auto;" /></p>
+</div>
+<div id="save-data-to-file" class="section level2">
+<h2>Save data to file</h2>
+<p>Save the donor info dataframe to <code>output/line_info.tsv</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">write_tsv</span>(donor_info_filt, <span class="dt">path =</span> <span class="st">&quot;output/line_info.tsv&quot;</span>, <span class="dt">col_names =</span> <span class="ot">TRUE</span>)</code></pre></div>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">session_info</span>()</code></pre></div>
+<pre><code> setting  value                       
+ version  R version 3.5.1 (2018-07-02)
+ system   x86_64, darwin15.6.0        
+ ui       X11                         
+ language (EN)                        
+ collate  en_GB.UTF-8                 
+ tz       Europe/London               
+ date     2018-08-20                  
+
+ package                     * version   date      
+ AnnotationDbi               * 1.42.1    2018-05-08
+ assertthat                    0.2.0     2017-04-11
+ backports                     1.1.2     2017-12-13
+ base                        * 3.5.1     2018-07-05
+ beeswarm                      0.2.3     2016-04-25
+ bindr                         0.1.1     2018-03-13
+ bindrcpp                    * 0.2.2     2018-03-29
+ Biobase                     * 2.40.0    2018-05-01
+ BiocGenerics                * 0.26.0    2018-05-01
+ BiocParallel                * 1.14.2    2018-07-08
+ Biostrings                    2.48.0    2018-05-01
+ bit                           1.1-14    2018-05-29
+ bit64                         0.9-7     2017-05-08
+ bitops                        1.0-6     2013-08-17
+ blob                          1.1.1     2018-03-25
+ BSgenome                      1.48.0    2018-05-01
+ BSgenome.Hsapiens.UCSC.hg19   1.4.0     2018-08-20
+ caTools                       1.17.1.1  2018-07-20
+ clue                          0.3-55    2018-04-23
+ cluster                       2.0.7-1   2018-04-13
+ coda                          0.19-1    2016-12-08
+ codetools                     0.2-15    2016-10-05
+ colorspace                    1.3-2     2016-12-14
+ compiler                      3.5.1     2018-07-05
+ cowplot                     * 0.9.3     2018-07-15
+ crayon                        1.3.4     2017-09-16
+ data.table                    1.11.4    2018-05-27
+ datasets                    * 3.5.1     2018-07-05
+ DBI                           1.0.0     2018-05-02
+ deconstructSigs             * 1.8.0     2016-07-29
+ DelayedArray                * 0.6.5     2018-08-15
+ DelayedMatrixStats            1.2.0     2018-05-01
+ devtools                      1.13.6    2018-06-27
+ digest                        0.6.15    2018-01-28
+ dplyr                       * 0.7.6     2018-06-29
+ DT                            0.4       2018-01-30
+ dynamicTreeCut                1.63-1    2016-03-11
+ edgeR                       * 3.22.3    2018-06-21
+ evaluate                      0.11      2018-07-17
+ FNN                           1.1.2.1   2018-08-10
+ gdata                         2.18.0    2017-06-06
+ GenomeInfoDb                * 1.16.0    2018-05-01
+ GenomeInfoDbData              1.1.0     2018-04-25
+ GenomicAlignments             1.16.0    2018-05-01
+ GenomicRanges               * 1.32.6    2018-07-20
+ ggbeeswarm                    0.6.0     2017-08-07
+ ggforce                     * 0.1.3     2018-07-07
+ ggplot2                     * 3.0.0     2018-07-03
+ ggrepel                     * 0.8.0     2018-05-09
+ ggridges                    * 0.5.0     2018-04-05
+ git2r                         0.23.0    2018-07-17
+ glue                          1.3.0     2018-07-17
+ gplots                      * 3.0.1     2016-03-30
+ graphics                    * 3.5.1     2018-07-05
+ grDevices                   * 3.5.1     2018-07-05
+ grid                          3.5.1     2018-07-05
+ gridExtra                     2.3       2017-09-09
+ gtable                        0.2.0     2016-02-26
+ gtools                        3.8.1     2018-06-26
+ hms                           0.4.2     2018-03-10
+ htmltools                     0.3.6     2017-04-28
+ htmlwidgets                   1.2       2018-04-19
+ httpuv                        1.4.5     2018-07-19
+ igraph                        1.2.2     2018-07-27
+ inline                        0.3.15    2018-05-18
+ IRanges                     * 2.14.10   2018-05-16
+ KernSmooth                    2.23-15   2015-06-29
+ knitr                         1.20      2018-02-20
+ labeling                      0.3       2014-08-23
+ later                         0.7.3     2018-06-08
+ lattice                       0.20-35   2017-03-25
+ lazyeval                      0.2.1     2017-10-29
+ limma                       * 3.36.2    2018-06-21
+ locfit                        1.5-9.1   2013-04-20
+ magrittr                      1.5       2014-11-22
+ MASS                          7.3-50    2018-04-30
+ Matrix                        1.2-14    2018-04-13
+ matrixStats                 * 0.54.0    2018-07-23
+ memoise                       1.1.0     2017-04-21
+ methods                     * 3.5.1     2018-07-05
+ mime                          0.5       2016-07-07
+ munsell                       0.5.0     2018-06-12
+ org.Hs.eg.db                * 3.6.0     2018-05-15
+ parallel                    * 3.5.1     2018-07-05
+ pillar                        1.3.0     2018-07-14
+ pkgconfig                     2.0.2     2018-08-16
+ plyr                          1.8.4     2016-06-08
+ promises                      1.0.1     2018-04-13
+ purrr                         0.2.5     2018-05-29
+ R.methodsS3                   1.7.1     2016-02-16
+ R.oo                          1.22.0    2018-04-22
+ R.utils                       2.6.0     2017-11-05
+ R6                            2.2.2     2017-06-17
+ RColorBrewer                  1.1-2     2014-12-07
+ Rcpp                        * 0.12.18   2018-07-23
+ RCurl                         1.95-4.11 2018-07-15
+ readr                       * 1.1.1     2017-05-16
+ reshape2                      1.4.3     2017-12-11
+ rhdf5                         2.24.0    2018-05-01
+ Rhdf5lib                      1.2.1     2018-05-17
+ rjson                         0.2.20    2018-06-08
+ rlang                         0.2.2     2018-08-16
+ rmarkdown                     1.10      2018-06-11
+ rprojroot                     1.3-2     2018-01-03
+ Rsamtools                     1.32.2    2018-07-03
+ RSQLite                       2.1.1     2018-05-06
+ rstan                         2.17.3    2018-01-20
+ rtracklayer                   1.40.4    2018-08-10
+ S4Vectors                   * 0.18.3    2018-06-08
+ scales                        1.0.0     2018-08-09
+ scater                      * 1.9.12    2018-08-03
+ scran                       * 1.8.4     2018-08-07
+ shiny                         1.1.0     2018-05-17
+ sigfit                      * 1.1.0     2018-05-08
+ SingleCellExperiment        * 1.2.0     2018-05-01
+ StanHeaders                   2.17.2    2018-01-20
+ statmod                       1.4.30    2017-06-18
+ stats                       * 3.5.1     2018-07-05
+ stats4                      * 3.5.1     2018-07-05
+ stringi                       1.2.4     2018-07-20
+ stringr                       1.3.1     2018-05-10
+ SummarizedExperiment        * 1.10.1    2018-05-11
+ tibble                        1.4.2     2018-01-22
+ tidyselect                    0.2.4     2018-02-26
+ tools                         3.5.1     2018-07-05
+ tweenr                        0.1.5     2016-10-10
+ tximport                      1.8.0     2018-05-01
+ units                         0.6-0     2018-06-09
+ utils                       * 3.5.1     2018-07-05
+ vipor                         0.4.5     2017-03-22
+ viridis                     * 0.5.1     2018-03-29
+ viridisLite                 * 0.3.0     2018-02-01
+ whisker                       0.3-2     2013-04-28
+ withr                         2.1.2     2018-03-15
+ workflowr                     1.1.1     2018-07-06
+ XML                           3.98-1.16 2018-08-19
+ xtable                        1.8-2     2016-02-05
+ XVector                       0.20.0    2018-05-01
+ yaml                          2.2.0     2018-07-25
+ zlibbioc                      1.26.0    2018-05-01
+ source                       
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ local                        
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ Bioconductor                 
+ Bioconductor                 
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ cran (@0.3-55)               
+ CRAN (R 3.5.0)               
+ cran (@0.19-1)               
+ CRAN (R 3.5.1)               
+ CRAN (R 3.5.0)               
+ local                        
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ local                        
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.1)               
+ Bioconductor                 
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.1)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ Bioconductor                 
+ Bioconductor                 
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ local                        
+ local                        
+ local                        
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ CRAN (R 3.5.1)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.1)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.1)               
+ CRAN (R 3.5.1)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ local                        
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ local                        
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ cran (@2.17.3)               
+ Bioconductor                 
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ Github (kgori/sigfit@55cad41)
+ Bioconductor                 
+ cran (@2.17.2)               
+ CRAN (R 3.5.0)               
+ local                        
+ local                        
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ local                        
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ CRAN (R 3.5.0)               
+ local                        
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.0)               
+ CRAN (R 3.5.1)               
+ CRAN (R 3.5.0)               
+ Bioconductor                 
+ CRAN (R 3.5.1)               
+ Bioconductor                 </code></pre>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

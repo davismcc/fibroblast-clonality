@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Davis J. McCarthy" />
+
+
+<title>Data pre-processing</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/font-awesome-5.0.13/css/fa-svg-with-js.css" rel="stylesheet" />
+<script src="site_libs/font-awesome-5.0.13/js/fontawesome-all.min.js"></script>
+<script src="site_libs/font-awesome-5.0.13/js/fa-v4-shims.min.js"></script>
+
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">fibroblast-clonality</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Data pre-processing</h1>
+<h4 class="author"><em>Davis J. McCarthy</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-08-24</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/ffc0655c43b41cd9c9b86b3d29d16d59eb5af033" target="_blank">ffc0655</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/.ipynb_checkpoints/
+    Ignored:    src/Rmd/.Rhistory
+
+Untracked files:
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
+    Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/yuanhua/
+    Untracked:  data/canopy/
+    Untracked:  data/cell_assignment/
+    Untracked:  data/de_analysis_FTv62/
+    Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
+    Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/fdr10.annot.txt.gz
+    Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
+    Untracked:  data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz
+    Untracked:  data/human_H_v5p2.rdata
+    Untracked:  data/human_c2_v5p2.rdata
+    Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
+    Untracked:  data/sces/
+    Untracked:  data/simulations/
+    Untracked:  data/variance_components/
+    Untracked:  docs/figure/overview_lines.Rmd/
+    Untracked:  figures/
+    Untracked:  metadata/
+    Untracked:  output/differential_expression/
+    Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
+    Untracked:  output/nvars_by_category_by_donor.tsv
+    Untracked:  output/nvars_by_category_by_line.tsv
+    Untracked:  output/variance_components/
+    Untracked:  references/
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/43f15d6d291c1d17bd298c810f97397e2d309a3c/analysis/data_preprocessing.Rmd" target="_blank">43f15d6</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Adding data pre-processing workflow and updating analyses.
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The data pre-processing for this project is reasonably complicated. To prepare raw data for the analyses shown in this repository, we need to carry out the following major pre-processing steps:</p>
+<ol style="list-style-type: decimal">
+<li><p>Somatic variant calling from whole-exome sequencing (WES) data;</p></li>
+<li><p>Expression quantification and quality control for single-cell RNA-seq (scRNA-seq) data;</p></li>
+<li><p>Donor identification for single cells from scRNA-seq reads;</p></li>
+<li><p>Extraction of somatic variant information from scRNA-seq reads;</p></li>
+<li><p>Inference of clonal trees from WES data;</p></li>
+<li><p>Assignment of single cells to clones in clonal trees; and</p></li>
+<li><p>Differential expression analyses.</p></li>
+</ol>
+<p>Due to the structure of the dataset, computational demands and pragmatism, the steps above are implemented in distinct Snakemake workflows.</p>
+<ol style="list-style-type: decimal">
+<li><p><code>Snakefile_lane</code>: low-level pre-processing of scRNA-seq data to be run per sequencing lane;</p></li>
+<li><p><code>Snakefile_donorid</code>: donor ID for single cells;</p></li>
+<li><p><code>Snakefile_genotype_sites</code>: extract somatic variant information from scRNA-seq data;</p></li>
+<li><p><code>Snakefile_clonal_analysis</code>: clonal tree inference, cell-clone assignment and differential expression.</p></li>
+</ol>
+<p>The somatic variant calling from WES data was carried out by Petr Danecek and is not currently integrated with the rest of the data pre-processing workflows.</p>
+</div>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>The Snakemake workflows assume a certain directory structure. Specifically, the head directory for the project should contain a <code>data</code> directory, which itself contains a <code>raw</code> for the raw sequence data (and subsequent pre-processed data).</p>
+<p>The raw single-cell RNA-seq data can be obtained from the <a href="www.ebi.ac.uk/arrayexpress">ArrayExpress</a> database at EMBL-EBI under accession number <a href="https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-7167">E-MTAB-7167</a>. We then expect the raw FASTQ files to be organised by sequencing lane in a <code>fastq</code> subdirectory within each run. That is, raw FASTQ files for cells from the same lane of sequencing should be in</p>
+<pre><code>data/raw/{run}/fastq</code></pre>
+<p>where the <code>{run}</code> directory has the pattern <code>22[0-9]+_[1-8]</code>, reflecting the <code>{seq_run}_{lane}</code> (sequencing run, lane on flowcell) naming convention used by the Wellcome Sanger Institute’s DNA Pipelines group who conducted the sequencing for this project.</p>
+<p>Due to the computational requirements and limitations of running more than tens of thousands of jobs with Snakemake (in our experience, Snakemake slows down markedly as the number of jobs to run rises above about ten thousand), we run the <code>Snakefile_lane</code> workflow independently for each sequencing lane separately. Details about this workflow and how to run it are provided below.</p>
+<p>The <code>Snakefile_genotype_sites</code> workflow is run from the <code>data/raw</code> directory, while the <code>Snakefile_donor_id</code> and <code>Snakefile_clonal_analysis</code> workflows are run from the head directory for the project (i.e. head directory of this repository).</p>
+</div>
+<div id="reference-files" class="section level2">
+<h2>Reference files</h2>
+<p>To process the raw sequence data, we also need a substantial number of reference files. These are expected to be found in the <code>references</code> subdirectory of this repository.</p>
+<p>The necessary reference files include:</p>
+<ul>
+<li>HipSci donor genotypes: a VCF file with genotypes for each of the fibroblast cell lines used in this project (with index);</li>
+<li>Human transcriptome FASTA file with ERCC sequences (“transcripts”) included (Ensembl v75);</li>
+<li>Human reference genome FASTA file (GRCh37.p13);</li>
+<li>a VCF with dbSNP bialleleic SNPs overlapping HipSci variants with MAF &gt; 0.01 HWE P &lt; 0.0001 and in genic regions for the top 1000 most-expressed genes in HipSci iPS cell lines (assessed from bulk RNA-seq data);</li>
+<li>intervals defining known indels;</li>
+<li>VCF files with Mills and 1000 Genomes gold standard indels;</li>
+<li>GENCODE v19 annotation GTF file;</li>
+</ul>
+</div>
+<div id="software-and-availability" class="section level2">
+<h2>Software and availability</h2>
+<p>We use the following bioinformatics software packages in the Snakemake workflows mentioned above:</p>
+<ul>
+<li>fastqc version 0.11.7</li>
+<li>multiqc version 1.5</li>
+<li>picard version 2.18.4</li>
+<li>bcftools version 1.8</li>
+<li>vcftools version 0.1.16</li>
+<li>salmon version 0.8.2</li>
+<li>star version 2.6.0b</li>
+<li>bedops version 2.4.30</li>
+<li>cutadapt version 1.15</li>
+<li>trim-galore version 0.4.5</li>
+<li>subread version 1.6.0</li>
+<li>samtools version 1.8</li>
+<li>tabix version 0.2.5</li>
+<li>hisat2 version 2.1.0</li>
+<li>rseqc version 2.6.4</li>
+<li>preseq version 2.0.2</li>
+<li>gatk version 3.8</li>
+<li>Python version 3.6</li>
+</ul>
+<p>All of these packages can be installed with <a href="https://conda.io/docs/"><code>conda</code></a>. To install these packages into your own local environment, we recommend using the supplied <code>environment.yml</code> file in this repository.</p>
+<p>We have made a Docker image containing these software packages available on <a href="hub.docker.com/r/davismcc/fibroblast-clonality/">DockerHub</a>. Software installed with the image can be run with Docker or Singularity (more suitable for many scientific computing environments). Singularity is tightly <a href="https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html">integrated with Snakemake</a> enabling easy use of containerised software in the Snakemake workflows.</p>
+<p>Note: the <code>Snakefile_lane</code> workflow uses some tools from <a href="https://software.broadinstitute.org/gatk/">GATK</a> version 3.8, which we were unable to distribute in the Docker container above and cannot be completely installed with conda. Thus, to run the <code>Snakefile_lane</code> in its entirety you would need to install GATK 3.8 or run it from a <a href="https://hub.docker.com/r/broadinstitute/gatk3">Docker image</a> distributed by the Broad Institute.</p>
+<p>For many analyses, including cell-donor identification, clonal tree inference, cell-clone assignment and further downstream analyses, we use R packages and code. We have a separate Docker image on <a href="hub.docker.com/r/davismcc/r-singlecell-img/">DockerHub</a> with R 3.5.1 and all necessary packages installed. We bootstrap the RStudio <a href="https://hub.docker.com/r/rocker/verse/">rocker/verse</a> Docker image, and add many Bioconductor packages to form the <a href="https://hub.docker.com/r/davismcc/r-tidybioc-img/">r-tidybioc-img</a> image, which we then bootstrap the <a href="hub.docker.com/r/davismcc/r-singlecell-img/">r-singlecell-img</a> container that we use in the Snakemake wokflows. The image contains installations of the following key packages:</p>
+<ul>
+<li>tidyverse</li>
+<li>Canopy</li>
+<li>cowplot</li>
+<li>destiny</li>
+<li>edgeR</li>
+<li>ggdendro</li>
+<li>ggtree</li>
+<li>irlba</li>
+<li>limma</li>
+<li>MultiAssayExperiment</li>
+<li>org.Hs.eg.db</li>
+<li>org.Mm.eg.db</li>
+<li>pcaMethods</li>
+<li>RCurl</li>
+<li>Rtsne</li>
+<li>scater</li>
+<li>scran</li>
+<li>slalom</li>
+<li>VariantAnnotation</li>
+<li>vcfR</li>
+</ul>
+<p>and many more than can be listed here, but can be seen in the documentation and source code for the Docker images.</p>
+<p>As mentioned above, Snakemake has tight integration with both conda and Singularity (which can run both Singularity and Docker containers). We are not able to (easily) install GATK and the latest version of R and all of the required packages through conda, so if you want to run the pre-processing workflows in their entirety then you should use the Singularity option.</p>
+</div>
+<div id="snakefile_lane" class="section level2">
+<h2><code>Snakefile_lane</code></h2>
+<p>The first step of data pre-processing is to run the <code>Snakefile_lane</code> workflow for the data from each sequencing lane separately.</p>
+<div id="what-does-this-workflow-do" class="section level3">
+<h3>What does this workflow do?</h3>
+<p>Briefly, for expression quantification, raw scRNA-seq data in CRAM format is converted to FASTQ format with samtools, before reads are adapter- and quality-trimmed with TrimGalore!. We quantify transcript-level expression using Ensembl v75 transcripts by supplying trimmed reads to Salmon and using the “–seqBias”, “–gcBias” and “VBOpt” options. Transcript-level expression values were summarised at gene level (estimated counts). Salmon transcript-level expression values are summarised at gene level, genes are annotated with metadata from Ensembl and QC metrics are computed, all with the scater package. A short automated QC report is generated as an html file.</p>
+<p>For donor ID and clonal analyses, we also need scRNA-seq reads to be mapped to the genome, so we apply the following steps to the per-lane raw data files as well. Trimmed FASTQ reads are aligned to the GRCh37 p13 genome with ERCC spike-in sequences with STAR in basic two-pass mode using the GENCODE v19 annotation with ERCC spike-in sequences. We further use picard and GATK version 3.8 to mark duplicate reads (MarkDuplicates), split cigar reads (SplitNCigarReads), realign indels (IndelRealigner), and recalibrate base scores (BaseRecalibrator).</p>
+<p>For cell-donor assignment we use the GATK HaplotypeCaller to “call variants” (we actually just use read count information rather than GATK variant calls; many other approaches could be used to get this information) from the processed single-cell BAM files at 304,405 biallelic SNP sites from dbSNP build 138 that are genotyped on the Illumina HumanCoreExome-12 chip, have MAF &gt; 0.01, Hardy-Weinberg equilibrium P &lt; 1e-03 and overlap protein-coding regions of the 1,000 most highly expressed genes in HipSci iPS cells (as determined from HipSci bulk RNA-seq data).</p>
+</div>
+<div id="how-do-i-run-it" class="section level3">
+<h3>How do I run it?</h3>
+<p>This workflow should be run from within each <code>run</code> directory containing the raw data for each sequencing lane, i.e.:</p>
+<pre><code>data/raw/{run}</code></pre>
+<p>From within that directory, then we run Snakemake as so:</p>
+<pre><code>snakemake -s ../../../Snakefile_lane --use-singularity --jobs 400</code></pre>
+<p>This Snakemake command uses Singularity to run software from the containers we have defined (<code>--use-singularity</code>), and will run up to 400 jobs simultaneously (<code>--jobs 400</code>).</p>
+<p>This workflow is computationally demanding, so is best run on an HPC cluster or cloud platform. To help with this, we provide a <code>cluster.json</code> file in this repository that defines parameters for running this workflow in an HPC cluster environment. It defines parameters for each rule such as memory limits, job names and the cluster queue on which to run jobs. We have set this up to suit our needs running the workflow with LSF job submission on the EMBL-EBI cluster, so it likely needs some tweaking for your own setup.</p>
+<pre><code>snakemake -s ../../../Snakefile_lane --use-singularity --jobs 400 --latency-wait 30 --cluster-config ../../../cluster.json --cluster &#39;bsub -J {cluster.name} -q {cluster.queue} -n {cluster.n} -R &quot;select[singularity] rusage[mem={cluster.memory}]&quot; -M {cluster.memory}  -o {cluster.output} -e {cluster.error}&#39;</code></pre>
+<p>For more details, explanation and finer control on running Snakemake, please consult the excellent <a href="https://snakemake.readthedocs.io">Snakemake documentation</a>.</p>
+</div>
+</div>
+<div id="snakefile_donorid" class="section level2">
+<h2><code>Snakefile_donorid</code></h2>
+<p>The second step of data pre-processing is to run the <code>Snakefile_donorid</code> workflow from the head directory.</p>
+<div id="what-does-this-workflow-do-1" class="section level3">
+<h3>What does this workflow do?</h3>
+<p>This Snakemake workflow runs cell-donor ID and QC on scRNA-seq expression data.</p>
+<p>We merge the per-cell VCF output from GATK HaplotypeCaller across all cells using bcftools and filter variants to retain those with MAF &gt; 0.01, quality score &gt; 20 and read coverage in at least 3% of cells. We further filter the variants to retain only those that feature in the set of variants in the high-quality, imputed, phased HipSci genotypes and filter the HipSci donor genotype file to include the same set of variants. We then run the donor ID method in the cardelino package to obtain the most-likely donor for each cell.</p>
+<p>We merge SingleCellExperient objects with gene expression data for each sequencing lane into a single object and conduct quality control of the scRNA-seq data with the scater package. Cells are retained for downstream analyses if they have at least 50,000 counts from endogenous genes, at least 5,000 genes with non-zero expression, less than 90% of counts from the 100 most-expressed genes in the cell, less than 20% of counts from ERCC spike-in sequences and a Salmon mapping rate of at least 40%. We assign cells to donors (for which there is a sufficiently high-confidence donor for the cell). We save a tidy, QC’d SCE object with cells assigned to donors for downstream analysis.</p>
+</div>
+<div id="how-do-i-run-it-1" class="section level3">
+<h3>How do I run it?</h3>
+<p>From the head directory, we can run this workflow as so:</p>
+<pre><code>snakemake -s Snakefile_donorid --use-singularity --jobs 100 </code></pre>
+<p>See the example above for how to extend this command to run the workflow in an HPC cluster environment.</p>
+</div>
+</div>
+<div id="snakefile_genotype_sites" class="section level2">
+<h2><code>Snakefile_genotype_sites</code></h2>
+<p>Once the <code>Snakefile_lane</code> and <code>Snakefile_donorid</code> worklows have been completed, we can run the <code>Snakefile_genotype_sites</code> workflow to “genotype” somatic variants in single cells (or, more specifically, extract reference and alternative allele counts at somatic variant sites across cells). This worklow is run from the head directory.</p>
+<p><strong>Input files:</strong></p>
+<ul>
+<li>File defining somatic variants: <code>data/exome-point-mutations/high-vs-low-exomes.v62.regions_to_call.tsv</code></li>
+<li>Cell-Line list files: <code>data/donor-cell-lists/*.qc-pass.cells.txt</code></li>
+<li>Genome reference files as above</li>
+</ul>
+<p><strong>Output files:</strong></p>
+<ul>
+<li>A merged BAM with reads for each cell per lines;</li>
+<li>A VCF for each line with alternative allele count and read coverage information for each cell assigned to the line</li>
+</ul>
+<div id="what-does-this-workflow-do-2" class="section level3">
+<h3>What does this workflow do?</h3>
+<p>For cell-clone assignment we require read the read counts supporting reference and alternative alleles at somatic variant sites. We use bcftools <em>mpileup</em> and <em>call</em> methods to call variants at somatic variant sites derived from bulk whole-exome data, as described above, for all confidently assigned cells for each given line. Variant sites are filtered to retain variants with more than three reads observed across all cells for the line and quality greater than 20. The workflow produces a VCF file for each line and a merged BAM file with all reads from all assigned cells for each line.</p>
+</div>
+<div id="how-do-i-run-it-2" class="section level3">
+<h3>How do I run it?</h3>
+<p>From the head directory, we can run this workflow as so:</p>
+<pre><code>snakemake -s Snakefile_genotype_sites --use-singularity --jobs 100 </code></pre>
+<p>See the example above for how to extend this command to run the workflow in an HPC cluster environment.</p>
+</div>
+</div>
+<div id="snakefile_clonal_analysis" class="section level2">
+<h2><code>Snakefile_clonal_analysis</code></h2>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
