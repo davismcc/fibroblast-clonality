@@ -717,7 +717,7 @@ each other. To simplify, let us just look at 12 donors that have significant
 geneset enrichment for at least 2 contrasts and just look at the 9 gene sets 
 that are significant in at least three lines.
 
-```{r top_genesets_H_direction_heatmap_all_contrasts, fig.height=9, fig.width=18}
+```{r top_genesets_H_direction_heatmap_all_contrasts-simple, fig.height=9, fig.width=18}
 repeated_sig_H_genesets3 <- df_camera_sig_unst %>% 
     dplyr::filter(collection == "H", stat == "logFC") %>% 
     group_by(geneset) %>% 

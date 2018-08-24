@@ -275,6 +275,10 @@ sequences and a Salmon mapping rate of at least 40%. We assign cells to donors
 (for which there is a sufficiently high-confidence donor for the cell). We save
 a tidy, QC'd SCE object with cells assigned to donors for downstream analysis.
 
+Finally, we split out the QC'd SCE object into per-donor SCE objects and save 
+them to disk for later analyses. We also write to file lists of cells assigned
+confidently to each donor.
+
 ### How do I run it?
 
 From the head directory, we can run this workflow as so:
