@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-19</p>
+<p><strong>Last updated:</strong> 2018-08-24</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,20 +391,28 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/87e9b0b15fb7846944b715aac782224ae1bbd97b" target="_blank">87e9b0b</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/97e062ed8265f2e4f84947c624bac433e6c4daf6" target="_blank">97e062e</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/.ipynb_checkpoints/
+    Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
-    Untracked:  analysis/overview_lines.Rmd
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/yuanhua/
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
     Untracked:  data/de_analysis_FTv62/
     Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
     Untracked:  data/donor_neutrality.tsv
     Untracked:  data/fdr10.annot.txt.gz
     Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
@@ -412,18 +420,28 @@ Untracked files:
     Untracked:  data/human_H_v5p2.rdata
     Untracked:  data/human_c2_v5p2.rdata
     Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
+    Untracked:  docs/figure/overview_lines.Rmd/
     Untracked:  figures/
+    Untracked:  metadata/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
     Untracked:  output/nvars_by_category_by_donor.tsv
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
+    Untracked:  references/
+
+Unstaged changes:
+    Modified:   Snakefile_clonal_analysis
+    Modified:   Snakefile_donorid
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -452,6 +470,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/43f15d6d291c1d17bd298c810f97397e2d309a3c/analysis/analysis_for_joxm.Rmd" target="_blank">43f15d6</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Adding data pre-processing workflow and updating analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/db7f238a7d1a42a2c51964239e96e6d77823bbf1/docs/analysis_for_joxm.html" target="_blank">db7f238</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+<td style="text-align:left;">
+Updating joxm analysis
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -2252,6 +2304,48 @@ davismcc
 </tbody>
 </table>
 <p></details></p>
+<p>Let us also look at PCA with cells coloured by the posterior probability of assignment to the various clones.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ppc1 &lt;-<span class="st"> </span><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">fill =</span> clone1_prob)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;A&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;clone1</span><span class="ch">\n</span><span class="st">posterior</span><span class="ch">\n</span><span class="st">probability&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)
+
+ppc2 &lt;-<span class="st"> </span><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">fill =</span> clone2_prob)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;A&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;clone2</span><span class="ch">\n</span><span class="st">posterior</span><span class="ch">\n</span><span class="st">probability&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)
+
+ppc3 &lt;-<span class="st"> </span><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">fill =</span> clone3_prob)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;A&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;clone3</span><span class="ch">\n</span><span class="st">posterior</span><span class="ch">\n</span><span class="st">probability&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)
+
+<span class="kw">plot_grid</span>(ppc1, ppc2, ppc3, <span class="dt">labels =</span> <span class="st">&quot;auto&quot;</span>, <span class="dt">ncol =</span> <span class="dv">1</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-clone-prob-1.png" width="912" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_pc1_pc2_clone_probs.png&quot;</span>, <span class="dt">height =</span> <span class="dv">11</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_pc1_pc2_clone_probs.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">11</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_pc1_pc2_clone_probs.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">11</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+
+ppc1 &lt;-<span class="st"> </span><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC2, <span class="dt">y =</span> PC3, <span class="dt">fill =</span> clone1_prob)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;A&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;clone1</span><span class="ch">\n</span><span class="st">posterior</span><span class="ch">\n</span><span class="st">probability&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)
+
+ppc2 &lt;-<span class="st"> </span><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC2, <span class="dt">y =</span> PC3, <span class="dt">fill =</span> clone2_prob)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;A&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;clone2</span><span class="ch">\n</span><span class="st">posterior</span><span class="ch">\n</span><span class="st">probability&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)
+
+ppc3 &lt;-<span class="st"> </span><span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC2, <span class="dt">y =</span> PC3, <span class="dt">fill =</span> clone3_prob)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">pch =</span> <span class="dv">21</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">colour =</span> <span class="st">&quot;gray30&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;A&quot;</span>, <span class="dt">name =</span> <span class="st">&quot;clone3</span><span class="ch">\n</span><span class="st">posterior</span><span class="ch">\n</span><span class="st">probability&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">14</span>)
+
+<span class="kw">plot_grid</span>(ppc1, ppc2, ppc3, <span class="dt">labels =</span> <span class="st">&quot;auto&quot;</span>, <span class="dt">ncol =</span> <span class="dv">1</span>)</code></pre></div>
+<p><img src="figure/analysis_for_joxm.Rmd/pca-clone-prob-2.png" width="912" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_pc2_pc3_clone_probs.png&quot;</span>, <span class="dt">height =</span> <span class="dv">11</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_pc2_pc3_clone_probs.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">11</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/donor_specific/joxm_pca_pc2_pc3_clone_probs.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">11</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)</code></pre></div>
 <p>We can also explore how inferred cell cycle phase information relates to the PCA components.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pca_unst<span class="op">$</span>cyclone_phase &lt;-<span class="st"> </span><span class="kw">factor</span>(pca_unst<span class="op">$</span>cyclone_phase, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;G1&quot;</span>, <span class="st">&quot;S&quot;</span>, <span class="st">&quot;G2M&quot;</span>))
 <span class="kw">ggplot</span>(pca_unst, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">colour =</span> cyclone_phase,
@@ -2754,6 +2848,8 @@ p_volcano &lt;-<span class="st"> </span><span class="kw">ggplot</span>(de_joxm_c
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;gray60&quot;</span>, <span class="st">&quot;firebrick&quot;</span>), 
                     <span class="dt">label =</span> <span class="kw">c</span>(<span class="st">&quot;N.S.&quot;</span>, <span class="st">&quot;FDR &lt; 10%&quot;</span>), <span class="dt">name =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_size_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="dt">guide =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="op">-</span><span class="st">&quot;log&quot;</span>[<span class="dv">10</span>](P))) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="st">&quot;log&quot;</span>[<span class="dv">2</span>](FC))) <span class="op">+</span>
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">alpha =</span> <span class="ot">FALSE</span>,
          <span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">override.aes =</span> <span class="kw">list</span>(<span class="dt">size =</span> <span class="dv">5</span>))) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">20</span>) <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)
@@ -2802,6 +2898,7 @@ p_genesets &lt;-<span class="st"> </span>cam_H_pw <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">alpha =</span> <span class="ot">FALSE</span>,
          <span class="dt">colour =</span> <span class="kw">guide_legend</span>(<span class="dt">override.aes =</span> <span class="kw">list</span>(<span class="dt">size =</span> <span class="dv">5</span>))) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set enrichment direction&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="op">-</span><span class="st">&quot;log&quot;</span>[<span class="dv">10</span>](P))) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme_classic</span>(<span class="dv">20</span>) <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)
 
 
@@ -2890,7 +2987,7 @@ davismcc
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-19                  
+ date     2018-08-24                  
 
  package              * version   date       source                
  AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
@@ -2912,7 +3009,7 @@ davismcc
  blob                   1.1.1     2018-03-25 CRAN (R 3.5.0)        
  broom                  0.5.0     2018-07-17 CRAN (R 3.5.0)        
  BSgenome               1.48.0    2018-05-01 Bioconductor          
- cardelino            * 0.1.1     2018-08-19 Bioconductor          
+ cardelino            * 0.1.2     2018-08-21 Bioconductor          
  cellranger             1.1.0     2016-07-27 CRAN (R 3.5.0)        
  cli                    1.0.0     2017-11-05 CRAN (R 3.5.0)        
  colorspace             1.3-2     2016-12-14 CRAN (R 3.5.0)        
@@ -2922,21 +3019,21 @@ davismcc
  data.table             1.11.4    2018-05-27 CRAN (R 3.5.0)        
  datasets             * 3.5.1     2018-07-05 local                 
  DBI                    1.0.0     2018-05-02 CRAN (R 3.5.0)        
- DelayedArray         * 0.6.3     2018-08-01 Bioconductor          
+ DelayedArray         * 0.6.5     2018-08-15 Bioconductor          
  DelayedMatrixStats     1.2.0     2018-05-01 Bioconductor          
  devtools               1.13.6    2018-06-27 CRAN (R 3.5.0)        
  digest                 0.6.15    2018-01-28 CRAN (R 3.5.0)        
  dplyr                * 0.7.6     2018-06-29 CRAN (R 3.5.1)        
  edgeR                * 3.22.3    2018-06-21 Bioconductor          
  evaluate               0.11      2018-07-17 CRAN (R 3.5.0)        
- fansi                  0.2.3     2018-05-06 CRAN (R 3.5.0)        
+ fansi                  0.3.0     2018-08-13 CRAN (R 3.5.0)        
  fdrtool                1.2.15    2015-07-08 CRAN (R 3.5.0)        
  forcats              * 0.3.0     2018-02-19 CRAN (R 3.5.0)        
  gdtools              * 0.1.7     2018-02-27 CRAN (R 3.5.0)        
  GenomeInfoDb         * 1.16.0    2018-05-01 Bioconductor          
  GenomeInfoDbData       1.1.0     2018-04-25 Bioconductor          
  GenomicAlignments      1.16.0    2018-05-01 Bioconductor          
- GenomicFeatures        1.32.0    2018-05-01 Bioconductor          
+ GenomicFeatures        1.32.2    2018-08-13 Bioconductor          
  GenomicRanges        * 1.32.6    2018-07-20 Bioconductor          
  ggbeeswarm             0.6.0     2017-08-07 CRAN (R 3.5.0)        
  ggforce              * 0.1.3     2018-07-07 CRAN (R 3.5.0)        
@@ -2944,7 +3041,7 @@ davismcc
  ggrepel              * 0.8.0     2018-05-09 CRAN (R 3.5.0)        
  ggridges             * 0.5.0     2018-04-05 CRAN (R 3.5.0)        
  ggthemes             * 4.0.0     2018-07-19 CRAN (R 3.5.0)        
- ggtree                 1.12.6    2018-07-21 Bioconductor          
+ ggtree                 1.12.7    2018-08-07 Bioconductor          
  git2r                  0.23.0    2018-07-17 CRAN (R 3.5.0)        
  glue                   1.3.0     2018-07-17 CRAN (R 3.5.0)        
  graphics             * 3.5.1     2018-07-05 local                 
@@ -2980,7 +3077,7 @@ davismcc
  parallel             * 3.5.1     2018-07-05 local                 
  pheatmap               1.0.10    2018-05-19 CRAN (R 3.5.0)        
  pillar                 1.3.0     2018-07-14 CRAN (R 3.5.0)        
- pkgconfig              2.0.1     2017-03-21 CRAN (R 3.5.0)        
+ pkgconfig              2.0.2     2018-08-16 CRAN (R 3.5.0)        
  plyr                   1.8.4     2016-06-08 CRAN (R 3.5.0)        
  prettyunits            1.0.2     2015-07-13 CRAN (R 3.5.0)        
  progress               1.2.0     2018-06-14 CRAN (R 3.5.0)        
@@ -2998,17 +3095,17 @@ davismcc
  rhdf5                  2.24.0    2018-05-01 Bioconductor          
  Rhdf5lib               1.2.1     2018-05-17 Bioconductor          
  rjson                  0.2.20    2018-06-08 CRAN (R 3.5.0)        
- rlang                * 0.2.1     2018-05-30 CRAN (R 3.5.0)        
+ rlang                * 0.2.2     2018-08-16 CRAN (R 3.5.0)        
  rmarkdown              1.10      2018-06-11 CRAN (R 3.5.0)        
  rprojroot              1.3-2     2018-01-03 CRAN (R 3.5.0)        
  Rsamtools              1.32.2    2018-07-03 Bioconductor          
  RSQLite                2.1.1     2018-05-06 CRAN (R 3.5.0)        
  rstudioapi             0.7       2017-09-07 CRAN (R 3.5.0)        
- rtracklayer            1.40.3    2018-06-02 Bioconductor          
+ rtracklayer            1.40.4    2018-08-10 Bioconductor          
  rvcheck                0.1.0     2018-05-23 CRAN (R 3.5.0)        
  rvest                  0.3.2     2016-06-17 CRAN (R 3.5.0)        
  S4Vectors            * 0.18.3    2018-06-08 Bioconductor          
- scales                 0.5.0     2017-08-24 CRAN (R 3.5.0)        
+ scales                 1.0.0     2018-08-09 CRAN (R 3.5.0)        
  scater               * 1.9.12    2018-08-03 Bioconductor          
  scico                  1.0.0     2018-05-30 CRAN (R 3.5.0)        
  SingleCellExperiment * 1.2.0     2018-05-01 Bioconductor          
@@ -3029,7 +3126,7 @@ davismcc
  tidytree               0.1.9     2018-06-13 CRAN (R 3.5.0)        
  tidyverse            * 1.2.1     2017-11-14 CRAN (R 3.5.0)        
  tools                  3.5.1     2018-07-05 local                 
- treeio                 1.4.2     2018-07-19 Bioconductor          
+ treeio                 1.4.3     2018-08-13 Bioconductor          
  tweenr                 0.1.5     2016-10-10 CRAN (R 3.5.0)        
  tximport               1.8.0     2018-05-01 Bioconductor          
  units                  0.6-0     2018-06-09 CRAN (R 3.5.0)        
@@ -3042,7 +3139,7 @@ davismcc
  whisker                0.3-2     2013-04-28 CRAN (R 3.5.0)        
  withr                  2.1.2     2018-03-15 CRAN (R 3.5.0)        
  workflowr              1.1.1     2018-07-06 CRAN (R 3.5.0)        
- XML                    3.98-1.13 2018-08-01 CRAN (R 3.5.0)        
+ XML                    3.98-1.16 2018-08-19 CRAN (R 3.5.1)        
  xml2                   1.2.0     2018-01-24 CRAN (R 3.5.0)        
  XVector                0.20.0    2018-05-01 Bioconductor          
  yaml                   2.2.0     2018-07-25 CRAN (R 3.5.1)        

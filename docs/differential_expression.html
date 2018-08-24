@@ -375,7 +375,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-19</p>
+<p><strong>Last updated:</strong> 2018-08-24</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -399,20 +399,28 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/12820185de66b7ad73dc2da4669adb03bffbef1f" target="_blank">1282018</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/97e062ed8265f2e4f84947c624bac433e6c4daf6" target="_blank">97e062e</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/.ipynb_checkpoints/
+    Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
-    Untracked:  analysis/overview_lines.Rmd
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/yuanhua/
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
     Untracked:  data/de_analysis_FTv62/
     Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
     Untracked:  data/donor_neutrality.tsv
     Untracked:  data/fdr10.annot.txt.gz
     Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
@@ -420,22 +428,29 @@ Untracked files:
     Untracked:  data/human_H_v5p2.rdata
     Untracked:  data/human_c2_v5p2.rdata
     Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/
+    Untracked:  docs/figure/overview_lines.Rmd/
     Untracked:  figures/
+    Untracked:  metadata/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
     Untracked:  output/nvars_by_category_by_donor.tsv
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
+    Untracked:  references/
 
 Unstaged changes:
-    Modified:   analysis/analysis_for_joxm.Rmd
+    Modified:   Snakefile_clonal_analysis
+    Modified:   Snakefile_donorid
+    Modified:   analysis/data_preprocessing.Rmd
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -464,6 +479,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/97e062ed8265f2e4f84947c624bac433e6c4daf6/analysis/differential_expression.Rmd" target="_blank">97e062e</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Updating Rmd’s
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/43f15d6d291c1d17bd298c810f97397e2d309a3c/analysis/differential_expression.Rmd" target="_blank">43f15d6</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Adding data pre-processing workflow and updating analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/differential_expression.html" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -730,6 +796,36 @@ df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;Number of genes&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;edgeR QL F test DE results&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/genewise-de-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of genewise-de-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/genewise-de-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">10</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes.pdf&quot;</span>, 
@@ -753,6 +849,36 @@ p1 &lt;-<span class="st"> </span>df_de_sig_unst <span class="op">%&gt;%</span><s
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;Number of genes&quot;</span>)
 p1 </code></pre></div>
 <p><img src="figure/differential_expression.Rmd/genewise-de-2.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of genewise-de-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/genewise-de-2.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_linscale.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_linscale.pdf&quot;</span>, 
@@ -774,6 +900,36 @@ p1 </code></pre></div>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of lines significant&quot;</span>)
 p2</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-1-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-1-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-1-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_topgenes.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_topgenes.pdf&quot;</span>, 
@@ -903,6 +1059,36 @@ df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Number of lines significant (FDR &lt; 10%)&quot;</span>)  <span class="op">+</span>
 <span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;Number of genes&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/permute-de-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of permute-de-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/permute-de-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm_skinny.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)</code></pre></div>
 <p>Look at recurrently DE genes.</p>
@@ -1024,6 +1210,36 @@ df_camera_all_unst &lt;-<span class="st"> </span>dplyr<span class="op">::</span>
 <span class="st">    </span><span class="kw">scale_colour_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span><span class="st"> </span><span class="kw">theme_bw</span>()</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/camera-allcontr-allsets-sig-bydonor-pvals-1.png" width="1056" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of camera-allcontr-allsets-sig-bydonor-pvals-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/camera-allcontr-allsets-sig-bydonor-pvals-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>Similarly, we can look at all results summarised by donor, geneset and pairwise contrast of clones.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_camera_all_unst <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
@@ -1035,6 +1251,36 @@ df_camera_all_unst &lt;-<span class="st"> </span>dplyr<span class="op">::</span>
 <span class="st">    </span><span class="kw">scale_colour_brewer</span>(<span class="dt">palette =</span> <span class="st">&quot;Accent&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span><span class="st"> </span><span class="kw">theme_bw</span>()</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/camera-allcontr-allsets-all-bydonor-fdr-1.png" width="1056" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of camera-allcontr-allsets-all-bydonor-fdr-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/camera-allcontr-allsets-all-bydonor-fdr-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_by_donor_all_results.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">16</span>, <span class="dt">width =</span> <span class="dv">14</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_by_donor_all_results.pdf&quot;</span>, 
@@ -1134,6 +1380,36 @@ df_camera_all_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Donor&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of significant genesets (FDR &lt; 5%)&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Camera MSigDB gene set enrichment by line&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/alldonors_camera_enrichment_by_donor_simple-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of alldonors_camera_enrichment_by_donor_simple-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/alldonors_camera_enrichment_by_donor_simple-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_by_donor_simple.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">10</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_by_donor_simple.pdf&quot;</span>, 
@@ -1164,6 +1440,36 @@ df_to_plot <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Donor&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of significant genesets (FDR &lt; 5%)&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Camera MSigDB gene set enrichment by line&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/alldonors_camera_enrichment_by_donor_simple_size_by_ncells-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of alldonors_camera_enrichment_by_donor_simple_size_by_ncells-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/alldonors_camera_enrichment_by_donor_simple_size_by_ncells-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_by_donor_simple_size_by_ncells.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">10</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_by_donor_simple_size_by_ncells.pdf&quot;</span>, 
@@ -1188,6 +1494,36 @@ df_camera_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>dplyr<
 <span class="st">    </span><span class="kw">theme_bw</span>(<span class="dv">14</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of lines significant&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/alldonors_camera_enrichment_H_by_geneset-1.png" width="960" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of alldonors_camera_enrichment_H_by_geneset-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/alldonors_camera_enrichment_H_by_geneset-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_H_by_geneset.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="fl">9.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_camera_enrichment_H_by_geneset.pdf&quot;</span>, 
@@ -1218,6 +1554,36 @@ tmp &lt;-<span class="st"> </span>df_camera_sig_unst <span class="op">%&gt;%</sp
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Number of lines significant&quot;</span>)  <span class="op">+</span>
 <span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">&quot;Camera MSigDB Hallmark gene set enrichment&quot;</span>)</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/alldonors_camera_enrichment_H_by_geneset_by_dir-1.png" width="1536" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of alldonors_camera_enrichment_H_by_geneset_by_dir-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/alldonors_camera_enrichment_H_by_geneset_by_dir-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 </div>
 <div id="heatmap-of-results-for-camera-hallmark-geneset-testing" class="section level2">
@@ -1233,13 +1599,14 @@ repeated_sig_H_genesets_vec &lt;-<span class="st"> </span><span class="kw">uniqu
 repeated_sig_H_genesets_vec &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, 
                                                    repeated_sig_H_genesets_vec))
      
-df_camera_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> <span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, geneset))) <span class="op">%&gt;%</span>
-<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> 
-                      <span class="kw">factor</span>(geneset, <span class="dt">levels =</span> repeated_sig_H_genesets_vec)) <span class="op">%&gt;%</span>
-<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(geneset <span class="op">%in%</span><span class="st"> </span>repeated_sig_H_genesets_vec) <span class="op">%&gt;%</span>
-<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, <span class="st">&quot;: &quot;</span>, contrast)) -&gt;
-<span class="st">    </span>df_4_heatmap
+df_4_heatmap &lt;-<span class="st"> </span>df_camera_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(collection <span class="op">==</span><span class="st"> &quot;H&quot;</span>, stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> <span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, geneset))) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> 
+                  <span class="kw">factor</span>(geneset, <span class="dt">levels =</span> repeated_sig_H_genesets_vec)) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(geneset <span class="op">%in%</span><span class="st"> </span>repeated_sig_H_genesets_vec) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, <span class="st">&quot;: &quot;</span>, contrast))
+  
 
 div_lines &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;: c.*&quot;</span>, <span class="st">&quot;&quot;</span>,
      <span class="kw">sort</span>(<span class="kw">unique</span>(<span class="kw">paste0</span>(df_4_heatmap[[<span class="st">&quot;donor&quot;</span>]], <span class="st">&quot;: &quot;</span>, 
@@ -1252,6 +1619,36 @@ df_4_heatmap <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;lightgoldenrod1&quot;</span>, <span class="st">&quot;sienna1&quot;</span>)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">60</span>, <span class="dt">hjust =</span> <span class="dv">1</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/top_genesets_H_direction_heatmap-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of top_genesets_H_direction_heatmap-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/top_genesets_H_direction_heatmap-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap.png&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">12</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">12</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">12</span>)</code></pre></div>
@@ -1285,10 +1682,40 @@ pp &lt;-<span class="st"> </span>df_4_heatmap_all <span class="op">%&gt;%</span>
           <span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)
 pp    </code></pre></div>
 <p><img src="figure/differential_expression.Rmd/top_genesets_H_direction_heatmap_all_contrasts-1.png" width="1728" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of top_genesets_H_direction_heatmap_all_contrasts-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/top_genesets_H_direction_heatmap_all_contrasts-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts.png&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">20</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">20</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">20</span>)</code></pre></div>
-<p>Finally, we can add a panel to this figure showing the number of donors in which each of these gene sets is significantly enriched.</p>
+<p>We can also add a panel to this figure showing the number of donors in which each of these gene sets is significantly enriched.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Hallmark geneset
 pp_nsig &lt;-<span class="st"> </span>df_camera_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">filter</span>(collection <span class="op">==</span><span class="st"> &quot;H&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
@@ -1314,9 +1741,96 @@ prow &lt;-<span class="st"> </span><span class="kw">plot_grid</span>(pp <span cl
 lgnd &lt;-<span class="st"> </span><span class="kw">get_legend</span>(pp)
 <span class="kw">plot_grid</span>(prow, lgnd, <span class="dt">rel_widths =</span> <span class="kw">c</span>(<span class="dv">3</span>, .<span class="dv">3</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors-1.png" width="1920" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors.png&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">20</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">20</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">20</span>)</code></pre></div>
+<p>However, the plot above is very complicated, so we may want to focus just on the lines for which there are multiple clones that show differing behaviour amongst each other. To simplify, let us just look at 12 donors that have significant geneset enrichment for at least 2 contrasts and just look at the 9 gene sets that are significant in at least three lines.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">repeated_sig_H_genesets3 &lt;-<span class="st"> </span>df_camera_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(collection <span class="op">==</span><span class="st"> &quot;H&quot;</span>, stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">group_by</span>(geneset) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, geneset)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(n_donors) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(n_donors <span class="op">&gt;</span><span class="st"> </span><span class="fl">2.5</span>) 
+repeated_sig_H_genesets_vec3 &lt;-<span class="st"> </span><span class="kw">unique</span>(repeated_sig_H_genesets3[[<span class="st">&quot;geneset&quot;</span>]])
+repeated_sig_H_genesets_vec3 &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, 
+                                                   repeated_sig_H_genesets_vec3))
+
+selected_donors &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;fawm&quot;</span>, <span class="st">&quot;fikt&quot;</span>, <span class="st">&quot;hipn&quot;</span>, <span class="st">&quot;ieki&quot;</span>, <span class="st">&quot;laey&quot;</span>, <span class="st">&quot;lexy&quot;</span>, <span class="st">&quot;qayj&quot;</span>, 
+                     <span class="st">&quot;qonc&quot;</span>, <span class="st">&quot;rozh&quot;</span>, <span class="st">&quot;ualf&quot;</span>, <span class="st">&quot;wahn&quot;</span>, <span class="st">&quot;zoxy&quot;</span>)
+
+df_4_heatmap_filt &lt;-<span class="st"> </span>df_camera_all_unst <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> <span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, geneset))) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> 
+                  <span class="kw">factor</span>(geneset, <span class="dt">levels =</span> repeated_sig_H_genesets_vec3)) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(geneset <span class="op">%in%</span><span class="st"> </span>repeated_sig_H_genesets_vec3,
+                donor <span class="op">%in%</span><span class="st"> </span>selected_donors) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, <span class="st">&quot;: &quot;</span>, contrast))
+
+df_4_heatmap_filt_sig &lt;-<span class="st"> </span>df_camera_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(collection <span class="op">==</span><span class="st"> &quot;H&quot;</span>, stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> <span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, geneset))) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> 
+                  <span class="kw">factor</span>(geneset, <span class="dt">levels =</span> repeated_sig_H_genesets_vec3)) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(geneset <span class="op">%in%</span><span class="st"> </span>repeated_sig_H_genesets_vec3,
+                donor <span class="op">%in%</span><span class="st"> </span>selected_donors) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, <span class="st">&quot;: &quot;</span>, contrast))
+
+df_4_heatmap_filt &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(
+    df_4_heatmap_filt,
+    <span class="dt">minlog10P =</span> <span class="kw">cut</span>(<span class="op">-</span><span class="kw">log10</span>(PValue), <span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">30</span>)))
+
+div_lines_filt &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;: c.*&quot;</span>, <span class="st">&quot;&quot;</span>,
+                       <span class="kw">sort</span>(<span class="kw">unique</span>(<span class="kw">paste0</span>(df_4_heatmap_filt[[<span class="st">&quot;donor&quot;</span>]], <span class="st">&quot;: &quot;</span>, 
+                                          df_4_heatmap_filt[[<span class="st">&quot;contrast&quot;</span>]])))) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>table <span class="op">%&gt;%</span><span class="st"> </span>cumsum <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span>
+
+pp_filt &lt;-<span class="st"> </span>df_4_heatmap_filt <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> id, <span class="dt">y =</span> geneset, <span class="dt">fill =</span> Direction, <span class="dt">alpha =</span> minlog10P)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_tile</span>() <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="dv">1</span>, <span class="dt">data =</span> df_4_heatmap_filt_sig, <span class="dt">pch =</span> <span class="dv">19</span>, <span class="dt">size =</span> <span class="fl">0.5</span>, 
+               <span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_vline</span>(<span class="dt">xintercept =</span> div_lines_filt, <span class="dt">colour =</span> <span class="st">&quot;gray70&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;lightgoldenrod1&quot;</span>, <span class="st">&quot;sienna1&quot;</span>)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">scale_alpha_discrete</span>(<span class="dt">name =</span> <span class="st">&quot;-log10(P)&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;Gene set&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Line and clone comparison&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">60</span>, <span class="dt">hjust =</span> <span class="dv">1</span>),
+          <span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)
+pp_filt    </code></pre></div>
+<p><img src="figure/differential_expression.Rmd/top_genesets_H_direction_heatmap_all_contrasts-simple-1.png" width="1728" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.png&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">12</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.pdf&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">12</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.svg&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">12</span>)</code></pre></div>
 </div>
 <div id="correlation-of-gene-set-results-and-genes-contained" class="section level2">
 <h2>Correlation of gene set results and genes contained</h2>
@@ -1340,6 +1854,36 @@ p.mat &lt;-<span class="st"> </span><span class="kw">cor_pmat</span>(<span class
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_blank</span>(),
         <span class="dt">panel.grid.minor =</span> <span class="kw">element_blank</span>())</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/corr-maps-1.png" width="1248" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of corr-maps-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/corr-maps-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">hclust_cor &lt;-<span class="st"> </span><span class="kw">hclust</span>(<span class="kw">as.dist</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>cor_H_pvals))
 corrplot1 &lt;-<span class="st"> </span><span class="kw">ggcorrplot</span>(cor_H_pvals[hclust_cor<span class="op">$</span>order, hclust_cor<span class="op">$</span>order], 
            <span class="dt">p.mat =</span> p.mat[hclust_cor<span class="op">$</span>order, hclust_cor<span class="op">$</span>order], <span class="dt">insig =</span> <span class="st">&quot;blank&quot;</span>) <span class="op">+</span>
@@ -1362,11 +1906,71 @@ corrplot2 &lt;-<span class="st"> </span><span class="kw">ggcorrplot</span>(mat_H
         <span class="dt">panel.grid.minor =</span> <span class="kw">element_blank</span>())
 corrplot2</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/corr-maps-2.png" width="1248" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of corr-maps-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/corr-maps-2.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">corrplot3 &lt;-<span class="st"> </span>corrplot2 <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">axis.text.y =</span> <span class="kw">element_blank</span>())</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_grid</span>(corrplot1 <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">plot.margin =</span> <span class="kw">unit</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>), <span class="st">&quot;cm&quot;</span>)), 
           corrplot3 <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">plot.margin =</span> <span class="kw">unit</span>(<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>), <span class="st">&quot;cm&quot;</span>)), 
           <span class="dt">align =</span> <span class="st">&quot;h&quot;</span>, <span class="dt">axis =</span> <span class="st">&quot;b&quot;</span>, <span class="dt">rel_widths =</span> <span class="kw">c</span>(<span class="fl">0.58</span>, <span class="fl">0.42</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/corr-plot-combined-1.png" width="1920" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of corr-plot-combined-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/corr-plot-combined-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_corrplots.png&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">20</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_corrplots.pdf&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">20</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_corrplots.svg&quot;</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">20</span>)</code></pre></div>
@@ -1396,12 +2000,42 @@ corrplot2</code></pre></div>
 <span class="st">  </span><span class="kw">draw_plot</span>(corrplot1 <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;top&quot;</span>), 
             <span class="dt">x =</span> <span class="dv">0</span>,  <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">width =</span> <span class="fl">0.8</span>, <span class="dt">scale =</span> <span class="dv">1</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">draw_plot</span>(pp_nsig, 
-            <span class="dt">x =</span> <span class="fl">0.785</span>,  <span class="dt">y =</span> <span class="fl">0.213</span>, <span class="dt">width =</span> <span class="fl">0.2</span>, <span class="dt">height =</span> <span class="fl">0.685</span>)</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-4-1.png" width="1056" style="display: block; margin: auto;" /></p>
+            <span class="dt">x =</span> <span class="fl">0.685</span>,  <span class="dt">y =</span> <span class="fl">0.25</span>, <span class="dt">width =</span> <span class="fl">0.25</span>, <span class="dt">height =</span> <span class="fl">0.6445</span>)</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/unnamed-chunk-4-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-4-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-4-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_corrplot_with_nsig_donor.png&quot;</span>, 
-       <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">11</span>)
+       <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">12</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_corrplot_with_nsig_donor.pdf&quot;</span>, 
-       <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">11</span>)</code></pre></div>
+       <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">12</span>)</code></pre></div>
 </div>
 <div id="linking-de-to-selection" class="section level2">
 <h2>Linking DE to selection</h2>
@@ -1455,6 +2089,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of cells&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_genes_vs_n_cells.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -1471,6 +2135,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">coord_flip</span>()</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-2.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-2.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_boxplot.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -1508,6 +2202,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">coord_flip</span>()</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-3.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-3.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-3.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_boxplot.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -1522,6 +2246,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-4.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-4.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-4.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_gof_cumul_mut_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -1537,6 +2291,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-5.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-5.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-5.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_vs_gof_cumul_mut_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -1551,6 +2335,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: negative binomial distribution&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-6.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-6.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-6.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_gof_negbin_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -1566,6 +2380,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-7.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-7.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-7.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_all.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -1582,6 +2426,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_y_sqrt</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">100</span>, <span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">1500</span>, <span class="dv">2000</span>, <span class="dv">2500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-8.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-8.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-8.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_vs_n_somatic_vars_all.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -1597,6 +2471,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-9.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-9.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-9.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_missense.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -1612,6 +2516,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-10.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-10.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-10.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_misnonspli.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -1626,6 +2560,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-11.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-11.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-11.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -1688,7 +2652,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-19                  
+ date     2018-08-24                  
 
  package              * version   date       source                
  AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
@@ -1716,7 +2680,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
  data.table             1.11.4    2018-05-27 CRAN (R 3.5.0)        
  datasets             * 3.5.1     2018-07-05 local                 
  DBI                    1.0.0     2018-05-02 CRAN (R 3.5.0)        
- DelayedArray         * 0.6.3     2018-08-01 Bioconductor          
+ DelayedArray         * 0.6.5     2018-08-15 Bioconductor          
  DelayedMatrixStats     1.2.0     2018-05-01 Bioconductor          
  devtools               1.13.6    2018-06-27 CRAN (R 3.5.0)        
  digest                 0.6.15    2018-01-28 CRAN (R 3.5.0)        
@@ -1724,7 +2688,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
  DT                     0.4       2018-01-30 CRAN (R 3.5.0)        
  edgeR                * 3.22.3    2018-06-21 Bioconductor          
  evaluate               0.11      2018-07-17 CRAN (R 3.5.0)        
- fansi                  0.2.3     2018-05-06 CRAN (R 3.5.0)        
+ fansi                  0.3.0     2018-08-13 CRAN (R 3.5.0)        
  fdrtool                1.2.15    2015-07-08 CRAN (R 3.5.0)        
  forcats              * 0.3.0     2018-02-19 CRAN (R 3.5.0)        
  gdtools              * 0.1.7     2018-02-27 CRAN (R 3.5.0)        
@@ -1776,7 +2740,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
  org.Hs.eg.db         * 3.6.0     2018-05-15 Bioconductor          
  parallel             * 3.5.1     2018-07-05 local                 
  pillar                 1.3.0     2018-07-14 CRAN (R 3.5.0)        
- pkgconfig              2.0.1     2017-03-21 CRAN (R 3.5.0)        
+ pkgconfig              2.0.2     2018-08-16 CRAN (R 3.5.0)        
  plyr                   1.8.4     2016-06-08 CRAN (R 3.5.0)        
  promises               1.0.1     2018-04-13 CRAN (R 3.5.0)        
  purrr                * 0.2.5     2018-05-29 CRAN (R 3.5.0)        
@@ -1793,14 +2757,14 @@ df_nbglm_nde <span class="op">%&gt;%</span>
  rhdf5                  2.24.0    2018-05-01 Bioconductor          
  Rhdf5lib               1.2.1     2018-05-17 Bioconductor          
  rjson                  0.2.20    2018-06-08 CRAN (R 3.5.0)        
- rlang                * 0.2.1     2018-05-30 CRAN (R 3.5.0)        
+ rlang                * 0.2.2     2018-08-16 CRAN (R 3.5.0)        
  rmarkdown              1.10      2018-06-11 CRAN (R 3.5.0)        
  rprojroot              1.3-2     2018-01-03 CRAN (R 3.5.0)        
  RSQLite                2.1.1     2018-05-06 CRAN (R 3.5.0)        
  rstudioapi             0.7       2017-09-07 CRAN (R 3.5.0)        
  rvest                  0.3.2     2016-06-17 CRAN (R 3.5.0)        
  S4Vectors            * 0.18.3    2018-06-08 Bioconductor          
- scales                 0.5.0     2017-08-24 CRAN (R 3.5.0)        
+ scales                 1.0.0     2018-08-09 CRAN (R 3.5.0)        
  scater               * 1.9.12    2018-08-03 Bioconductor          
  shiny                  1.1.0     2018-05-17 CRAN (R 3.5.0)        
  SingleCellExperiment * 1.2.0     2018-05-01 Bioconductor          

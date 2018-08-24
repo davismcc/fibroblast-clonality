@@ -223,7 +223,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-19</p>
+<p><strong>Last updated:</strong> 2018-08-24</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -232,20 +232,28 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/12820185de66b7ad73dc2da4669adb03bffbef1f" target="_blank">1282018</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/97e062ed8265f2e4f84947c624bac433e6c4daf6" target="_blank">97e062e</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/.ipynb_checkpoints/
+    Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
-    Untracked:  analysis/overview_lines.Rmd
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/yuanhua/
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
     Untracked:  data/de_analysis_FTv62/
     Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
     Untracked:  data/donor_neutrality.tsv
     Untracked:  data/fdr10.annot.txt.gz
     Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
@@ -253,22 +261,29 @@ Untracked files:
     Untracked:  data/human_H_v5p2.rdata
     Untracked:  data/human_c2_v5p2.rdata
     Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/
+    Untracked:  docs/figure/overview_lines.Rmd/
     Untracked:  figures/
+    Untracked:  metadata/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
     Untracked:  output/nvars_by_category_by_donor.tsv
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
+    Untracked:  references/
 
 Unstaged changes:
-    Modified:   analysis/analysis_for_joxm.Rmd
+    Modified:   Snakefile_clonal_analysis
+    Modified:   Snakefile_donorid
+    Modified:   analysis/data_preprocessing.Rmd
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -297,6 +312,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/97e062ed8265f2e4f84947c624bac433e6c4daf6/analysis/index.Rmd" target="_blank">97e062e</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Updating Rmd’s
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/43f15d6d291c1d17bd298c810f97397e2d309a3c/analysis/index.Rmd" target="_blank">43f15d6</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Adding data pre-processing workflow and updating analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/index.html" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -433,12 +499,22 @@ Start workflowr project.
 </ul>
 <p>For a richer overview, see the <a href="about.html">About</a> page.</p>
 </div>
+<div id="data-availability" class="section level2">
+<h2>Data availability</h2>
+<p>Single-cell RNA-seq data have been deposited in the <a href="www.ebi.ac.uk/arrayexpress">ArrayExpress</a> database at EMBL-EBI under accession number <a href="https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-7167">E-MTAB-7167</a>. Whole-exome sequencing data is available through the <a href="www.hipsci.org">HipSci portal</a>. Processed data and large results files are available at …</p>
+</div>
+<div id="data-pre-processing" class="section level2">
+<h2>Data pre-processing</h2>
+<p>The data pre-processing for this project from the raw data described above is complicated and computationally expensive, so this repository does not reproduce the data pre-processing in an automated way. However, we provide the source code for the <a href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a> workflow for data pre-processing in this repository. Docker images providing the computing environment and software used are publicly available, split into an image for command line <a href="hub.docker.com/r/davismcc/fibroblast-clonality/">bioinformatics tools</a> and an <a href="hub.docker.com/r/davismcc/r-singlecell-img/">R installation</a> with necessary packages installed.</p>
+<p>If you would like to pre-process the data from raw reads to results as we have, please consult our description of <a href="data_preprocessing.html">how to run</a> the workflow.</p>
+</div>
 <div id="analyses" class="section level2">
 <h2>Analyses</h2>
-<p>Here we present the reproducible the results of our analyses. They were generated by rendering the <a href="https://github.com/davismcc/fibroblast-clonality/tree/master/analysis">R Markdown documents</a> into webpages.</p>
+<p>Here we present the reproducible the results of our analyses. They were generated by rendering the <a href="https://github.com/davismcc/fibroblast-clonality/tree/master/analysis">R Markdown documents</a> into webpages available at the links below.</p>
 <p>The results presented in the paper were produced with these analyses.</p>
 <ol style="list-style-type: decimal">
-<li><p><a href="simulation_donors.html">Simulation results.</a></p></li>
+<li><p><a href="simulations.html">Simulation results.</a></p></li>
+<li><p><a href="overview_lines.html">Overview of lines</a></p></li>
 <li><p><a href="clone_prevalences.html">Analysis of clonal prevalences.</a></p></li>
 <li><p><a href="analysis_for_joxm.html">Analysis for the example cell line <em>joxm</em>.</a></p></li>
 <li><p><a href="variance_components.html">Variance components analysis.</a></p></li>

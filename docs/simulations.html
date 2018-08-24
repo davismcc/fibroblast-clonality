@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-19</p>
+<p><strong>Last updated:</strong> 2018-08-24</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,20 +391,28 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/12820185de66b7ad73dc2da4669adb03bffbef1f" target="_blank">1282018</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/97e062ed8265f2e4f84947c624bac433e6c4daf6" target="_blank">97e062e</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/.ipynb_checkpoints/
+    Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
-    Untracked:  analysis/overview_lines.Rmd
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/yuanhua/
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
     Untracked:  data/de_analysis_FTv62/
     Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
     Untracked:  data/donor_neutrality.tsv
     Untracked:  data/fdr10.annot.txt.gz
     Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
@@ -412,22 +420,29 @@ Untracked files:
     Untracked:  data/human_H_v5p2.rdata
     Untracked:  data/human_c2_v5p2.rdata
     Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/
+    Untracked:  docs/figure/overview_lines.Rmd/
     Untracked:  figures/
+    Untracked:  metadata/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
     Untracked:  output/nvars_by_category_by_donor.tsv
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
+    Untracked:  references/
 
 Unstaged changes:
-    Modified:   analysis/analysis_for_joxm.Rmd
+    Modified:   Snakefile_clonal_analysis
+    Modified:   Snakefile_donorid
+    Modified:   analysis/data_preprocessing.Rmd
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -458,70 +473,36 @@ Message
 <tbody>
 <tr>
 <td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/43f15d6d291c1d17bd298c810f97397e2d309a3c/analysis/simulations.Rmd" target="_blank">43f15d6</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Adding data pre-processing workflow and updating analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 html
 </td>
 <td style="text-align:left;">
-<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/1489d32ff1b8d5073a4170baec953cdbe4fcc14a/docs/simulation_donors.html" target="_blank">1489d32</a>
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/43f15d6d291c1d17bd298c810f97397e2d309a3c/docs/simulations.html" target="_blank">43f15d6</a>
 </td>
 <td style="text-align:left;">
 davismcc
 </td>
 <td style="text-align:left;">
-2018-08-17
+2018-08-24
 </td>
 <td style="text-align:left;">
-Add html files
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Rmd
-</td>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/dbf3a51871d3a14e37732e0aa6897af27e1013c6/analysis/simulation_donors.Rmd" target="_blank">dbf3a51</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-17
-</td>
-<td style="text-align:left;">
-Updating simulation analysis
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Rmd
-</td>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/c5c1416614dc3fbaf1d84af87b3b00004cd22e38/analysis/simulation_donors.Rmd" target="_blank">c5c1416</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-17
-</td>
-<td style="text-align:left;">
-Adding variance components analysis.
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Rmd
-</td>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/1b44d28049b488f74539411ccaf222c0799c9b17/analysis/simulation_donors.Rmd" target="_blank">1b44d28</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-13
-</td>
-<td style="text-align:left;">
-Adding simulation analysis file.
+Adding data pre-processing workflow and updating analyses.
 </td>
 </tr>
 </tbody>
@@ -598,7 +579,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">colour =</span> <span class="ot">FALSE</span>, <span class="dt">group =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Assignment rate: simulated&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assignment rate: observed&quot;</span>)</code></pre></div>
-<p><img src="figure/simulation_donors.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/simulations.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/assign_rate_obs_v_sim.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="dv">5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/assign_rate_obs_v_sim.pdf&quot;</span>, 
@@ -621,7 +602,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">colour =</span> <span class="ot">FALSE</span>, <span class="dt">group =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Assignment rate (recall)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Precision&quot;</span>)</code></pre></div>
-<p><img src="figure/simulation_donors.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/simulations.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/sim_precision_v_recall.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/sim_precision_v_recall.pdf&quot;</span>, 
@@ -650,7 +631,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-19                  </code></pre>
+ date     2018-08-24                  </code></pre>
 <pre><code>Packages -----------------------------------------------------------------</code></pre>
 <pre><code> package              * version   date       source        
  AnnotationDbi          1.42.1    2018-05-08 Bioconductor  
@@ -671,7 +652,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  blob                   1.1.1     2018-03-25 CRAN (R 3.5.0)
  broom                  0.5.0     2018-07-17 CRAN (R 3.5.0)
  BSgenome               1.48.0    2018-05-01 Bioconductor  
- cardelino            * 0.1.1     2018-08-19 Bioconductor  
+ cardelino            * 0.1.2     2018-08-21 Bioconductor  
  cellranger             1.1.0     2016-07-27 CRAN (R 3.5.0)
  cli                    1.0.0     2017-11-05 CRAN (R 3.5.0)
  colorspace             1.3-2     2016-12-14 CRAN (R 3.5.0)
@@ -680,7 +661,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  crayon                 1.3.4     2017-09-16 CRAN (R 3.5.0)
  datasets             * 3.5.1     2018-07-05 local         
  DBI                    1.0.0     2018-05-02 CRAN (R 3.5.0)
- DelayedArray           0.6.3     2018-08-01 Bioconductor  
+ DelayedArray           0.6.5     2018-08-15 Bioconductor  
  devtools               1.13.6    2018-06-27 CRAN (R 3.5.0)
  digest                 0.6.15    2018-01-28 CRAN (R 3.5.0)
  dplyr                * 0.7.6     2018-06-29 CRAN (R 3.5.1)
@@ -689,11 +670,11 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  GenomeInfoDb           1.16.0    2018-05-01 Bioconductor  
  GenomeInfoDbData       1.1.0     2018-04-25 Bioconductor  
  GenomicAlignments      1.16.0    2018-05-01 Bioconductor  
- GenomicFeatures        1.32.0    2018-05-01 Bioconductor  
+ GenomicFeatures        1.32.2    2018-08-13 Bioconductor  
  GenomicRanges          1.32.6    2018-07-20 Bioconductor  
  ggplot2              * 3.0.0     2018-07-03 CRAN (R 3.5.0)
  ggpubr               * 0.1.7     2018-06-23 CRAN (R 3.5.0)
- ggtree                 1.12.6    2018-07-21 Bioconductor  
+ ggtree                 1.12.7    2018-08-07 Bioconductor  
  git2r                  0.23.0    2018-07-17 CRAN (R 3.5.0)
  glue                   1.3.0     2018-07-17 CRAN (R 3.5.0)
  graphics             * 3.5.1     2018-07-05 local         
@@ -723,7 +704,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  parallel               3.5.1     2018-07-05 local         
  pheatmap               1.0.10    2018-05-19 CRAN (R 3.5.0)
  pillar                 1.3.0     2018-07-14 CRAN (R 3.5.0)
- pkgconfig              2.0.1     2017-03-21 CRAN (R 3.5.0)
+ pkgconfig              2.0.2     2018-08-16 CRAN (R 3.5.0)
  plyr                   1.8.4     2016-06-08 CRAN (R 3.5.0)
  prettyunits            1.0.2     2015-07-13 CRAN (R 3.5.0)
  progress               1.2.0     2018-06-14 CRAN (R 3.5.0)
@@ -737,17 +718,17 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  RCurl                  1.95-4.11 2018-07-15 CRAN (R 3.5.0)
  readr                * 1.1.1     2017-05-16 CRAN (R 3.5.0)
  readxl                 1.1.0     2018-04-20 CRAN (R 3.5.0)
- rlang                  0.2.1     2018-05-30 CRAN (R 3.5.0)
+ rlang                  0.2.2     2018-08-16 CRAN (R 3.5.0)
  rmarkdown              1.10      2018-06-11 CRAN (R 3.5.0)
  rprojroot              1.3-2     2018-01-03 CRAN (R 3.5.0)
  Rsamtools              1.32.2    2018-07-03 Bioconductor  
  RSQLite                2.1.1     2018-05-06 CRAN (R 3.5.0)
  rstudioapi             0.7       2017-09-07 CRAN (R 3.5.0)
- rtracklayer            1.40.3    2018-06-02 Bioconductor  
+ rtracklayer            1.40.4    2018-08-10 Bioconductor  
  rvcheck                0.1.0     2018-05-23 CRAN (R 3.5.0)
  rvest                  0.3.2     2016-06-17 CRAN (R 3.5.0)
  S4Vectors              0.18.3    2018-06-08 Bioconductor  
- scales                 0.5.0     2017-08-24 CRAN (R 3.5.0)
+ scales                 1.0.0     2018-08-09 CRAN (R 3.5.0)
  snpStats               1.30.0    2018-05-01 Bioconductor  
  splines                3.5.1     2018-07-05 local         
  stats                * 3.5.1     2018-07-05 local         
@@ -762,7 +743,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  tidytree               0.1.9     2018-06-13 CRAN (R 3.5.0)
  tidyverse            * 1.2.1     2017-11-14 CRAN (R 3.5.0)
  tools                  3.5.1     2018-07-05 local         
- treeio                 1.4.2     2018-07-19 Bioconductor  
+ treeio                 1.4.3     2018-08-13 Bioconductor  
  utils                * 3.5.1     2018-07-05 local         
  VariantAnnotation      1.26.1    2018-07-04 Bioconductor  
  viridis              * 0.5.1     2018-03-29 CRAN (R 3.5.0)
@@ -770,7 +751,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  whisker                0.3-2     2013-04-28 CRAN (R 3.5.0)
  withr                  2.1.2     2018-03-15 CRAN (R 3.5.0)
  workflowr              1.1.1     2018-07-06 CRAN (R 3.5.0)
- XML                    3.98-1.13 2018-08-01 CRAN (R 3.5.0)
+ XML                    3.98-1.16 2018-08-19 CRAN (R 3.5.1)
  xml2                   1.2.0     2018-01-24 CRAN (R 3.5.0)
  XVector                0.20.0    2018-05-01 Bioconductor  
  yaml                   2.2.0     2018-07-25 CRAN (R 3.5.1)
