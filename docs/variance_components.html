@@ -332,7 +332,7 @@ div.tocify {
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/jdblischak/workflowr">
+  <a href="https://github.com/davismcc/fibroblast-clonality">
     <span class="fa fa-github"></span>
      
   </a>
@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-19</p>
+<p><strong>Last updated:</strong> 2018-08-24</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,20 +391,28 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/12820185de66b7ad73dc2da4669adb03bffbef1f" target="_blank">1282018</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/b1cf8d0eef10df2c1e6788afd6b656eca881e7f9" target="_blank">b1cf8d0</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/.ipynb_checkpoints/
+    Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
-    Untracked:  analysis/overview_lines.Rmd
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/yuanhua/
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
     Untracked:  data/de_analysis_FTv62/
     Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
     Untracked:  data/donor_neutrality.tsv
     Untracked:  data/fdr10.annot.txt.gz
     Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
@@ -412,22 +420,24 @@ Untracked files:
     Untracked:  data/human_H_v5p2.rdata
     Untracked:  data/human_c2_v5p2.rdata
     Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/
+    Untracked:  docs/figure/overview_lines.Rmd/
     Untracked:  figures/
+    Untracked:  metadata/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
     Untracked:  output/nvars_by_category_by_donor.tsv
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
-
-Unstaged changes:
-    Modified:   analysis/analysis_for_joxm.Rmd
+    Untracked:  references/
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -456,6 +466,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/variance_components.html" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -557,6 +584,36 @@ fig.violin &lt;-<span class="st"> </span>varPart.mel <span class="op">%&gt;%</sp
 
 fig.violin</code></pre></div>
 <p><img src="figure/variance_components.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-4-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/variance_components.Rmd/unnamed-chunk-4-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># plotVarPart( varPart_mat )</span>
 <span class="co"># idx_order &lt;- order(varPart_mat$clone, decreasing = TRUE)</span>
 <span class="co"># plotPercentBars( varPart_mat[idx_order[1:10],] )</span></code></pre></div>
@@ -570,6 +627,36 @@ fig.violin</code></pre></div>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Variance explained by line (%)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Variance explained by clone (%)&quot;</span>)</code></pre></div>
 <p><img src="figure/variance_components.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-6-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/variance_components.Rmd/unnamed-chunk-6-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 </div>
 <div id="results-for-individual-lines" class="section level2">
@@ -783,6 +870,36 @@ fig.curve &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df, <span
 
 fig.curve</code></pre></div>
 <p><img src="figure/variance_components.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-13-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/variance_components.Rmd/unnamed-chunk-13-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>Each line has a substantial number of genes with a substantial proportion of variance explained by clone. For example, the number of genes with more than 25% of variance explained by line across lines:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sapply</span>(varPart_list, <span class="cf">function</span>(x) <span class="kw">sum</span>(x<span class="op">$</span>clone <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.25</span>))</code></pre></div>
 <pre><code>euts fawm feec fikt garx gesg heja hipn ieki joxm kuco laey lexy naju nusw 
@@ -836,6 +953,36 @@ fig.curve &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df, <span
 
 fig.curve</code></pre></div>
 <p><img src="figure/variance_components.Rmd/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-17-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/variance_components.Rmd/unnamed-chunk-17-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>There is not any obvious relationship between selection dynamics and variance explained by clone here.</p>
 </div>
 <div id="write-mean-variance-explained-to-file" class="section level2">
@@ -857,7 +1004,7 @@ line_var_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<sp
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-19                  </code></pre>
+ date     2018-08-24                  </code></pre>
 <pre><code>Packages -----------------------------------------------------------------</code></pre>
 <pre><code> package              * version   date       source        
  assertthat             0.2.0     2017-04-11 CRAN (R 3.5.0)
@@ -877,12 +1024,12 @@ line_var_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<sp
  cowplot              * 0.9.3     2018-07-15 CRAN (R 3.5.0)
  crayon                 1.3.4     2017-09-16 CRAN (R 3.5.0)
  datasets             * 3.5.1     2018-07-05 local         
- DelayedArray         * 0.6.3     2018-08-01 Bioconductor  
+ DelayedArray         * 0.6.5     2018-08-15 Bioconductor  
  devtools               1.13.6    2018-06-27 CRAN (R 3.5.0)
  digest                 0.6.15    2018-01-28 CRAN (R 3.5.0)
  dplyr                * 0.7.6     2018-06-29 CRAN (R 3.5.1)
  evaluate               0.11      2018-07-17 CRAN (R 3.5.0)
- fansi                  0.2.3     2018-05-06 CRAN (R 3.5.0)
+ fansi                  0.3.0     2018-08-13 CRAN (R 3.5.0)
  forcats              * 0.3.0     2018-02-19 CRAN (R 3.5.0)
  GenomeInfoDb         * 1.16.0    2018-05-01 Bioconductor  
  GenomeInfoDbData       1.1.0     2018-04-25 Bioconductor  
@@ -919,7 +1066,7 @@ line_var_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<sp
  nlme                   3.1-137   2018-04-07 CRAN (R 3.5.1)
  parallel             * 3.5.1     2018-07-05 local         
  pillar                 1.3.0     2018-07-14 CRAN (R 3.5.0)
- pkgconfig              2.0.1     2017-03-21 CRAN (R 3.5.0)
+ pkgconfig              2.0.2     2018-08-16 CRAN (R 3.5.0)
  plyr                   1.8.4     2016-06-08 CRAN (R 3.5.0)
  purrr                * 0.2.5     2018-05-29 CRAN (R 3.5.0)
  R.methodsS3            1.7.1     2016-02-16 CRAN (R 3.5.0)
@@ -931,13 +1078,13 @@ line_var_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<sp
  readr                * 1.1.1     2017-05-16 CRAN (R 3.5.0)
  readxl                 1.1.0     2018-04-20 CRAN (R 3.5.0)
  reshape2             * 1.4.3     2017-12-11 CRAN (R 3.5.0)
- rlang                  0.2.1     2018-05-30 CRAN (R 3.5.0)
+ rlang                  0.2.2     2018-08-16 CRAN (R 3.5.0)
  rmarkdown              1.10      2018-06-11 CRAN (R 3.5.0)
  rprojroot              1.3-2     2018-01-03 CRAN (R 3.5.0)
  rstudioapi             0.7       2017-09-07 CRAN (R 3.5.0)
  rvest                  0.3.2     2016-06-17 CRAN (R 3.5.0)
  S4Vectors            * 0.18.3    2018-06-08 Bioconductor  
- scales                 0.5.0     2017-08-24 CRAN (R 3.5.0)
+ scales                 1.0.0     2018-08-09 CRAN (R 3.5.0)
  SingleCellExperiment * 1.2.0     2018-05-01 Bioconductor  
  stats                * 3.5.1     2018-07-05 local         
  stats4               * 3.5.1     2018-07-05 local         

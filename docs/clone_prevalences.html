@@ -332,7 +332,7 @@ div.tocify {
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/jdblischak/workflowr">
+  <a href="https://github.com/davismcc/fibroblast-clonality">
     <span class="fa fa-github"></span>
      
   </a>
@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-19</p>
+<p><strong>Last updated:</strong> 2018-08-24</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,20 +391,28 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/12820185de66b7ad73dc2da4669adb03bffbef1f" target="_blank">1282018</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/b1cf8d0eef10df2c1e6788afd6b656eca881e7f9" target="_blank">b1cf8d0</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/.ipynb_checkpoints/
+    Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
-    Untracked:  analysis/overview_lines.Rmd
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/yuanhua/
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
     Untracked:  data/de_analysis_FTv62/
     Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
     Untracked:  data/donor_neutrality.tsv
     Untracked:  data/fdr10.annot.txt.gz
     Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
@@ -412,22 +420,24 @@ Untracked files:
     Untracked:  data/human_H_v5p2.rdata
     Untracked:  data/human_c2_v5p2.rdata
     Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/
+    Untracked:  docs/figure/overview_lines.Rmd/
     Untracked:  figures/
+    Untracked:  metadata/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
     Untracked:  output/nvars_by_category_by_donor.tsv
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
-
-Unstaged changes:
-    Modified:   analysis/analysis_for_joxm.Rmd
+    Untracked:  references/
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -456,6 +466,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/clone_prevalences.html" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -740,6 +767,36 @@ fits_me_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</code></pre></div>
 <pre><code>Joining, by = c(&quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
 <p><img src="figure/clone_prevalences.Rmd/plot-prev-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plot-prev-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/clone_prevalences.Rmd/plot-prev-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter.pdf&quot;</span>, 
@@ -764,6 +821,36 @@ fits_me_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</code></pre></div>
 <pre><code>Joining, by = c(&quot;clone&quot;, &quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
 <p><img src="figure/clone_prevalences.Rmd/plot-prev-facet-clone-1.png" width="864" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plot-prev-facet-clone-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/clone_prevalences.Rmd/plot-prev-facet-clone-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">9</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone.pdf&quot;</span>, 
@@ -790,6 +877,36 @@ fits_me_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>))</code></pre></div>
 <pre><code>Joining, by = c(&quot;clone&quot;, &quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
 <p><img src="figure/clone_prevalences.Rmd/plot-prev-facet-clone-3clones-1.png" width="816" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plot-prev-facet-clone-3clones-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/clone_prevalences.Rmd/plot-prev-facet-clone-3clones-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf&quot;</span>, 
@@ -809,6 +926,36 @@ fits_me_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</code></pre></div>
 <p><img src="figure/clone_prevalences.Rmd/plot-prev-facet-clone-3clones-linefilt-1.png" width="1008" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plot-prev-facet-clone-3clones-linefilt-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/clone_prevalences.Rmd/plot-prev-facet-clone-3clones-linefilt-1.png" target="_blank">d2e8b31</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-19
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_75pctassigned.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">10.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_75pctassigned.pdf&quot;</span>, 
@@ -825,7 +972,7 @@ fits_me_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-19                  </code></pre>
+ date     2018-08-24                  </code></pre>
 <pre><code>Packages -----------------------------------------------------------------</code></pre>
 <pre><code> package     * version date       source        
  assertthat    0.2.0   2017-04-11 CRAN (R 3.5.0)
@@ -871,7 +1018,7 @@ fits_me_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span
  munsell       0.5.0   2018-06-12 CRAN (R 3.5.0)
  nlme          3.1-137 2018-04-07 CRAN (R 3.5.1)
  pillar        1.3.0   2018-07-14 CRAN (R 3.5.0)
- pkgconfig     2.0.1   2017-03-21 CRAN (R 3.5.0)
+ pkgconfig     2.0.2   2018-08-16 CRAN (R 3.5.0)
  plyr          1.8.4   2016-06-08 CRAN (R 3.5.0)
  purrr       * 0.2.5   2018-05-29 CRAN (R 3.5.0)
  R.methodsS3   1.7.1   2016-02-16 CRAN (R 3.5.0)
@@ -881,12 +1028,12 @@ fits_me_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span
  Rcpp          0.12.18 2018-07-23 CRAN (R 3.5.0)
  readr       * 1.1.1   2017-05-16 CRAN (R 3.5.0)
  readxl        1.1.0   2018-04-20 CRAN (R 3.5.0)
- rlang         0.2.1   2018-05-30 CRAN (R 3.5.0)
+ rlang         0.2.2   2018-08-16 CRAN (R 3.5.0)
  rmarkdown     1.10    2018-06-11 CRAN (R 3.5.0)
  rprojroot     1.3-2   2018-01-03 CRAN (R 3.5.0)
  rstudioapi    0.7     2017-09-07 CRAN (R 3.5.0)
  rvest         0.3.2   2016-06-17 CRAN (R 3.5.0)
- scales        0.5.0   2017-08-24 CRAN (R 3.5.0)
+ scales        1.0.0   2018-08-09 CRAN (R 3.5.0)
  stats       * 3.5.1   2018-07-05 local         
  stringi       1.2.4   2018-07-20 CRAN (R 3.5.0)
  stringr     * 1.3.1   2018-05-10 CRAN (R 3.5.0)
