@@ -136,7 +136,7 @@ rule identify_donor_multicell:
     params:
         prefix='data/raw/{run}/donor_id_all_cardelino_v2'
     singularity:
-        "docker://davismcc/docker://davismcc/r-singlecell-img"
+        "docker://davismcc/r-singlecell-img"
     shell:
         'Rscript src/R/identify_donor_cardelino_multicell.R '
         '--input_file "{input.sc_vcf}" '
@@ -156,7 +156,7 @@ rule sce_merge_and_qc:
         'figures/qc/donor_id_all_nvars_vs_total_counts.png',
         'data/raw/sce_merge_qc.html'
     singularity:
-        "docker://davismcc/docker://davismcc/r-singlecell-img"
+        "docker://davismcc/r-singlecell-img"
     shell:
         """
         R -e "rmarkdown::render(input = 'src/Rmd/merge_lane_data_cardelino_donorid.Rmd', output_file = 'sce_merge_qc.html', output_dir = 'data/raw/', output_format = 'html_document')"
@@ -171,6 +171,8 @@ rule get_donor_sce:
         rds = 'data/sces/sce_{donor}_qc.rds',
         cell_list='data/raw/donor-cell-lists/{donor}.qc-pass.cells.txt',
         bam_list='data/raw/donor-cell-lists/{donor}.qc-pass.bams.txt'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
         '{rscript_cmd} '
         'src/R/compile_report.R -i {input} -o {output.html} '
@@ -178,3 +180,4 @@ rule get_donor_sce:
         '--template src/Rmd/sce_qc_per_donor.Rmd '
         '--title "Save donor SCE object: {wildcards.donor}" '
         '--donor {wildcards.donor} --to_working_dir ../../ '
+

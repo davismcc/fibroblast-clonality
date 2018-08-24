@@ -336,5 +336,56 @@ HPC cluster environment.
 
 ## `Snakefile_clonal_analysis`
 
+This final Snakemake workflow, to be fun after the preceding workflows have been
+run to completion, defines four sets of differently filtered somatic variants 
+and runs Canopy clonal tree inference, cardelino assignment of cells to clones 
+and differential gene and pathway analyses for each set of somatic variants. 
 
+### What does this workflow do?
+
+We define four sets of filtered sets of somatic variants for each donor:
+
+* lenient filtering;
+* lenient filtering plus non-zero cell coverage filtering;
+* strict filtering;
+* strict filtering plus non-zero cell coverage filtering.
+
+For "non-zero cell coverage" filtering, input sites are further filtered to 
+those that have non-zero read coverage in at least one cell assigned to the
+corresponding line.
+
+We infer the clonal structure of the fibroblast cell population for each of the 
+lines (donors) using Canopy (Jiang et al., 2016) for each filtering setting. We 
+use read counts for the variant allele and total read counts at filtered somatic
+mutation sites from high-coverage whole-exome sequencing data from the 
+fibroblast samples as input to Canopy. We use the BIC model selection method in 
+Canopy to choose the optimal number of clones per donor. Here, for each of the 
+lines, we consider the highest-likelihood clonal tree produced by Canopy, along 
+with the estimated prevalence of each clone and the set of somatic variants 
+tagging each clone as the given clonal tree for cell-clone assignment.
+
+For each donor, for each filtering setting, we then assign cells to clones 
+identified by Canopy using cardelino and then conduct differential gene and 
+pathway analyses using quasi-likelihood F test method in the edgeR package and 
+the camera method in the limma package.
+
+### How do I run it?
+
+From the head directory, we can run this workflow as so:
+
+```
+snakemake -s Snakefile_clonal_analysis --use-singularity --jobs 100 
+```
+
+See the example above for how to extend this command to run the workflow in an 
+HPC cluster environment.
+
+## Conclusions
+
+Once the wokflows above have been run successfully, all of the necessary 
+processed data and preliminary results will have been generated that are 
+necessary to produce the final results presented in the paper. 
+
+To reproduce the analyses presented in the paper, consult the RMarkdown files in
+the `analysis` folder of the source code repository.
 

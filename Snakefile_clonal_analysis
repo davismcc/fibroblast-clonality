@@ -19,33 +19,6 @@ import h5py
 
 shell.prefix("set -euo pipefail;")
 
-## reference files
-references_dir = '/hps/nobackup/stegle/datasets/references/human/GRCh37/'
-human_gx_fasta = '/hps/nobackup/stegle/datasets/references/human/STAR_GRCh37.75_ERCC/GRCh37.p13.genome.ERCC92.fa'
-#human_gx_fasta = '/hps/nobackup/stegle/datasets/references/human/hg19/hs37d5.fa'
-human_fasta_unzipped =  'Homo_sapiens.GRCh37.rel75.cdna.all.ERCC92.fa'
-fasta = os.path.join(references_dir, 'human_tx_fasta')
-fasta_unzipped = human_gx_fasta
-fasta_dict = fasta_unzipped.replace('fa', 'dict')
-fasta_idx = fasta_unzipped + '.fai'
-dbSnpVcf = '/hps/nobackup/stegle/datasets/references/human/dbsnp_138.hg19.vcf.gz'
-
-
-human_tx_fasta = '../../../references/Homo_sapiens.GRCh37.rel75.cdna.all.ERCC92.fa.gz'
-human_gx_fasta = '../../../references/GRCh37.p13.genome.ERCC92.fa'
-fasta = human_tx_fasta
-fasta_unzipped = human_gx_fasta
-fasta_dict = fasta_unzipped.replace('fa', 'dict')
-fasta_idx = fasta_unzipped + '.fai'
-gencode_gtf = '../../../references/gencode.v19.annotation_ERCC.gtf'
-dbSnpVcf = '../../../references/dbsnp_138.hg19.vcf.gz'
-dbSnpVcfSmall = '../../../references/dbsnp_138.hg19.biallelicSNPs.HumanCoreExome12.Top1000ExpressedIpsGenes.Maf0.01.HWE0.0001.HipSci.vcf.gz'
-reAlignmentIntervals = '../../../references/knownIndels.intervals'
-knownIndelsMills = '../../../references/1000G_phase1.indels.hg19.sites.vcf.gz'
-knownIndels100G = '../../../references/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf.gz'
-HIPSCI_VCF = '../../../references/hipsci.wec.gtarray.HumanCoreExome.imputed_phased.20170327.genotypes.allchr.fibro_samples_v2_filt_vars_sorted_oa.vcf.gz'
-
-
 donors = ['bima', 'bubh', 'ceik', 'ciwj', 'cuhk', 'deyz', 'diku', 'eipl', 'eofe', 'euts', \
         'fawm', 'feec', 'fiaj', 'fikt', 'garx', 'gesg', 'gifk', 'hehd', 'heja', 'hipn', 'ieki', \
         'jogf', 'joxm', 'kajh', 'kuco', 'laey', 'lexy', 'melw', 'miaj', 'naju', 'nusw', 'oaaz', \
@@ -89,26 +62,20 @@ donors_strict_cell_cov = ['euts', 'fawm', 'feec', 'fikt', 'garx', 'gesg', \
     'oaaz', 'oilg', 'pipw', 'puie', 'qayj', 'qolg', 'qonc', 'rozh', 'sehl', \
     'ualf', 'vass', 'vuna', 'wahn', 'wetu', 'xugn', 'zoxy'] # 29 donors
 
-## donors for which sufficient cells are assigned for DE
-### filt_lenient.all_filt_sites (27): "euts" "fawm" "feec" "fikt" "garx" "gesg" "joxm" "laey" "lexy" "melw" "naju" "oaaz" "oilg" "pipw" "puie" "qayj" "qolg" "rozh" "sehl" "sohd" "ualf" "vass" "vuna" "wahn" "wetu" "xugn" "zoxy"
-### filt_lenient.cell_coverage_sites (31): "euts" "fawm" "feec" "fikt" "garx" "gesg" "heja" "hipn" "ieki" "joxm" "kuco" "laey" "lexy" "naju" "nusw" "oaaz" "oilg" "pipw" "puie" "qayj" "qolg" "qonc" "rozh" "sehl" "ualf" "vass" "vuna" "wahn" "wetu" "xugn" "zoxy"
-### filt_strict.all_filt_sites (28): "euts" "fawm" "feec" "fikt" "garx" "gesg" "heja" "hipn" "joxm" "kuco" "laey" "naju" "oaaz" "oilg" "pipw" "puie" "qayj" "qolg" "qonc" "sehl" "sohd" "ualf" "vass" "vuna" "wahn" "wetu" "xugn" "zoxy"
-### filt_strict.cell_coverage_sites (28): "euts" "fawm" "feec" "fikt" "garx" "gesg" "heja" "hipn" "joxm" "laey" "naju" "nusw" "oaaz" "oilg" "pipw" "puie" "qayj" "qolg" "qonc" "rozh" "sehl" "ualf" "vass" "vuna" "wahn" "wetu" "xugn" "zoxy"
-
 sce_list = {}
 sce_list['filt_lenient'] = {}
 sce_list['filt_lenient']['all_filt_sites'] = expand(\
-    'Data/processed/sces/sce_{donor}_with_clone_assignments.filt_lenient.all_filt_sites.rds',\
+    'data/sces/sce_{donor}_with_clone_assignments.filt_lenient.all_filt_sites.rds',\
     donor = donors_lenient_all)
 sce_list['filt_lenient']['cell_coverage_sites'] = expand(\
-    'Data/processed/sces/sce_{donor}_with_clone_assignments.filt_lenient.cell_coverage_sites.rds',\
+    'data/sces/sce_{donor}_with_clone_assignments.filt_lenient.cell_coverage_sites.rds',\
     donor = donors_lenient_cell_cov)
 sce_list['filt_strict'] = {}
 sce_list['filt_strict']['all_filt_sites'] = expand(\
-    'Data/processed/sces/sce_{donor}_with_clone_assignments.filt_strict.all_filt_sites.rds',\
+    'data/sces/sce_{donor}_with_clone_assignments.filt_strict.all_filt_sites.rds',\
     donor = donors_strict_all)
 sce_list['filt_strict']['cell_coverage_sites'] = expand(\
-    'Data/processed/sces/sce_{donor}_with_clone_assignments.filt_strict.cell_coverage_sites.rds',\
+    'data/sces/sce_{donor}_with_clone_assignments.filt_strict.cell_coverage_sites.rds',\
     donor = donors_strict_cell_cov)
 sces_flat = []
 sces_flat.append(sce_list['filt_lenient']['all_filt_sites'])
@@ -119,44 +86,25 @@ sces_flat = [filename for elem in sces_flat for filename in elem]
 
 rule all:
     input:
-        expand('Data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_{strictness}-{donor}.txt.gz',\
+        expand('data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_{strictness}-{donor}.txt.gz',\
             strictness = ['lenient', 'strict'], donor = singlecell_donors_all),
-        expand('Data/SS2_2017/mpileup/{donor}.mpileup.vcf{suffix}', \
+        expand('data/raw/mpileup/{donor}.mpileup.vcf{suffix}', \
             donor = singlecell_donors_all, suffix = ['.gz', '.gz.csi']),
-        # expand('Data/processed/canopy/canopy_results.{donor}.{strictness}.{sites}.rds',\
-        #     donor = singlecell_donors, strictness = ['filt_strict', 'filt_lenient'],\
-        #     sites = ['all_filt_sites', 'cell_coverage_sites']),
-        # expand('reports/canopy/canopy.analysis.{donor}.{strictness}.{sites}.html',\
-        #     donor = singlecell_donors, strictness = ['filt_strict', 'filt_lenient'],\
-        #     sites = ['all_filt_sites', 'cell_coverage_sites']),
-        # expand('Data/processed/sces/sce_{donor}_with_clone_assignments.{strictness}.{sites}.rds',\
-        #     donor = singlecell_assign_donors, strictness = ['filt_strict', 'filt_lenient'],\
-        #     sites = ['all_filt_sites', 'cell_coverage_sites']),
-        # expand('reports/cell_assignment/cell_assignment.{donor}.{strictness}.{sites}.html', \
-        #     donor = singlecell_assign_donors, strictness = ['filt_strict', 'filt_lenient'],\
-        #     sites = ['all_filt_sites', 'cell_coverage_sites']),
-        # expand('Data/processed/cell_assignment/cardelino_results.{donor}.{strictness}.{sites}.rds', \
-        #     donor = singlecell_assign_donors, strictness = ['filt_strict', 'filt_lenient'],\
-        #     sites = ['all_filt_sites', 'cell_coverage_sites'])
-        # expand('Data/processed/demuxlet/canopy_input/canopy_tree.{donor}.{strictness}.{sites}.vcf', \
-        #     donor = singlecell_assign_donors, strictness = ['filt_strict', 'filt_lenient'],\
-        #     sites = ['all_filt_sites', 'cell_coverage_sites']),
-        # expand('Data/processed/demuxlet/results/demuxlet.{donor}.{strictness}.{sites}.best', \
-        #     donor = singlecell_assign_donors, strictness = ['filt_strict', 'filt_lenient'],\
-        #     sites = ['all_filt_sites', 'cell_coverage_sites'])
-        #sces_flat,
+        expand('data/sces/sce_{donor}_with_clone_assignments.{strictness}.{sites}.rds',\
+            donor = singlecell_assign_donors, strictness = ['filt_strict', 'filt_lenient'],\
+            sites = ['all_filt_sites', 'cell_coverage_sites']),
         expand('reports/de_pathway/de_pathway.{cells}.{strictness}.{sites}.html', \
              cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
              sites = ['all_filt_sites', 'cell_coverage_sites']), # 'cell_coverage_sites'
         expand('reports/de_pathway/de_pathway.{cells}.cellcycle_analyses.{strictness}.{sites}.html', \
              cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
              sites = ['all_filt_sites', 'cell_coverage_sites']), # 'cell_coverage_sites'
-        # expand('reports/de_pathway/de_pathway.{cells}.permutations.{strictness}.{sites}.html', \
-        #      cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
-        #      sites = ['all_filt_sites']), # 'cell_coverage_sites'
-        expand('Data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-{strictness}.all_filt_sites.ped', \
+        expand('reports/de_pathway/de_pathway.{cells}.permutations.{strictness}.{sites}.html', \
+             cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
+             sites = ['all_filt_sites', 'cell_coverage_sites']),  
+        expand('data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-{strictness}.all_filt_sites.ped', \
             strictness = ['filt_strict', 'filt_lenient']),
-        expand('Data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-{strictness}.all_filt_sites.vcf', \
+        expand('data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-{strictness}.all_filt_sites.vcf', \
             strictness = ['filt_strict', 'filt_lenient'])
 
 
@@ -165,7 +113,9 @@ rule run_de_pathway_analysis_unst_cells_permutation:
         sce=lambda wildcards: sce_list[wildcards.strictness][wildcards.sites]
     output:
         html='reports/de_pathway/de_pathway.unst_cells.permutations.{strictness}.{sites}.html',
-        unst_rds='Data/processed/de_analysis_FTv62/permutations/{strictness}.{sites}.de_results_unstimulated_cells.rds'
+        unst_rds='data/de_analysis_FTv62/permutations/{strictness}.{sites}.de_results_unstimulated_cells.rds'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
         '{rscript_cmd} src/R/compile_report_de_pathways.R '
         '-c {wildcards.strictness}.{wildcards.sites} '
@@ -174,189 +124,148 @@ rule run_de_pathway_analysis_unst_cells_permutation:
         '--title "DE Pathway permutation analysis using unstimulated cells: {wildcards.strictness} {wildcards.sites}" '
         '--to_working_dir ../../ '
 
+
 rule run_de_pathway_analysis_unst_cells_cellcycle:
     input:
         sce=lambda wildcards: sce_list[wildcards.strictness][wildcards.sites]
     output:
         html='reports/de_pathway/de_pathway.unst_cells.cellcycle_analyses.{strictness}.{sites}.html',
-        unst_rds='Data/processed/de_analysis_FTv62/cellcycle_analyses/{strictness}.{sites}.de_results_unstimulated_cells.rds'
+        unst_rds='data/de_analysis_FTv62/cellcycle_analyses/{strictness}.{sites}.de_results_unstimulated_cells.rds'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
-        '{rscript_cmd} src/R/compile_report_de_pathways.R '
+        'Rscript src/R/compile_report_de_pathways.R '
         '-c {wildcards.strictness}.{wildcards.sites} '
         '-o {output.html} '
         '--template src/Rmd/DE_pathways_FTv62_callset_clones_pairwise_vs_base.cell_cycle.unst_cells.Rmd '
         '--title "DE Pathway Analysis using unstimulated cells accounting for cell cycle : {wildcards.strictness} {wildcards.sites}" '
         '--to_working_dir ../../ '
 
-rule run_de_pathway_analysis_all_cells:
-    input:
-        sce=lambda wildcards: sce_list[wildcards.strictness][wildcards.sites]
-    output:
-        html='reports/de_pathway/de_pathway.all_cells.{strictness}.{sites}.html',
-        all_rds='Data/processed/de_analysis_FTv62/{strictness}.{sites}.de_results_all_cells.rds'
-    shell:
-        '{rscript_cmd} src/R/compile_report_de_pathways.R '
-        '-c {wildcards.strictness}.{wildcards.sites} '
-        '-o {output.html} '
-        '--template src/Rmd/DE_pathways_FTv62_callset_clones_pairwise_vs_base.all_cells.Rmd '
-        '--title "DE Pathway Analysis using all cells: {wildcards.strictness} {wildcards.sites}" '
-        '--to_working_dir ../../ '
 
 rule run_de_pathway_analysis_unst_cells:
     input:
         sce=lambda wildcards: sce_list[wildcards.strictness][wildcards.sites]
     output:
         html='reports/de_pathway/de_pathway.unst_cells.{strictness}.{sites}.html',
-        unst_rds='Data/processed/de_analysis_FTv62/{strictness}.{sites}.de_results_unstimulated_cells.rds'
+        unst_rds='data/de_analysis_FTv62/{strictness}.{sites}.de_results_unstimulated_cells.rds'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
-        '{rscript_cmd} src/R/compile_report_de_pathways.R '
+        'Rscript src/R/compile_report_de_pathways.R '
         '-c {wildcards.strictness}.{wildcards.sites} '
         '-o {output.html} '
         '--template src/Rmd/DE_pathways_FTv62_callset_clones_pairwise_vs_base.unst_cells.Rmd '
         '--title "DE Pathway Analysis using unstimulated cells: {wildcards.strictness} {wildcards.sites}" '
         '--to_working_dir ../../ '
 
+
 rule run_cell_assignment:
     input:
-        can='Data/processed/canopy/canopy_results.{donor}.{strictness}.{sites}.rds',
-        sce='Data/processed/sces/sce_{donor}_qc.rds',
-        vcf='Data/SS2_2017/mpileup/{donor}.mpileup.vcf.gz',
-        csi='Data/SS2_2017/mpileup/{donor}.mpileup.vcf.gz.csi'
+        can='data/canopy/canopy_results.{donor}.{strictness}.{sites}.rds',
+        sce='data/sces/sce_{donor}_qc.rds',
+        vcf='data/raw/mpileup/{donor}.mpileup.vcf.gz',
+        csi='data/raw/mpileup/{donor}.mpileup.vcf.gz.csi'
     output:
         html = 'reports/cell_assignment/cell_assignment.{donor}.{strictness}.{sites}.html',
-        sce = 'Data/processed/sces/sce_{donor}_with_clone_assignments.{strictness}.{sites}.rds',
-        card = 'Data/processed/cell_assignment/cardelino_results.{donor}.{strictness}.{sites}.rds'
+        sce = 'data/sces/sce_{donor}_with_clone_assignments.{strictness}.{sites}.rds',
+        card = 'data/cell_assignment/cardelino_results.{donor}.{strictness}.{sites}.rds'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
-        '{rscript_cmd} src/R/compile_report_cell_assign.R '
+        'Rscript src/R/compile_report_cell_assign.R '
         '-i {input.sce} --vcf_file {input.vcf} --tree_file {input.can} '
         '-o {output.html} --results_sce {output.sce} --results_card {output.card} '
         '--template src/Rmd/cell_assignment_template.Rmd '
         '--title "Assigning single cells to clones: {wildcards.donor}" '
         '--donor {wildcards.donor} --to_working_dir ../../ '
 
+
 rule run_canopy_donor_specific_coverage:
     input:
         'Data/exome-point-mutations/high-vs-low-exomes.v62.ft.{strictness}-{donor}.txt.gz'
     output:
         html = 'reports/canopy/canopy.analysis.{donor}.{strictness}.cell_coverage_sites.html',
-        rds = 'Data/processed/canopy/canopy_results.{donor}.{strictness}.cell_coverage_sites.rds'
+        rds = 'data/canopy/canopy_results.{donor}.{strictness}.cell_coverage_sites.rds'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
-        '{rscript_cmd} '
+        'Rscript '
         'src/R/compile_report.R -i {input} -o {output.html} '
         '--results_out {output.rds} '
         '--template src/Rmd/canopy_analysis_template.Rmd '
         '--title "Canopy analysis: {wildcards.donor}" '
         '--donor {wildcards.donor} --to_working_dir ../../ '
+
 
 rule run_canopy:
     input:
         'Data/exome-point-mutations/high-vs-low-exomes.v62.ft.{strictness}-alldonors.txt.gz'
     output:
         html = 'reports/canopy/canopy.analysis.{donor}.{strictness}.all_filt_sites.html',
-        rds = 'Data/processed/canopy/canopy_results.{donor}.{strictness}.all_filt_sites.rds'
+        rds = 'data/canopy/canopy_results.{donor}.{strictness}.all_filt_sites.rds'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
-        '{rscript_cmd} '
+        'Rscript '
         'src/R/compile_report.R -i {input} -o {output.html} '
         '--results_out {output.rds} '
         '--template src/Rmd/canopy_analysis_template.Rmd '
         '--title "Canopy analysis: {wildcards.donor}" '
         '--donor {wildcards.donor} --to_working_dir ../../ '
 
+
 rule filter_somatic_variants_per_donor_strict:
     input:
-        flat='Data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_strict-alldonors.txt.gz',
-        vcf='Data/SS2_2017/mpileup/{donor}.mpileup.vcf.gz',
-        csi='Data/SS2_2017/mpileup/{donor}.mpileup.vcf.gz.csi'
+        flat='data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_strict-alldonors.txt.gz',
+        vcf='data/raw/mpileup/{donor}.mpileup.vcf.gz',
+        csi='data/raw/mpileup/{donor}.mpileup.vcf.gz.csi'
     output:
-        'Data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_strict-{donor}.txt.gz'
+        'data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_strict-{donor}.txt.gz'
     shell:
-        '{rscript_cmd} src/R/filter_variants.R -i {input.flat} -o {output} '
+        'Rscript src/R/filter_variants.R -i {input.flat} -o {output} '
         '--donor_cell_vcf {input.vcf} --max_fdr 0.2 '
         '--min_prop_covered_cells 0.005 --donor_name {wildcards.donor}'
+
 
 rule filter_somatic_variants_per_donor_lenient:
     input:
-        flat='Data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz',
-        vcf='Data/SS2_2017/mpileup/{donor}.mpileup.vcf.gz',
-        csi='Data/SS2_2017/mpileup/{donor}.mpileup.vcf.gz.csi'
+        flat='data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz',
+        vcf='data/raw/mpileup/{donor}.mpileup.vcf.gz',
+        csi='data/raw/mpileup/{donor}.mpileup.vcf.gz.csi'
     output:
-        'Data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-{donor}.txt.gz'
+        'data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-{donor}.txt.gz'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
-        '{rscript_cmd} src/R/filter_variants.R -i {input.flat} -o {output} '
+        'Rscript src/R/filter_variants.R -i {input.flat} -o {output} '
         '--donor_cell_vcf {input.vcf} --max_fdr 0.2 '
         '--min_prop_covered_cells 0.005 --donor_name {wildcards.donor}'
 
+
 rule filter_somatic_variants_strict:
     input:
-        'Data/exome-point-mutations/high-vs-low-exomes.v62.ft.txt.gz'
+        'data/exome-point-mutations/high-vs-low-exomes.v62.ft.txt.gz'
     output:
-        'Data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_strict-alldonors.txt.gz'
+        'data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_strict-alldonors.txt.gz'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
-        '{rscript_cmd} src/R/filter_variants.R -i {input} -o {output} '
+        'Rscript src/R/filter_variants.R -i {input} -o {output} '
         '--max_fdr 0.05 --min_vaf_fibro 0.03 --max_vaf_fibro 0.45 '
         '--min_nalt_fibro 2.5 --max_vaf_ips 0.7 --combo_max_vaf_fibro 0.35 '
         '--combo_max_vaf_ips 0.3'
 
+
 rule filter_somatic_variants_lenient:
     input:
-        'Data/exome-point-mutations/high-vs-low-exomes.v62.ft.txt.gz'
+        'data/exome-point-mutations/high-vs-low-exomes.v62.ft.txt.gz'
     output:
-        'Data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz'
+        'data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz'
+    singularity:
+        "docker://davismcc/r-singlecell-img"
     shell:
-        '{rscript_cmd} src/R/filter_variants.R -i {input} -o {output} '
+        'Rscript src/R/filter_variants.R -i {input} -o {output} '
         '--max_fdr 0.1 --min_vaf_fibro 0.01 --max_vaf_fibro 0.45 '
         '--min_nalt_fibro 1.5 --max_vaf_ips 0.8 --combo_max_vaf_fibro 0.45 '
         '--combo_max_vaf_ips 0.45'
-
-rule call_variants_mpileup_fthicov:
-    input:
-        fasta=fasta_unzipped,
-        fai=fasta_idx,
-        fa_dict=fasta_dict,
-        bams='Data/SS2_2017/donor-cell-lists/{donor}.qc-pass.bams.txt',
-        snps='Data/exome-point-mutations/high-vs-low-exomes.v62.regions_to_call.tsv'
-    output:
-        mpi=temp('Data/SS2_2017/mpileup/{donor}.filtered.bcf.gz'),
-        midx=temp('Data/SS2_2017/mpileup/{donor}.filtered.bcf.gz.csi'),
-        vcf='Data/SS2_2017/mpileup/{donor}.mpileup.vcf.gz',
-        csi='Data/SS2_2017/mpileup/{donor}.mpileup.vcf.gz.csi'
-    shell:
-        """
-        mkdir tmp/tmp-{wildcards.donor}
-        bcftools mpileup -E -Ob --skip-indels -R {input.snps} \
-        -f {input.fasta} --annotate AD,DP,SP,INFO/AD -o {output.mpi} -b {input.bams}
-        bcftools index {output.mpi}
-        bcftools call -R {input.snps} -m -Ou {output.mpi} | \
-        bcftools filter -Ou -i'DP>3 && QUAL>20' | \
-        bcftools sort -T tmp/tmp-{wildcards.donor} --max-mem 2G -Oz -o {output.vcf}
-        bcftools index {output.vcf}
-        """      
-
-# rule make_mpileup_input_list:
-#     input:
-#         cell_list='Data/SS2_2017/donor-cell-lists/{donor}.qc-pass.cells.txt'
-#     output:
-#         txt='Data/SS2_2017/mpileup/{donor}.bam.filenames.txt'
-#     run:
-#         with open(output.txt, 'w') as f:
-#             with open(input.cell_list, 'r') as fin:
-#                 for item in fin:
-#                     plt = re.sub('#.*', '', item)
-#                     f.write('Data/SS2_2017/{}/star/{}/{}.2pass.Aligned.sortedByCoord.split.realigned.bqsr.bam\n'.format(plt, plt, item))
-
-rule get_donor_sce:
-    input:
-        'Data/SS2_2017/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds'
-    output:
-        html = 'reports/donor_sces/sce.{donor}.html',
-        rds = 'Data/processed/sces/sce_{donor}_qc.rds',
-        cell_list='Data/SS2_2017/donor-cell-lists/{donor}.qc-pass.cells.txt',
-        bam_list='Data/SS2_2017/donor-cell-lists/{donor}.qc-pass.bams.txt'
-    shell:
-        '{rscript_cmd} '
-        'src/R/compile_report.R -i {input} -o {output.html} '
-        '--results_out {output.rds} '
-        '--template src/Rmd/sce_qc_per_donor.Rmd '
-        '--title "Save donor SCE object: {wildcards.donor}" '
-        '--donor {wildcards.donor} --to_working_dir ../../ '
 
