@@ -1,0 +1,505 @@
+---
+title: "`r params$title`"
+author: "`r params$author`"
+date: "`r Sys.Date()`"
+params:
+    callset: "MISSING"
+    author: "Davis McCarthy"
+    title: "Differential gene and pathway analysis between clones"
+    to_working_dir: "./"
+
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: true
+        code_folding: hide
+
+---
+
+# Differential gene and pathway expression analysis between clones: unstimulated cells
+
+**Cardelino cell assignments using Canopy trees**. No merging of clones.
+
+Using the latest callset from Petr Danecek (April 2018): fisher exact test and 
+other filters. This analysis uses the callset: `r params$callset`.
+
+```{r global_options, include=FALSE}
+library(vcfR)
+library(readr)
+library(dplyr)
+library(scran)
+library(scater)
+library(viridis)
+library(ggplot2)
+library(ggridges)
+library(SingleCellExperiment)
+library(edgeR)
+library(limma)
+library(org.Hs.eg.db)
+library(cowplot)
+library(gplots)
+knitr::opts_chunk$set(fig.width=10, fig.height=7,
+                      echo=TRUE, warning=FALSE, message=TRUE)
+options(stringsAsFactors = FALSE)
+```
+
+## Load data
+
+Define the donors for which we have cell assignment results to study.
+
+```{r define-donors}
+cat(getwd())
+fls <- list.files(file.path(to_working_dir, "Data/processed/sces"))
+fls <- fls[grepl(params$callset, fls)]
+donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+length(donors)
+```
+
+Read in annotated SCE objects and create a list of SCE objects containing all 
+cells (stimulated and unstimulated) and just unstimulated cells.
+
+```{r load-sces}
+sce_unst_list <- list()
+for (don in donors) {
+    sce_unst_list[[don]] <- readRDS(file.path(to_working_dir, "Data/processed/sces", 
+        paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), "unstimulated cells.\n"))
+}
+```
+
+We have `r length(sce_unst_list)` donors for analysis.
+
+
+## Generate SCE list with only assigned cells in clones with more than three cells
+
+Filter donors for DE/pathway analysis using all (stimulated and unstimulated cells).
+
+* Keep clones with at least three assigned cells.
+* Keep only cells that are confidently assigned to a (kept) clone. 
+* Keep donors that have at least 15 assigned cells to kept clones
+
+Conduct the filtering for the unstimulated cells only.
+
+```{r filter-donors}
+sce_unst_list_filt <- list()
+clones_keep_unst <- list()
+for (i in names(sce_unst_list) ) {
+    clones_keep_unst[[i]] <- table(sce_unst_list[[i]]$assigned)[which(table(sce_unst_list[[i]]$assigned) >= 3)]
+    clones_keep_unst[[i]] <- clones_keep_unst[[i]][!(names(clones_keep_unst[[i]]) %in% "unassigned")]
+    cells_use_unst <- colnames(sce_unst_list[[i]])[sce_unst_list[[i]]$assigned %in% names(clones_keep_unst[[i]])]
+    cat(paste("....", i, ":", length(cells_use_unst), "unstimulated cells for DE analyses.\n"))
+    if (length(cells_use_unst) > 14.5 && length(clones_keep_unst[[i]]) > 1.5)
+        sce_unst_list_filt[[i]] <- sce_unst_list[[i]][, cells_use_unst]
+}
+```
+
+```{r}
+length(sce_unst_list_filt)
+```
+
+`r length(sce_unst_list_filt)` donors are retained for DE/pathway analysis using
+unstimulated cells only.
+
+Plot assignment summaries for filtered donors.
+
+Define data frames with numbers of cells assigned for different clones by donor.
+
+```{r}
+cells_per_clone_unst_filt <- list()
+for (i in names(sce_unst_list_filt)) {
+    if (ncol(sce_unst_list_filt[[i]]) == 0)
+        cat(paste0("No unstimulated cells for ", i, "\n"))
+    else {
+        tmp <- as_data_frame(table(sce_unst_list_filt[[i]]$assigned))
+        colnames(tmp) <- c("clone", "n_cells")
+        tmp[["donor"]] <- i
+        tmp2 <- data.frame(clone = "total assigned", 
+                           n_cells = sum(tmp[["n_cells"]][tmp[["clone"]] != "unassigned"]), donor = i)
+        tmp <- bind_rows(tmp, tmp2)
+        tmp[["assigned"]] <- tmp[["clone"]] != "unassigned"
+        cells_per_clone_unst_filt[[i]] <- tmp
+    }
+}
+df_cells_per_clone_unst_filt <- do.call("bind_rows", cells_per_clone_unst_filt)
+
+coldata_list <- list()
+coldata_filt_list <- list()
+for (i in names(sce_unst_list_filt)) {
+    coldata_list[[i]] <- as_data_frame(
+                    as.data.frame(colData(sce_unst_list[[i]])))
+    coldata_list[[i]]$donor <- i
+    coldata_filt_list[[i]] <- as_data_frame(
+                    as.data.frame(colData(sce_unst_list_filt[[i]])))
+    coldata_filt_list[[i]]$donor <- i
+    
+}
+df_coldata <- do.call("bind_rows", coldata_list)
+df_coldata_filt <- do.call("bind_rows", coldata_filt_list)
+```
+
+`r nrow(df_coldata)` QC-passing cells were obtained for the donors used in this
+DE analysis. `r 100 * mean(df_coldata$assigned != "unassigned")`% of these cells were 
+assigned to a donor. After filtering out unassigned cells and clones with very
+small cell numbers, `r nrow(df_coldata_filt)` cells remain for analysis.
+
+Assignment rates by donor:
+
+```{r assignment-rates}
+dplyr::group_by(df_coldata, donor) %>% 
+        dplyr::summarise(prop_assigned = mean(assigned != "unassigned")) %>% 
+        print(n=Inf)
+```
+
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 9)
+ggplot(df_cells_per_clone_unst_filt, aes(x = n_cells, y = reorder(donor, n_cells, max), 
+        colour = clone, shape = assigned)) +
+geom_point(size = 4, alpha = 0.7) +
+scale_shape_manual(values = c(4, 19)) +
+scale_color_manual(values = c(magma(8)[-c(1,8)], "gray30", "black")) +
+#ggthemes::scale_colour_tableau() +
+theme_bw(16) + xlab("Number of cells") + ylab("Donor") +
+ggtitle("Cells per clone, by donor")
+
+```
+
+
+## DE analysis for each donor - unstimulated cells
+
+```{r}
+data_dir <- file.path(to_working_dir, "Data/processed/de_analysis_FTv62/cellcycle_analyses/")
+fig_dir <- file.path(to_working_dir, "figures/clonality/de_pathways/cellcycle_analyses/")
+```
+
+```{r filter-genes}
+gene_use_DE <- (!rowData(sce_unst_list_filt[[1]])$is_feature_control) # remove ERCC
+for (i in names(sce_unst_list_filt)) {
+  gene_use_DE <- gene_use_DE & (rowMeans(counts(sce_unst_list_filt[[i]]) > 1)) # all 0s
+  # 1 count in 10% of cells
+  # rowMeans of counts > 0.5
+}
+```
+
+```{r}
+sum(gene_use_DE)
+```
+
+```{r fit-qlf-models}
+dge_list_unst <- list()
+dge_list_unst_cellcycle_only <- list()
+dge_list_unst_cellcycle_clone <- list()
+design_list_unst_cellcycle_only <- list()
+design_list_unst_cellcycle_clone <- list()
+fit_list_unst_cellcycle_only <- list()
+fit_list_unst_cellcycle_clone <- list()
+qlf_list_unst_cellcycle_only <- list()
+qlf_list_unst_cellcycle_clone <- list()
+
+for (i in names(sce_unst_list_filt)) {
+  #sce_list_unst[[i]] <- scran::computeSumFactors(sce_list_unst[[i]])
+    cat("....calculating DE for ", i, "\n")
+    dge_list_unst[[i]] <- edgeR::DGEList(round(counts(sce_unst_list_filt[[i]][gene_use_DE,])))
+    dge_list_unst[[i]] <- edgeR::calcNormFactors(dge_list_unst[[i]], method = "TMM")
+    sce_unst_list_filt[[i]]$cdr <- (colSums(counts(sce_unst_list_filt[[i]]) > 0) / nrow(sce_unst_list_filt[[i]]))
+    sce_unst_list_filt[[i]]$plate <- as.factor(sce_unst_list_filt[[i]]$plate)
+    design_list_unst_cellcycle_only[[i]] <- model.matrix(~cdr + plate + G1 + S + G2M, 
+                                        data = colData(sce_unst_list_filt[[i]]))
+    design_list_unst_cellcycle_clone[[i]] <- model.matrix(~cdr + plate + G1 + S + G2M + assigned, 
+                                        data = colData(sce_unst_list_filt[[i]]))
+
+}
+
+## cell cycle only
+for (i in names(sce_unst_list_filt)) {
+    dge_list_unst_cellcycle_only[[i]] <- estimateDisp(
+        dge_list_unst[[i]], design_list_unst_cellcycle_only[[i]])
+    fit_list_unst_cellcycle_only[[i]] <- glmQLFit(
+        dge_list_unst_cellcycle_only[[i]], design_list_unst_cellcycle_only[[i]])
+    ncoef <- ncol(design_list_unst_cellcycle_only[[i]])
+    qlf_list_unst_cellcycle_only[[i]] <- glmQLFTest(
+        fit_list_unst_cellcycle_only[[i]], 
+        coef = (ncoef - 2):ncoef)
+    sum(p.adjust(qlf_list_unst_cellcycle_only[[i]]$table$PValue, 
+                    method = "BH") <= 0.05, na.rm = TRUE)
+    summary(decideTestsDGE(qlf_list_unst_cellcycle_only[[i]]))
+}
+
+## test clone DE accounting for cell cycle
+for (i in names(sce_unst_list_filt)) {
+    dge_list_unst_cellcycle_clone[[i]] <- estimateDisp(
+        dge_list_unst[[i]], design_list_unst_cellcycle_clone[[i]])
+    fit_list_unst_cellcycle_clone[[i]] <- glmQLFit(
+        dge_list_unst_cellcycle_clone[[i]], design_list_unst_cellcycle_clone[[i]])
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    qlf_list_unst_cellcycle_clone[[i]] <- glmQLFTest(
+        fit_list_unst_cellcycle_clone[[i]],
+        coef = (ncol(design_list_unst_cellcycle_clone[[i]]) - num_clones + 2):ncol(design_list_unst_cellcycle_clone[[i]]))
+    sum(p.adjust(qlf_list_unst_cellcycle_clone[[i]]$table$PValue, 
+                    method = "BH") <= 0.05, na.rm = TRUE)
+    summary(decideTestsDGE(qlf_list_unst_cellcycle_clone[[i]]))
+}
+
+
+rm(dge_list_unst)
+```
+
+
+### Conduct all pairwise tests for each donor
+
+Conduct QL F-test for each possible pairwise contrast between clones when 
+accounting for cell cycle scores.
+
+```{r de-pairwise-contrasts}
+qlf_pairwise_list <- list()
+for (i in names(dge_list_unst_cellcycle_clone)) {
+    cat("....calculating DE for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    num_covars <- ncol(design_list_unst_cellcycle_clone[[i]]) - (num_clones - 1)
+    num_contrs <- choose(num_clones, 2)
+    out_list <- list()
+    out_list$base_clone <- levels(factor(sce_unst_list_filt[[i]]$assigned))[1]
+    for (j in 2:num_clones) {
+        coef_idx <- (ncol(design_list_unst_cellcycle_clone[[i]]) - num_clones + j)
+        tmp <- glmQLFTest(fit_list_unst_cellcycle_clone[[i]], coef = coef_idx)
+        comp <- paste0(
+            gsub("assigned", "",
+                 colnames(design_list_unst_cellcycle_clone[[i]])[coef_idx]),  
+            "_",
+            out_list$base_clone)
+        out_list[[comp]] <- tmp
+    }
+    if (num_clones > 2) {
+        contrasts <- list()
+        n <- 1
+        for (k in seq_len(num_clones - 1)) {
+            for (m in seq_len(num_clones - 1)) {
+                if (m < k) {
+                    contr <- rep(0, ncol(design_list_unst_cellcycle_clone[[i]]))
+                    contr[num_covars + m] <- -1
+                    contr[num_covars + k] <- 1
+                    contrasts[[n]] <- contr
+                    n <- n + 1
+                }
+            }
+        }
+        for (p in seq_len(length(contrasts))) {
+            tmp <- glmQLFTest(fit_list_unst_cellcycle_clone[[i]], contrast = contrasts[[p]])
+            tmp2 <- strsplit(tmp$comparison, split = " ")[[1]]
+            comp <- paste0(
+                gsub("1\\*assigned", "", tmp2[2]),
+                "_",
+                gsub("-1\\*assigned", "", tmp2[1]))
+            out_list[[comp]] <- tmp
+        }
+    }
+    qlf_pairwise_list[[i]] <- out_list
+}
+```
+
+
+```{r}
+pryr::mem_used()
+```
+
+
+
+## Gene set testing
+
+Look for enriched gene sets for clone vs base clone logFCs accounting for cell
+cycle scores from cyclone.
+
+```{r}
+load(file.path(to_working_dir, "Data/human_c6_v5p2.rdata"))
+load(file.path(to_working_dir, "Data/human_H_v5p2.rdata"))
+load(file.path(to_working_dir, "Data/human_c2_v5p2.rdata"))
+```
+
+```{r}
+#For the reverse map ENSEMBL2EG:
+# Convert to a list
+xx <- as.list(org.Hs.egENSEMBL2EG)
+```
+
+### Oncogenic gene sets (c6)
+
+Testing enrichment of oncogenic gene sets (c6) for all pairwise contrasts.
+
+```{r genesets-c6}
+camera_msigdb_c6_list <- list()
+for (i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    camera_msigdb_c6_list[[i]] <- list()
+    for (j in 2:length(qlf_pairwise_list[[i]])) {
+        qlf_pairwise_list[[i]][[j]]$table$ensembl_gene_id <- 
+            strsplit2(rownames(qlf_pairwise_list[[i]][[j]]$table), split = "_")[,1]
+        qlf_pairwise_list[[i]][[j]]$table$hgnc_symbol <- 
+            strsplit2(rownames(qlf_pairwise_list[[i]][[j]]$table), split = "_")[,2]
+        qlf_pairwise_list[[i]][[j]]$table$entrezid <- NA
+        for (k in seq_len(nrow(qlf_pairwise_list[[i]][[j]]$table))) {
+            if (qlf_pairwise_list[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                qlf_pairwise_list[[i]][[j]]$table$entrezid[k] <- xx[[qlf_pairwise_list[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+        }
+        idx <- ids2indices(Hs.c6, 
+                           identifiers = qlf_pairwise_list[[i]][[j]]$table$entrezid)
+        camera_msigdb_c6_list[[i]][[names(qlf_pairwise_list[[i]])[j]]] <- list()
+        camera_msigdb_c6_list[[i]][[names(qlf_pairwise_list[[i]])[j]]][["logFC"]] <- 
+            cameraPR(statistic = qlf_pairwise_list[[i]][[j]]$table$logFC, idx, 
+                     inter.gene.cor = 0.01)
+        camera_msigdb_c6_list[[i]][[names(qlf_pairwise_list[[i]])[j]]][["signF"]] <- 
+            cameraPR(statistic = (sign(qlf_pairwise_list[[i]][[j]]$table$logFC) * 
+                                      qlf_pairwise_list[[i]][[j]]$table$F), idx, 
+                     inter.gene.cor = 0.01)
+    }
+}
+```
+
+
+### Curated gene sets (c2)
+
+Testing enrichment of curated gene sets (c2) for all pairwise contrasts.
+
+```{r genesets-c2}
+camera_msigdb_c2_list <- list()
+for (i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    camera_msigdb_c2_list[[i]] <- list()
+    for (j in  2:length(qlf_pairwise_list[[i]])) {
+        qlf_pairwise_list[[i]][[j]]$table$ensembl_gene_id <- 
+            strsplit2(rownames(qlf_pairwise_list[[i]][[j]]$table), split = "_")[,1]
+        qlf_pairwise_list[[i]][[j]]$table$hgnc_symbol <- 
+            strsplit2(rownames(qlf_pairwise_list[[i]][[j]]$table), split = "_")[,2]
+        qlf_pairwise_list[[i]][[j]]$table$entrezid <- NA
+        for (k in seq_len(nrow(qlf_pairwise_list[[i]][[j]]$table))) {
+            if (qlf_pairwise_list[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                qlf_pairwise_list[[i]][[j]]$table$entrezid[k] <- xx[[qlf_pairwise_list[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+        }
+        idx <- ids2indices(Hs.c2, 
+                           identifiers = qlf_pairwise_list[[i]][[j]]$table$entrezid)
+        camera_msigdb_c2_list[[i]][[names(qlf_pairwise_list[[i]])[j]]] <- list()
+        camera_msigdb_c2_list[[i]][[names(qlf_pairwise_list[[i]])[j]]][["logFC"]] <- 
+            cameraPR(statistic = qlf_pairwise_list[[i]][[j]]$table$logFC, idx, 
+                     inter.gene.cor = 0.01)
+        camera_msigdb_c2_list[[i]][[names(qlf_pairwise_list[[i]])[j]]][["signF"]] <- 
+            cameraPR(statistic = (sign(qlf_pairwise_list[[i]][[j]]$table$logFC) * 
+                                      qlf_pairwise_list[[i]][[j]]$table$F), idx, 
+                     inter.gene.cor = 0.01)
+    }
+}
+```
+
+
+
+### Hallmark gene sets (H)
+
+Testing enrichment of Hallmark gene sets (H) for all pairwise contrasts.
+
+```{r genesets-H}
+camera_msigdb_H_list <- list()
+for (i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    camera_msigdb_H_list[[i]] <- list()
+    for (j in 2:length(qlf_pairwise_list[[i]])) {
+        qlf_pairwise_list[[i]][[j]]$table$ensembl_gene_id <- 
+            strsplit2(rownames(qlf_pairwise_list[[i]][[j]]$table), split = "_")[,1]
+        qlf_pairwise_list[[i]][[j]]$table$hgnc_symbol <- 
+            strsplit2(rownames(qlf_pairwise_list[[i]][[j]]$table), split = "_")[,2]
+        qlf_pairwise_list[[i]][[j]]$table$entrezid <- NA
+        for (k in seq_len(nrow(qlf_pairwise_list[[i]][[j]]$table))) {
+            if (qlf_pairwise_list[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                qlf_pairwise_list[[i]][[j]]$table$entrezid[k] <- xx[[qlf_pairwise_list[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+        }
+        idx <- ids2indices(Hs.H, 
+                           identifiers = qlf_pairwise_list[[i]][[j]]$table$entrezid)
+        camera_msigdb_H_list[[i]][[names(qlf_pairwise_list[[i]])[j]]] <- list()
+        camera_msigdb_H_list[[i]][[names(qlf_pairwise_list[[i]])[j]]][["logFC"]] <- 
+            cameraPR(statistic = qlf_pairwise_list[[i]][[j]]$table$logFC, idx, 
+                     inter.gene.cor = 0.01)
+        camera_msigdb_H_list[[i]][[names(qlf_pairwise_list[[i]])[j]]][["signF"]] <- 
+            cameraPR(statistic = (sign(qlf_pairwise_list[[i]][[j]]$table$logFC) * 
+                                      qlf_pairwise_list[[i]][[j]]$table$F), idx, 
+                     inter.gene.cor = 0.01)
+    }
+}
+```
+
+
+## Save results to file
+
+Initialise results list.
+
+```{r}
+de_results_list_unst <- list()
+```
+
+Add *camera* results.
+
+```{r}
+de_results_list_unst[["camera"]] <- list()
+de_results_list_unst[["camera"]][["c2"]] <- camera_msigdb_c2_list
+de_results_list_unst[["camera"]][["c6"]] <- camera_msigdb_c6_list
+de_results_list_unst[["camera"]][["H"]] <- camera_msigdb_H_list
+```
+
+Add edgeR QL F-test results.
+
+```{r}
+de_results_list_unst[["cellcycle_only"]] <- list()
+de_results_list_unst[["cellcycle_only"]][["design_list"]] <- design_list_unst_cellcycle_only
+de_results_list_unst[["cellcycle_only"]][["dge_list"]] <- dge_list_unst_cellcycle_only
+de_results_list_unst[["cellcycle_only"]][["fit_list"]] <- fit_list_unst_cellcycle_only
+de_results_list_unst[["cellcycle_only"]][["qlf_list"]] <- qlf_list_unst_cellcycle_only
+de_results_list_unst[["cellcycle_clone"]] <- list()
+de_results_list_unst[["cellcycle_clone"]][["design_list"]] <- design_list_unst_cellcycle_clone
+de_results_list_unst[["cellcycle_clone"]][["dge_list"]] <- dge_list_unst_cellcycle_clone
+de_results_list_unst[["cellcycle_clone"]][["fit_list"]] <- fit_list_unst_cellcycle_clone
+de_results_list_unst[["cellcycle_clone"]][["qlf_list"]] <- qlf_list_unst_cellcycle_clone
+de_results_list_unst[["cellcycle_clone"]][["qlf_pairwise"]] <- qlf_pairwise_list
+de_results_list_unst[["sce_list_unst"]] <- sce_unst_list_filt
+```
+
+```{r}
+data_dir
+```
+
+```{r}
+saveRDS(object = de_results_list_unst, 
+    file = file.path(data_dir, 
+    paste0(params$callset, ".de_results_unstimulated_cells.rds")))
+```
+
+```{r}
+pryr::object_size(de_results_list_unst)
+```
+
+## BCV and MD plots
+
+```{r}
+for (i in names(sce_unst_list_filt)) {
+    cat("....plotting BCV/MD plots for ", i, "\n")
+    png(file.path(fig_dir, paste0("BCV_plots/", params$callset, ".cellcycle_clone.CV_", i, ".png")))
+    plotBCV(dge_list_unst_cellcycle_clone[[i]])
+    dev.off()
+    png(file.path(fig_dir, paste0("BCV_plots/", params$callset, ".cellcycle_only.CV_", i, ".png")))
+    plotBCV(dge_list_unst_cellcycle_only[[i]])
+    dev.off()
+    png(file.path(fig_dir, paste0("MD_plots/", params$callset, ".cellcycle_clone.MD_", i, ".png")))
+    plotMD(qlf_list_unst_cellcycle_clone[[i]], main = paste(i, " DE"))
+    dev.off()
+    png(file.path(fig_dir, paste0("MD_plots/", params$callset, ".cellcycle_only.MD_", i, ".png")))
+    plotMD(qlf_list_unst_cellcycle_only[[i]], main = paste(i, " DE"))
+    dev.off()
+}
+```
+
+
+
+# Session info
+
+```{r sessioninfo}
+devtools::session_info()
+```
+

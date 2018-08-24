@@ -1,0 +1,1971 @@
+---
+title: "`r params$title`"
+author: "`r params$author`"
+date: "`r Sys.Date()`"
+params:
+    callset: "MISSING"
+    author: "Davis McCarthy"
+    title: "Differential gene and pathway analysis between clones"
+    to_working_dir: "./"
+
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: true
+        code_folding: hide
+
+---
+
+# Differential gene and pathway expression analysis between clones
+
+**Cardelino cell assignments using Canopy trees**. No merging of clones.
+
+Using the latest callset from Petr Danecek (April 2018): fisher exact test and 
+other filters. This analysis uses the callset: `r params$callset`.
+
+```{r global_options, include=FALSE}
+library(vcfR)
+library(readr)
+library(dplyr)
+library(scran)
+library(scater)
+library(viridis)
+library(ggplot2)
+library(ggforce)
+library(ggridges)
+library(SingleCellExperiment)
+```
+
+## Load data
+
+Define the donors for which we have cell assignment results to study.
+
+```{r}
+cat(getwd())
+fls <- list.files(file.path(to_working_dir, "Data/processed/sces"))
+fls <- fls[grepl(params$callset, fls)]
+donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+#donors <- c('bubh', 'ciwj', 'deyz', 'diku', 'eipl', 'eofe', 'euts', 'fawm', 
+#            'feec', 'fiaj', 'fikt', 'garx', 'gesg', 'gifk', 'hehd', 'heja', 
+#            'hipn', 'ieki', 'jogf', 'joxm', 'laey', 'lexy', 'melw', 'miaj', 
+#            'naju', 'nusw', 'oaaz', 'oaqd', 'oicx', 'oilg', 'pamv', 'pelm', 
+#            'pipw', 'puie', 'qayj', 'qolg', 'qonc', 'rozh', 'sebz', 'sehl', 
+#            'sohd', 'tixi', 'ualf', 'vabj', 'vass', 'vils', 'vuna', 'wahn', 
+#            'wetu', 'wuye', 'xugn', 'zihe', 'zoxy')
+length(donors)
+```
+
+Read in annotated SCE objects and create a list of SCE objects containing all 
+cells (stimulated and unstimulated) and just unstimulated cells.
+
+```{r}
+sce_list <- list()
+sce_unst_list <- list()
+for (don in donors) {
+    sce_list[[don]] <- readRDS(file.path(to_working_dir, "Data/processed/sces", 
+        paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
+    sce_unst_list[[don]] <- sce_list[[don]][, sce_list[[don]]$well_condition == "unstimulated"]
+    cat(paste("reading", don, ":   ", ncol(sce_list[[don]]), "cells total,", 
+        ncol(sce_unst_list[[don]]), "cells unstimulated.\n"))
+}
+```
+
+We have `r length(sce_unst_list)` donors for analysis.
+
+
+## Plot overviews of assignments
+
+### Unstimulated cells
+
+Define data frames with numbers of cells assigned for different clones by donor.
+
+```{r}
+cells_per_clone_unst <- list()
+for (i in names(sce_unst_list)) {
+    if (ncol(sce_unst_list[[i]]) == 0)
+        cat(paste0("No unstimulated cells for ", i, "\n"))
+    else {
+        tmp <- as_data_frame(table(sce_unst_list[[i]]$assigned))
+        colnames(tmp) <- c("clone", "n_cells")
+        tmp[["donor"]] <- i
+        tmp2 <- data.frame(clone = "total assigned", 
+                           n_cells = sum(tmp[["n_cells"]][tmp[["clone"]] != "unassigned"]), donor = i)
+        tmp <- bind_rows(tmp, tmp2)
+        tmp[["assigned"]] <- tmp[["clone"]] != "unassigned"
+        cells_per_clone_unst[[i]] <- tmp
+    }
+}
+df_cells_per_clone_unst <- do.call("bind_rows", cells_per_clone_unst)
+```
+
+```{r}
+cells_per_clone_all <- list()
+for (i in names(sce_list)) {
+    if (ncol(sce_list[[i]]) == 0)
+        cat(paste0("No cells for ", i, "\n"))
+    else {
+        tmp <- as_data_frame(table(sce_list[[i]]$assigned))
+        colnames(tmp) <- c("clone", "n_cells")
+        tmp[["donor"]] <- i
+        tmp2 <- data.frame(clone = "total assigned", 
+                           n_cells = sum(tmp[["n_cells"]][tmp[["clone"]] != "unassigned"]), donor = i)
+        tmp <- bind_rows(tmp, tmp2)
+        tmp[["assigned"]] <- tmp[["clone"]] != "unassigned"
+        cells_per_clone_all[[i]] <- tmp
+    }
+}
+df_cells_per_clone_all <- do.call("bind_rows", cells_per_clone_all)
+```
+
+
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 9)
+ggplot(df_cells_per_clone_unst, aes(x = n_cells, y = reorder(donor, n_cells, max), 
+        colour = clone, shape = assigned)) +
+geom_point(size = 4, alpha = 0.7) +
+scale_shape_manual(values = c(4, 19)) +
+scale_color_manual(values = c(magma(8)[-c(1,8)], "gray30", "black")) +
+#ggthemes::scale_colour_tableau() +
+theme_bw(16) + xlab("Number of cells") + ylab("Donor") +
+ggtitle("Unstimulated cells per clone, by donor")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.cells_per_clone.v1.png")),
+        width = 7, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.cells_per_clone.v1.pdf")),
+        width = 7, height = 9)
+```
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 9)
+df_cells_per_clone_unst %>% dplyr::filter(clone != "unassigned") %>%
+ggplot(aes(x = n_cells, y = reorder(donor, n_cells, max), colour = clone)) +
+geom_point(size = 4, alpha = 0.7) +
+scale_shape_manual(values = c(4, 19)) +
+scale_color_manual(values = c(magma(8)[-c(1,8)], "gray30", "black")) +
+#ggthemes::scale_colour_tableau() +
+theme_bw(16) + xlab("Number of cells") + ylab("Donor") +
+ggtitle("Unstimulated cells per clone, by donor")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.cells_per_clone.v2.png")),
+        width = 7, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.cells_per_clone.v2.pdf")),
+        width = 7, height = 9)
+```
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 9)
+df_cells_per_clone_all %>% dplyr::filter(clone != "unassigned") %>% 
+ggplot(aes(x = n_cells, y = reorder(donor, n_cells, max), colour = clone)) +
+geom_point(size = 4, alpha = 0.7) +
+scale_shape_manual(values = c(4, 19)) +
+scale_color_manual(values = c(magma(8)[-c(1,8)], "gray30", "black")) +
+#ggthemes::scale_colour_tableau() +
+theme_bw(16) + xlab("Number of cells") + ylab("Donor") +
+ggtitle("All cells per clone, by donor")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.cells_per_clone.v1.png")),
+        width = 7, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.cells_per_clone.v1.pdf")),
+        width = 7, height = 9)
+```
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 9)
+ggplot(df_cells_per_clone_all, aes(x = n_cells, y = reorder(donor, n_cells, max), colour = clone, shape = assigned)) +
+geom_point(size = 4, alpha = 0.7) +
+scale_shape_manual(values = c(4, 19)) +
+scale_color_manual(values = c(magma(8)[-c(1,8)], "gray30", "black")) +
+#ggthemes::scale_colour_tableau() +
+theme_bw(16) + xlab("Number of cells") + ylab("Donor") +
+ggtitle("All cells per clone, by donor")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.cells_per_clone.v2.png")),
+        width = 7, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.cells_per_clone.v2.pdf")),
+        width = 7, height = 9)
+```
+
+
+```{r}
+df_cells_per_clone_unst %>% head
+```
+
+```{r}
+df_cells_per_clone_unst %>% select(-assigned) %>% tidyr::spread(key = "clone", value = "n_cells")
+```
+
+```{r}
+df_cells_per_clone_all %>% select(-assigned) %>% tidyr::spread(key = "clone", value = "n_cells")
+```
+
+```{r}
+ls()
+```
+
+### generate sce list with only assigned cells in clones with more than three cells
+
+Filter donors for DE/pathway analysis using all (stimulated and unstimulated cells).
+
+* Keep clones with at least three assigned cells.
+* Keep only cells that are confidently assigned to a (kept) clone. 
+* Keep donors that have at least 15 assigned cells to kept clones
+
+```{r}
+sce_list_filt <- list()
+clones_keep <- list()
+for ( i in names(sce_list) ) {
+    clones_keep[[i]] <- table(sce_list[[i]]$assigned)[which(table(sce_list[[i]]$assigned) >= 3)]
+    clones_keep[[i]] <- clones_keep[[i]][!(names(clones_keep[[i]]) %in% "unassigned")]
+    cells_use <- colnames(sce_list[[i]])[sce_list[[i]]$assigned %in% names(clones_keep[[i]])]
+    cat(paste("....", i, ":", length(cells_use), "cells for DE analyses.\n"))
+    if (length(cells_use) > 14.5)
+        sce_list_filt[[i]] <- sce_list[[i]][, cells_use]
+}
+```
+
+```{r}
+clones_keep[["sebz"]]
+```
+
+```{r}
+length(sce_list_filt)
+```
+
+44 donors are retained for DE/pathway analyses from all cells.
+
+Conduct the same filtering for the unstimulated cells only.
+
+```{r}
+sce_unst_list_filt <- list()
+clones_keep_unst <- list()
+for ( i in names(sce_unst_list) ) {
+    clones_keep_unst[[i]] <- table(sce_unst_list[[i]]$assigned)[which(table(sce_unst_list[[i]]$assigned) >= 3)]
+    clones_keep_unst[[i]] <- clones_keep_unst[[i]][!(names(clones_keep_unst[[i]]) %in% "unassigned")]
+    cells_use_unst <- colnames(sce_unst_list[[i]])[sce_unst_list[[i]]$assigned %in% names(clones_keep_unst[[i]])]
+    cat(paste("....", i, ":", length(cells_use_unst), "unstimulated cells for DE analyses.\n"))
+    if (length(cells_use_unst) > 14.5 && length(clones_keep_unst[[i]]) > 1.5)
+        sce_unst_list_filt[[i]] <- sce_unst_list[[i]][, cells_use_unst]
+}
+```
+
+```{r}
+length(sce_unst_list_filt)
+```
+
+`r length(sce_unst_list_filt)` donors are retained for DE/pathway anlaysis using unstimulated cells only.
+
+### filter cells and genes
+
+```{r}
+#save.image(paste0(data_dir, "DE_varpart_alldonors.RData"))
+```
+
+### DE analysis across donors - Unstimulated cells
+
+```{r}
+library(edgeR)
+library(cowplot)
+```
+
+```{r}
+data_dir <- file.path(to_working_dir, "Data/processed/de_analysis_FTv62/")
+fig_dir <- file.path(to_working_dir, "figures/clonality/de_pathways/")
+```
+
+```{r}
+gene_use_DE <- (!rowData(sce_unst_list_filt[[1]])$is_feature_control) # remove ERCC
+for (i in names(sce_unst_list_filt)){
+  gene_use_DE <- gene_use_DE & (rowMeans(counts(sce_unst_list_filt[[i]]) > 1)) # all 0s
+  # 1 count in 10% of cells
+  # rowMeans of counts > 0.5
+}
+
+dge_list_unst <- list()
+design_list_unst <- list()
+fit_list_unst <- list()
+qlf_list_unst <- list()
+```
+
+```{r}
+sum(gene_use_DE)
+```
+
+```{r}
+for(i in names(sce_unst_list_filt)) {
+  #sce_list_unst[[i]] <- scran::computeSumFactors(sce_list_unst[[i]])
+    cat("....calculating DE for ", i, "\n")
+    dge_list_unst[[i]] <- DGEList(round(counts(sce_unst_list_filt[[i]][gene_use_DE,])))
+    dge_list_unst[[i]] <- edgeR::calcNormFactors(dge_list_unst[[i]], method = "TMM")
+    sce_unst_list_filt[[i]]$cdr <- (colSums(counts(sce_unst_list_filt[[i]]) > 0) / nrow(sce_unst_list_filt[[i]]))
+    sce_unst_list_filt[[i]]$plate <- as.factor(sce_unst_list_filt[[i]]$plate)
+    design_list_unst[[i]] <- model.matrix(~cdr + plate + assigned, data = colData(sce_unst_list_filt[[i]]))
+    dge_list_unst[[i]] <- estimateDisp(dge_list_unst[[i]], design_list_unst[[i]])
+    fit_list_unst[[i]] <- glmQLFit(dge_list_unst[[i]], design_list_unst[[i]])
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    qlf_list_unst[[i]] <- glmQLFTest(fit_list_unst[[i]],
+                              coef = (ncol(design_list_unst[[i]]) - num_clones + 2):ncol(design_list_unst[[i]]))
+    sum(p.adjust(qlf_list_unst[[i]]$table$PValue, method = "BH") <= 0.05, na.rm = TRUE)
+    summary(decideTestsDGE(qlf_list_unst[[i]]))
+}
+```
+
+Conduct QL F-test for first clone coefficient alone (typically clone2 - clone1).
+
+```{r}
+qlf_1st_coef_list_unst <- list()
+```
+
+```{r}
+pryr::mem_used()
+```
+
+```{r}
+for(i in names(dge_list_unst)) {
+  cat("....calculating DE for ", i, "\n")
+  num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+  qlf_1st_coef_list_unst[[i]] <- glmQLFTest(fit_list_unst[[i]],
+                              coef = (ncol(design_list_unst[[i]]) - num_clones + 2))
+  print(summary(decideTestsDGE(qlf_1st_coef_list_unst[[i]])))
+}
+```
+
+Conduct QL F-test for second clone coefficient alone (typically clone3 - clone1).
+
+```{r}
+qlf_2nd_coef_list_unst <- list()
+for(i in names(dge_list_unst)) {
+    cat("....calculating DE for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        qlf_2nd_coef_list_unst[[i]] <- glmQLFTest(fit_list_unst[[i]],
+                              coef = (ncol(design_list_unst[[i]]) - num_clones + 3))
+        print(summary(decideTestsDGE(qlf_2nd_coef_list_unst[[i]])))
+    }
+}
+```
+
+```{r}
+qlf_3rd_coef_list_unst <- list()
+for(i in names(dge_list_unst)) {
+    cat("....calculating DE for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        qlf_3rd_coef_list_unst[[i]] <- glmQLFTest(fit_list_unst[[i]],
+                              coef = (ncol(design_list_unst[[i]]) - num_clones + 4))
+        print(summary(decideTestsDGE(qlf_3rd_coef_list_unst[[i]])))
+    }
+}
+```
+
+```{r}
+pryr::mem_used()
+```
+
+### Gene set testing
+
+```{r}
+library(limma)
+library(org.Hs.eg.db)
+load(file.path(to_working_dir, "Data/human_c6_v5p2.rdata"))
+load(file.path(to_working_dir, "Data/human_H_v5p2.rdata"))
+load(file.path(to_working_dir, "Data/human_c2_v5p2.rdata"))
+```
+
+```{r}
+#For the reverse map ENSEMBL2EG:
+# Convert to a list
+xx <- as.list(org.Hs.egENSEMBL2EG)
+```
+
+#### Oncogenic gene sets (c6)
+
+Testing first clone coefficient (typically clone2 - clone1).
+
+```{r}
+camera_msigdb_c6_1st_coef_list_unst <- list()
+fry_msigdb_c6_1st_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 1.5) {
+        qlf_1st_coef_list_unst[[i]]$table$ensembl_gene_id <- strsplit2(rownames(qlf_1st_coef_list_unst[[i]]$table), split = "_")[,1]
+        qlf_1st_coef_list_unst[[i]]$table$hgnc_symbol <- strsplit2(rownames(qlf_1st_coef_list_unst[[i]]$table), split = "_")[,2]
+        qlf_1st_coef_list_unst[[i]]$table$entrezid <- NA
+        for (j in seq_len(nrow(qlf_1st_coef_list_unst[[i]]$table))) {
+            if (qlf_1st_coef_list_unst[[i]]$table$ensembl_gene_id[j] %in% names(xx))
+                qlf_1st_coef_list_unst[[i]]$table$entrezid[j] <- xx[[qlf_1st_coef_list_unst[[i]]$table$ensembl_gene_id[j]]][1]
+        }
+        idx <- ids2indices(Hs.c6, id=qlf_1st_coef_list_unst[[i]]$table$entrezid)
+        camera_msigdb_c6_1st_coef_list_unst[[i]] <- camera(dge_list_unst[[i]], idx, qlf_list_unst[[i]]$design, 
+                                                      contrast = (ncol(design_list_unst[[i]]) - num_clones + 2))
+        cat("                camera significant MSigDB oncogenic genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c6_1st_coef_list_unst[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c6_1st_coef_list_unst[[i]] <- fry(dge_list_unst[[i]], idx, qlf_1st_coef_list_unst[[i]]$design, 
+                                                contrast = (ncol(design_list_unst[[i]]) - num_clones + 2))    
+        cat("                fry significant MSigDB oncogenic genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c6_1st_coef_list_unst[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing second clone coefficient (typically clone3 - clone1).
+
+```{r}
+camera_msigdb_c6_2nd_coef_list_unst <- list()
+fry_msigdb_c6_2nd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        qlf_2nd_coef_list_unst[[i]]$table$ensembl_gene_id <- strsplit2(rownames(qlf_2nd_coef_list_unst[[i]]$table), split = "_")[,1]
+        qlf_2nd_coef_list_unst[[i]]$table$hgnc_symbol <- strsplit2(rownames(qlf_2nd_coef_list_unst[[i]]$table), split = "_")[,2]
+        qlf_2nd_coef_list_unst[[i]]$table$entrezid <- NA
+        for (j in seq_len(nrow(qlf_2nd_coef_list_unst[[i]]$table))) {
+            if (qlf_2nd_coef_list_unst[[i]]$table$ensembl_gene_id[j] %in% names(xx))
+                qlf_2nd_coef_list_unst[[i]]$table$entrezid[j] <- xx[[qlf_2nd_coef_list_unst[[i]]$table$ensembl_gene_id[j]]][1]
+        }
+        idx <- ids2indices(Hs.c6, id=qlf_2nd_coef_list_unst[[i]]$table$entrezid)
+        camera_msigdb_c6_2nd_coef_list_unst[[i]] <- camera(dge_list_unst[[i]], idx, qlf_list_unst[[i]]$design, 
+                                                      contrast = (ncol(design_list_unst[[i]]) - num_clones + 3))
+        cat("                camera significant MSigDB oncogenic genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c6_2nd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c6_2nd_coef_list_unst[[i]] <- fry(dge_list_unst[[i]], idx, qlf_2nd_coef_list_unst[[i]]$design, 
+                                                contrast = (ncol(design_list_unst[[i]]) - num_clones + 3))    
+        cat("                fry significant MSigDB oncogenic genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c6_2nd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing third clone coefficient (typically clone4 - clone1).
+
+```{r}
+camera_msigdb_c6_3rd_coef_list_unst <- list()
+fry_msigdb_c6_3rd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        qlf_3rd_coef_list_unst[[i]]$table$ensembl_gene_id <- strsplit2(rownames(qlf_3rd_coef_list_unst[[i]]$table), split = "_")[,1]
+        qlf_3rd_coef_list_unst[[i]]$table$hgnc_symbol <- strsplit2(rownames(qlf_3rd_coef_list_unst[[i]]$table), split = "_")[,2]
+        qlf_3rd_coef_list_unst[[i]]$table$entrezid <- NA
+        for (j in seq_len(nrow(qlf_3rd_coef_list_unst[[i]]$table))) {
+            if (qlf_3rd_coef_list_unst[[i]]$table$ensembl_gene_id[j] %in% names(xx))
+                qlf_3rd_coef_list_unst[[i]]$table$entrezid[j] <- xx[[qlf_3rd_coef_list_unst[[i]]$table$ensembl_gene_id[j]]][1]
+        }
+        idx <- ids2indices(Hs.c6, id=qlf_3rd_coef_list_unst[[i]]$table$entrezid)
+        camera_msigdb_c6_3rd_coef_list_unst[[i]] <- camera(dge_list_unst[[i]], idx, qlf_list_unst[[i]]$design, 
+                                                      contrast = (ncol(design_list_unst[[i]]) - num_clones + 4))
+        cat("                camera significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c6_3rd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c6_3rd_coef_list_unst[[i]] <- fry(dge_list_unst[[i]], idx, qlf_3rd_coef_list_unst[[i]]$design, 
+                                                contrast = (ncol(design_list_unst[[i]]) - num_clones + 4))    
+        cat("                fry significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c6_3rd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+#### Curated gene sets (c2)
+
+Testing first clone coefficient (typically clone2 - clone1).
+
+```{r}
+camera_msigdb_c2_1st_coef_list_unst <- list()
+fry_msigdb_c2_1st_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 1.5) {
+        idx <- ids2indices(Hs.c2, id=qlf_1st_coef_list_unst[[i]]$table$entrezid)
+        camera_msigdb_c2_1st_coef_list_unst[[i]] <- camera(dge_list_unst[[i]], idx, qlf_list_unst[[i]]$design, 
+                                                      contrast = (ncol(design_list_unst[[i]]) - num_clones + 2))
+        cat("                camera significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c2_1st_coef_list_unst[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c2_1st_coef_list_unst[[i]] <- fry(dge_list_unst[[i]], idx, qlf_1st_coef_list_unst[[i]]$design, 
+                                                contrast = (ncol(design_list_unst[[i]]) - num_clones + 2))    
+        cat("                fry significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c2_1st_coef_list_unst[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing second clone coefficient (typically clone3 - clone1).
+
+```{r}
+camera_msigdb_c2_2nd_coef_list_unst <- list()
+fry_msigdb_c2_2nd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        idx <- ids2indices(Hs.c2, id=qlf_2nd_coef_list_unst[[i]]$table$entrezid)
+        camera_msigdb_c2_2nd_coef_list_unst[[i]] <- camera(dge_list_unst[[i]], idx, qlf_list_unst[[i]]$design, 
+                                                      contrast = (ncol(design_list_unst[[i]]) - num_clones + 3))
+        cat("                camera significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c2_2nd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c2_2nd_coef_list_unst[[i]] <- fry(dge_list_unst[[i]], idx, qlf_2nd_coef_list_unst[[i]]$design, 
+                                                contrast = (ncol(design_list_unst[[i]]) - num_clones + 3))    
+        cat("                fry significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c2_2nd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing third clone coefficient (typically clone4 - clone1).
+
+```{r}
+camera_msigdb_c2_3rd_coef_list_unst <- list()
+fry_msigdb_c2_3rd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        idx <- ids2indices(Hs.c2, id=qlf_3rd_coef_list_unst[[i]]$table$entrezid)
+        camera_msigdb_c2_3rd_coef_list_unst[[i]] <- camera(dge_list_unst[[i]], idx, qlf_list_unst[[i]]$design, 
+                                                      contrast = (ncol(design_list_unst[[i]]) - num_clones + 4))
+        cat("                camera significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c2_3rd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c2_3rd_coef_list_unst[[i]] <- fry(dge_list_unst[[i]], idx, qlf_3rd_coef_list_unst[[i]]$design, 
+                                                contrast = (ncol(design_list_unst[[i]]) - num_clones + 4))    
+        cat("                fry significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c2_3rd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+#### Hallmark gene sets (H)
+
+Testing first clone coefficient (typically clone2 - clone1).
+
+```{r}
+camera_msigdb_H_1st_coef_list_unst <- list()
+fry_msigdb_H_1st_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 1.5) {
+        idx <- ids2indices(Hs.H, id=qlf_1st_coef_list_unst[[i]]$table$entrezid)
+        camera_msigdb_H_1st_coef_list_unst[[i]] <- camera(dge_list_unst[[i]], idx, qlf_list_unst[[i]]$design, 
+                                                      contrast = (ncol(design_list_unst[[i]]) - num_clones + 2))
+        cat("                camera significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(camera_msigdb_H_1st_coef_list_unst[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_H_1st_coef_list_unst[[i]] <- fry(dge_list_unst[[i]], idx, qlf_1st_coef_list_unst[[i]]$design, 
+                                                contrast = (ncol(design_list_unst[[i]]) - num_clones + 2))    
+        cat("                fry significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(fry_msigdb_H_1st_coef_list_unst[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing second clone coefficient (typically clone3 - clone1).
+
+```{r}
+camera_msigdb_H_2nd_coef_list_unst <- list()
+fry_msigdb_H_2nd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        idx <- ids2indices(Hs.H, id=qlf_2nd_coef_list_unst[[i]]$table$entrezid)
+        camera_msigdb_H_2nd_coef_list_unst[[i]] <- camera(dge_list_unst[[i]], idx, qlf_list_unst[[i]]$design, 
+                                                      contrast = (ncol(design_list_unst[[i]]) - num_clones + 3))
+        cat("                camera significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(camera_msigdb_H_2nd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_H_2nd_coef_list_unst[[i]] <- fry(dge_list_unst[[i]], idx, qlf_2nd_coef_list_unst[[i]]$design, 
+                                                contrast = (ncol(design_list_unst[[i]]) - num_clones + 3))    
+        cat("                fry significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(fry_msigdb_H_2nd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing third clone coefficient (typically clone4 - clone1).
+
+```{r}
+camera_msigdb_H_3rd_coef_list_unst <- list()
+fry_msigdb_H_3rd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        idx <- ids2indices(Hs.H, id=qlf_3rd_coef_list_unst[[i]]$table$entrezid)
+        camera_msigdb_H_3rd_coef_list_unst[[i]] <- camera(dge_list_unst[[i]], idx, qlf_list_unst[[i]]$design, 
+                                                      contrast = (ncol(design_list_unst[[i]]) - num_clones + 4))
+        cat("                camera significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(camera_msigdb_H_3rd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_H_3rd_coef_list_unst[[i]] <- fry(dge_list_unst[[i]], idx, qlf_3rd_coef_list_unst[[i]]$design, 
+                                                contrast = (ncol(design_list_unst[[i]]) - num_clones + 4))    
+        cat("                fry significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(fry_msigdb_H_3rd_coef_list_unst[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+```{r}
+de_results_list_unst <- list()
+```
+
+```{r}
+de_results_list_unst[["camera"]] <- list()
+de_results_list_unst[["camera"]][["c2"]] <- list()
+de_results_list_unst[["camera"]][["c6"]] <- list()
+de_results_list_unst[["camera"]][["H"]] <- list()
+```
+
+```{r}
+de_results_list_unst[["camera"]][["c2"]][["1st_coef"]] <- camera_msigdb_c2_1st_coef_list_unst
+de_results_list_unst[["camera"]][["c2"]][["2nd_coef"]] <- camera_msigdb_c2_2nd_coef_list_unst
+de_results_list_unst[["camera"]][["c2"]][["3rd_coef"]] <- camera_msigdb_c2_3rd_coef_list_unst
+de_results_list_unst[["camera"]][["c6"]][["1st_coef"]] <- camera_msigdb_c6_1st_coef_list_unst
+de_results_list_unst[["camera"]][["c6"]][["2nd_coef"]] <- camera_msigdb_c6_2nd_coef_list_unst
+de_results_list_unst[["camera"]][["c6"]][["3rd_coef"]] <- camera_msigdb_c6_3rd_coef_list_unst
+de_results_list_unst[["camera"]][["H"]][["1st_coef"]] <- camera_msigdb_H_1st_coef_list_unst
+de_results_list_unst[["camera"]][["H"]][["2nd_coef"]] <- camera_msigdb_H_2nd_coef_list_unst
+de_results_list_unst[["camera"]][["H"]][["3rd_coef"]] <- camera_msigdb_H_3rd_coef_list_unst
+```
+
+```{r}
+de_results_list_unst[["fry"]] <- list()
+de_results_list_unst[["fry"]][["c2"]] <- list()
+de_results_list_unst[["fry"]][["c6"]] <- list()
+de_results_list_unst[["fry"]][["H"]] <- list()
+de_results_list_unst[["fry"]][["c2"]][["1st_coef"]] <- fry_msigdb_c2_1st_coef_list_unst
+de_results_list_unst[["fry"]][["c2"]][["2nd_coef"]] <- fry_msigdb_c2_2nd_coef_list_unst
+de_results_list_unst[["fry"]][["c2"]][["3rd_coef"]] <- fry_msigdb_c2_3rd_coef_list_unst
+de_results_list_unst[["fry"]][["c6"]][["1st_coef"]] <- fry_msigdb_c6_1st_coef_list_unst
+de_results_list_unst[["fry"]][["c6"]][["2nd_coef"]] <- fry_msigdb_c6_2nd_coef_list_unst
+de_results_list_unst[["fry"]][["c6"]][["3rd_coef"]] <- fry_msigdb_c6_3rd_coef_list_unst
+de_results_list_unst[["fry"]][["H"]][["1st_coef"]] <- fry_msigdb_H_1st_coef_list_unst
+de_results_list_unst[["fry"]][["H"]][["2nd_coef"]] <- fry_msigdb_H_2nd_coef_list_unst
+de_results_list_unst[["fry"]][["H"]][["3rd_coef"]] <- fry_msigdb_H_3rd_coef_list_unst
+```
+
+```{r}
+de_results_list_unst[["design_list"]] <- design_list_unst
+de_results_list_unst[["dge_list"]] <- dge_list_unst
+de_results_list_unst[["fit_list"]] <- fit_list_unst
+de_results_list_unst[["qlf_list"]] <- qlf_list_unst
+de_results_list_unst[["qlf_1st_coef_list"]] <- qlf_1st_coef_list_unst
+de_results_list_unst[["qlf_2nd_coef_list"]] <- qlf_2nd_coef_list_unst
+de_results_list_unst[["qlf_3rd_coef_list"]] <- qlf_3rd_coef_list_unst
+de_results_list_unst[["sce_list_unst"]] <- sce_unst_list_filt
+```
+
+```{r}
+data_dir
+```
+
+```{r}
+saveRDS(object = de_results_list_unst, 
+    file = file.path(data_dir, 
+    paste0(params$callset, ".de_results_unstimulated_cells.rds")))
+```
+
+```{r}
+pryr::object_size(de_results_list_unst)
+```
+
+### BCV plots
+
+```{r}
+for(i in names(sce_unst_list_filt)) {
+  cat("....plotting BCV/MD plots for ", i, "\n")
+  png(file.path(fig_dir, paste0("BCV_plots/", params$callset, "BCV_", i, ".png")))
+  plotBCV(dge_list_unst[[i]])
+  dev.off()
+  png(file.path(fig_dir, paste0("MD_plots/", params$callset, "MD_", i, ".png")))
+  plotMD(qlf_list_unst[[i]], main = paste(i, " DE"))
+  dev.off()
+}
+```
+
+```{r}
+library(gplots)
+```
+
+```{r}
+tol21rainbow <- c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", 
+                "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788")
+grey6mono <- c("#242424", "#494949", "#6D6D6D", "#929292", "#B6B6B6", "#DBDBDB")
+tol7qualitative <- c("#332288", "#88CCEE", "#44AA99", "#117733", "#DDCC77", "#CC6677","#AA4499")
+tol8qualitative <- c("#332288", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#CC6677","#AA4499")
+davis_pal <- c(tol21rainbow, grey6mono)
+```
+
+```{r}
+DE_all_donors_unst <- data.frame("gene" = rownames(qlf_list_unst[[1]]$table))
+DE_all_donors_unst_mat <- matrix(NA, nrow = nrow(qlf_list_unst[[1]]$table), length(sce_unst_list_filt))
+for(i in seq_len(length(sce_unst_list_filt))) {
+  DE_all_donors_unst_mat[,i] <- -log10(p.adjust(qlf_list_unst[[i]]$table$PValue, method = "BH"))
+}
+rownames(DE_all_donors_unst_mat) <- rownames(qlf_list_unst[[i]]$table)
+colnames(DE_all_donors_unst_mat) <- names(sce_unst_list_filt)
+```
+
+```{r}
+dim(DE_all_donors_unst_mat)
+```
+
+```{r}
+heatmap.2(DE_all_donors_unst_mat,
+  main = "DE", # heat map title
+  notecol="black",      # change font color of cell labels to black
+  density.info="none",  # turns off density plot inside color legend
+  trace="none",         # turns off trace lines inside the heat map
+  #margins =c(12,20),     # widens margins around plot
+  col=c("gray95", magma(11, direction = -1)[-c(1:2)]),       # use on color palette defined earlier
+  #breaks=col_breaks,    # enable color transition at specified limits
+  #labRow = "",
+  dendrogram="none", # only draw a row dendrogram
+  Colv = T
+  )
+```
+
+```{r}
+DE_genees <- rownames(DE_all_donors_unst_mat)
+DE_filter_genes <- names(which(rowSums(DE_all_donors_unst_mat > -log10(0.05)) > 1))
+
+# GO term enrichment of DE genes
+library(goseq)
+DE_filter_genes_bin <- DE_genees %in% DE_filter_genes
+names(DE_filter_genes_bin) <- substr(DE_genees, 1, 15)
+## estimate null probability weighting function
+DE_filter_genes_pwf <- nullp(DE_filter_genes_bin, "hg19", "ensGene")
+DE_filter_genes_go_wall <- goseq(DE_filter_genes_pwf, "hg19", "ensGene")
+DE_filter_genes_go_wall <- dplyr::mutate(DE_filter_genes_go_wall, fdr = p.adjust(over_represented_pvalue, method = "BH"))
+DE_filter_genes_go_sig <- dplyr::arrange(DE_filter_genes_go_wall, fdr) %>% dplyr::filter(fdr < 0.05)
+
+```
+
+```{r}
+length(DE_filter_genes)
+```
+
+```{r}
+heatmap.2(DE_all_donors_unst_mat[DE_filter_genes,],
+  main = "DE", # heat map title
+  notecol="black",      # change font color of cell labels to black
+  density.info="none",  # turns off density plot inside color legend
+  trace="none",         # turns off trace lines inside the heat map
+  #margins =c(12,20),     # widens margins around plot
+  col=c("gray95", magma(11, direction = -1)[-c(1:2)]),       # use on color palette defined earlier
+  #breaks=col_breaks,    # enable color transition at specified limits
+  #labRow = "",
+  dendrogram="none", # only draw a row dendrogram
+  Colv = T
+  )
+```
+
+## Plot results
+
+```{r}
+names(de_results_list_unst)
+```
+
+```{r}
+head(names(sce_unst_list_filt))
+```
+
+```{r}
+head(de_results_list_unst[["camera"]][["c2"]][["1st_coef"]][["eofe"]])
+```
+
+### Camera results
+
+```{r}
+fdr_thresh <- 0.05
+df_camera_sig_unst <- data_frame()
+for (geneset in names(de_results_list_unst[["camera"]])) {
+    for (coeff in names(de_results_list_unst[["camera"]][[geneset]])) {
+        for (donor in names(de_results_list_unst[["camera"]][[geneset]][[coeff]])) {
+            tmp <- de_results_list_unst[["camera"]][[geneset]][[coeff]][[donor]]
+            tmp <- tmp[tmp$FDR < 0.05,]
+            if (nrow(tmp) > 0.5) {
+                tmp[["collection"]] <- geneset
+                tmp[["geneset"]] <- rownames(tmp)
+                tmp[["coeff"]] <- coeff
+                tmp[["donor"]] <- donor
+                df_camera_sig_unst <- bind_rows(df_camera_sig_unst, tmp)
+            }
+        }
+    }
+}
+```
+
+```{r}
+nrow(df_camera_sig_unst)
+```
+
+```{r}
+head(df_camera_sig_unst)
+```
+
+```{r}
+df_camera_sig_unst <- dplyr::mutate(df_camera_sig_unst,
+                              contrast = plyr::mapvalues(coeff, from = c("1st_coef", "2nd_coef", "3rd_coef"), to = c("clone2 - clone1", "clone3 - clone1", "clone4 - clone1")),
+                              msigdb_collection = plyr::mapvalues(collection, from = c("c2", "c6", "H"), to = c("MSigDB curated (c2)", "MSigDB oncogenic (c6)", "MSigDB Hallmark")))
+```
+
+```{r}
+head(df_camera_sig_unst)
+```
+
+```{r}
+table(df_camera_sig_unst[["contrast"]])
+```
+
+```{r}
+options(repr.plot.height = 12)
+ggplot(df_camera_sig_unst, aes(y = -log10(PValue), x = donor, colour = contrast)) +
+    geom_sina(alpha = 0.7) +
+    facet_wrap(~msigdb_collection) + 
+    ggthemes::scale_colour_few() +
+    coord_flip()
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_pvals.png")),
+        width = 10, height = 12)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_pvals.pdf")),
+        width = 10, height = 12)
+```
+
+```{r}
+options(repr.plot.height = 10, repr.plot.width = 12)
+group_by(df_camera_sig_unst, donor, msigdb_collection, contrast) %>% 
+    summarise(n_sig = n()) %>%
+    ungroup() %>%
+ggplot(aes(y = n_sig, x = reorder(donor, n_sig, max), colour = contrast)) +
+    geom_point(alpha = 0.7, size = 2) +
+    facet_wrap(~msigdb_collection, scales = "free_x") + 
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Donor") + ylab("Number of significant genesets") +
+    ggtitle("Camera gene set enrichment results")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_genesets_by_donor.png")),
+        width = 10, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_genesets_by_donor.pdf")),
+        width = 10, height = 9)
+```
+
+```{r}
+options(repr.plot.height = 10, repr.plot.width = 12)
+group_by(df_camera_sig_unst, donor, msigdb_collection) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(n_sig = n()) %>%
+    ungroup() %>%
+ggplot(aes(y = n_sig, x = reorder(donor, n_sig, max))) +
+    geom_point(alpha = 0.7, size = 3) +
+    facet_wrap(~msigdb_collection, scales = "free_x") + 
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Donor") + ylab("Number of significant genesets") +
+    ggtitle("Camera gene set enrichment results (unstimulated cells)")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_genesets_by_donor.v2.png")),
+        width = 10, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_genesets_by_donor.v2.pdf")),
+        width = 10, height = 9)
+```
+
+```{r}
+df_camera_sig_unst %>% dplyr::filter(donor == "sohd", collection == "H") 
+```
+
+```{r}
+df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% dplyr::arrange(FDR) %>% head
+```
+
+```{r}
+table(de_results_list_unst[["sce_list_unst"]][["sohd"]]$assigned)
+```
+
+```{r}
+table(de_results_list_unst[["sce_list_unst"]][["sehl"]]$assigned)
+```
+
+```{r}
+table(de_results_list_unst[["sce_list_unst"]][["qayj"]]$assigned)
+```
+
+```{r}
+table(de_results_list_unst[["sce_list_unst"]][["laey"]]$assigned)
+```
+
+```{r}
+df_camera_sig_unst %>% dplyr::filter(donor == "sehl", collection == "H") 
+```
+
+```{r}
+df_camera_sig_unst %>% dplyr::filter(donor == "laey", collection == "H") 
+```
+
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 5)
+if (is.numeric(de_results_list_unst$qlf_2nd_coef_list$laey$table$logFC)) {
+    idx <- ids2indices(Hs.H, id=de_results_list_unst$qlf_2nd_coef_list$laey$table$entrezid)
+    barcodeplot(de_results_list_unst$qlf_2nd_coef_list$laey$table$logFC, index=idx$HALLMARK_E2F_TARGETS, 
+            index2=idx$HALLMARK_G2M_CHECKPOINT, xlab = "logFC", main="laey: Clone3 - Clone1\n HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT")
+}
+```
+
+```{r}
+options(repr.plot.width = 11, repr.plot.height = 6)
+df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% group_by(geneset, contrast, Direction) %>% 
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max), colour = Direction, shape = contrast)) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB Hallmark gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.png")),
+        width = 10, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.pdf")),
+        width = 10, height = 9)
+```
+
+```{r}
+options(repr.plot.width = 11, repr.plot.height = 6)
+df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max))) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB Hallmark gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.hallmark.png")),
+        width = 10, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.hallmark.pdf")),
+        width = 10, height = 9)
+```
+
+```{r}
+options(repr.plot.width = 11, repr.plot.height = 6)
+df_camera_sig_unst %>% dplyr::filter(collection == "c6") %>% group_by(geneset, contrast, Direction) %>% 
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max), colour = Direction, shape = contrast)) +
+    geom_point(alpha = 0.7, size = 2) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB oncogenic gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.oncogenic.png")),
+        width = 10, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.oncogenic.pdf")),
+        width = 10, height = 9)
+```
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 12)
+df_camera_sig_unst %>% dplyr::filter(collection == "c2") %>% group_by(geneset, contrast, Direction) %>% 
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::filter(geneset %in% geneset[n_donors > 6.5]) %>% dplyr::mutate(geneset_short = substr(geneset, 1, 40)) %>%
+ggplot(aes(y = n_donors, x = reorder(geneset_short, n_donors, max), colour = Direction, shape = contrast)) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(14) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB curated (c2) gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.c2.png")),
+        width = 10, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.c2.pdf")),
+        width = 10, height = 9)
+```
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 12)
+df_camera_sig_unst %>% dplyr::filter(collection == "c2") %>% group_by(geneset, contrast, Direction) %>% 
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::filter(geneset %in% geneset[n_donors > 6.5]) %>% dplyr::mutate(geneset_short = substr(geneset, 1, 40)) %>%
+ggplot(aes(y = n_donors, x = reorder(geneset_short, n_donors, max), colour = contrast, shape = contrast)) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(14) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB curated (c2) gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.c2.v2.png")),
+        width = 10, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.c2.v2.pdf")),
+        width = 10, height = 9)
+```
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 9)
+df_camera_sig_unst %>% dplyr::filter(collection == "c2") %>% group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::filter(geneset %in% geneset[n_donors > 13.5]) %>% dplyr::mutate(geneset_short = substr(geneset, 1, 31)) %>%
+ggplot(aes(y = n_donors, x = reorder(geneset_short, n_donors, max))) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(14) + ylim(0, 31) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB curated (c2) gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.c2.v3.png")),
+        width = 10, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.camera_nsig_donors.c2.v3.pdf")),
+        width = 10, height = 9)
+```
+
+### DE gene-wise results
+
+```{r}
+for (i in names(de_results_list_unst[["qlf_list"]])) {
+    de_results_list_unst[["qlf_list"]][[i]]$table$ensembl_gene_id <- strsplit2(rownames(de_results_list_unst[["qlf_list"]][[i]]$table), split = "_")[,1]
+    de_results_list_unst[["qlf_list"]][[i]]$table$hgnc_symbol <- strsplit2(rownames(de_results_list_unst[["qlf_list"]][[i]]$table), split = "_")[,2]
+    de_results_list_unst[["qlf_list"]][[i]]$table$entrezid <- NA
+    for (j in seq_len(nrow(de_results_list_unst[["qlf_list"]][[i]]$table))) {
+        if (de_results_list_unst[["qlf_list"]][[i]]$table$ensembl_gene_id[j] %in% names(xx))
+            de_results_list_unst[["qlf_list"]][[i]]$table$entrezid[j] <- xx[[de_results_list_unst[["qlf_list"]][[i]]$table$ensembl_gene_id[j]]][1]
+    }
+}
+```
+
+```{r}
+fdr_thresh <- 0.05
+df_de_sig_unst <- data_frame()
+for (coeff in c("qlf_list", "qlf_1st_coef_list", "qlf_2nd_coef_list", "qlf_3rd_coef_list")) {
+    for (donor in names(de_results_list_unst[[coeff]])) {
+        tmp <- de_results_list_unst[[coeff]][[donor]]$table
+        tmp$FDR <- p.adjust(tmp$PValue, method = "BH")
+        tmp <- tmp[tmp$FDR < 0.05,]
+        if (nrow(tmp) > 0.5) {
+            tmp[["gene"]] <- rownames(tmp)
+            tmp[["coeff"]] <- coeff
+            tmp[["donor"]] <- donor
+            df_de_sig_unst <- bind_rows(df_de_sig_unst, tmp)
+        }
+    }
+}
+```
+
+```{r}
+df_de_sig_unst <- dplyr::mutate(df_de_sig_unst,
+                              contrast = plyr::mapvalues(coeff, from = c("qlf_list", "qlf_1st_coef_list", "qlf_2nd_coef_list", "qlf_3rd_coef_list"), 
+                                                         to = c("any difference", "clone2 - clone1", "clone3 - clone1", "clone4 - clone1")),
+                          Direction = ifelse(sign(logFC) == 1, "Up", "Down"))
+```
+
+```{r}
+tail(df_de_sig_unst)
+```
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 12)
+df_de_sig_unst %>% dplyr::filter(coeff == "qlf_list") %>% group_by(hgnc_symbol) %>% 
+    summarise(n_donors = n()) %>% dplyr::arrange(hgnc_symbol, n_donors) %>% ungroup() %>%
+    dplyr::filter(hgnc_symbol %in% hgnc_symbol[n_donors > 2.5]) %>%
+ggplot(aes(y = n_donors, x = reorder(hgnc_symbol, n_donors, max))) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(14) + ylim(0, 13) +
+    xlab("Gene") + ylab("Number of significant donors")  +
+    ggtitle("edgeR QL F-test DE genes (any difference between clones; significant if FDR <5%)")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.edgeR_qlf_de_genes.png")),
+        width = 12, height = 12)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.edgeR_qlf_de_genes.pdf")),
+        width = 12, height = 12)
+```
+
+```{r}
+df_de_sig_unst %>% dplyr::filter(coeff == "qlf_list") %>% group_by(donor) %>% 
+    summarise(n_sig = n())
+```
+
+```{r}
+options(repr.plot.width = 10, repr.plot.height = 6)
+df_de_sig_unst %>% dplyr::filter(coeff == "qlf_list") %>% group_by(donor) %>% 
+    summarise(n_sig = n()) %>% dplyr::arrange(donor, n_sig) %>% ungroup() %>%
+ggplot(aes(y = n_sig, x = reorder(donor, n_sig, max))) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(14) +
+    scale_y_log10() +
+    xlab("Donor") + ylab("Number of significant DE genes")  +
+    ggtitle("edgeR QL F-test DE genes (any difference between clones; significant if FDR <5%)")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.edgeR_qlf_de_genes_by_donor.png")),
+        width = 10, height = 6)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.edgeR_qlf_de_genes_by_donor.pdf")),
+        width = 10, height = 6)
+```
+
+```{r}
+df_tmp <- df_de_sig_unst %>% dplyr::filter(coeff == "qlf_list") %>% group_by(donor) %>% 
+    summarise(n_sig_genes = n())
+```
+
+```{r}
+tmp2 <- data_frame(donor = names(sce_unst_list_filt), n_cells = sapply(sce_unst_list_filt, function (x) ncol(x)))
+```
+
+```{r}
+df_tmp <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% group_by(donor) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(hallmark = n()) %>% full_join(df_tmp, .)
+df_tmp <- df_camera_sig_unst %>% dplyr::filter(collection == "c2") %>% group_by(donor) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(`curated (c2)` = n()) %>% full_join(df_tmp, .)
+df_tmp <- df_camera_sig_unst %>% dplyr::filter(collection == "c6") %>% group_by(donor) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(`oncogenic (c6)` = n()) %>% full_join(df_tmp, .)
+df_tmp <- full_join(df_tmp, tmp2)
+df_tmp[is.na(df_tmp)] <- 0
+df_tmp
+```
+
+```{r}
+options(repr.plot.width = 10, repr.plot.height = 7)
+tidyr::gather(df_tmp, key = "collection", value = "n_sig_genesets", -donor, -n_sig_genes, -n_cells) %>%
+ggplot(aes(x = n_sig_genes, y = n_sig_genesets, fill = n_cells, size = n_cells)) +
+geom_point(alpha = 0.7, colour = "gray40", shape = 21) +
+facet_wrap(~collection, scales = "free") +
+scale_fill_viridis(option = "B") +
+ylab("Number of significant genesets") + xlab("Number of significant DE genes") +
+ggtitle("Significant genes and genesets by donor")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.de_genes_genesets_by_donor.png")),
+        width = 10, height = 7)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.de_genes_genesets_by_donor.pdf")),
+        width = 10, height = 7)
+```
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 6)
+df_tmp %>%
+    ggplot(aes(x = n_cells, y = `curated (c2)`, fill = n_cells)) +
+    geom_point(alpha = 0.7, colour = "gray40", shape = 21, size = 4) +
+    scale_y_log10() +
+    scale_fill_viridis(option = "B") +
+    guides(fill = FALSE) +
+    ylab("Number of significant curated (C2) gene sets") + xlab("Number of cells") +
+    ggtitle("Number of significant curated (C2) gene sets against number of cells by donor")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.nsig_c2_genesets_vs_ncells.png")),
+        width = 9, height = 6)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.nsig_c2_genesets_vs_ncells.pdf")),
+        width = 9, height = 6)
+```
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 6)
+df_tmp %>%
+    ggplot(aes(x = n_cells, y = `hallmark`, fill = n_cells)) +
+    geom_point(alpha = 0.7, colour = "gray40", shape = 21, size = 4) +
+#scale_y_log10() +
+    scale_fill_viridis(option = "B") +
+guides(fill = FALSE) +
+    ylab("Number of significant Hallmark gene sets (FDR <5%)") + 
+    xlab("Number of cells") +
+    ggtitle("Number of significant Hallmark gene sets against number of cells by donor")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.nsig_hallmark_genesets_vs_ncells.png")),
+        width = 9, height = 6)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.nsig_hallmark_genesets_vs_ncells.pdf")),
+        width = 9, height = 6)
+```
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 6)
+df_tmp %>%
+ggplot(aes(x = n_cells, y = n_sig_genes, fill = n_cells)) +
+geom_point(alpha = 0.7, colour = "gray40", shape = 21, size = 4) +
+scale_y_log10() +
+scale_fill_viridis(option = "B") +
+guides(fill = FALSE) +
+ylab("Number of significant genes") + xlab("Number of cells") +
+ggtitle("Number of significant DE genes against number of cells by donor")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.nsig_de_genes_vs_ncells.png")),
+        width = 9, height = 6)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".unst_cells.nsig_de_genes_vs_ncells.pdf")),
+        width = 9, height = 6)
+```
+
+### Fit diagnostics for *gesg*
+
+```{r}
+plotQLDisp(fit_list_unst[["gesg"]])
+```
+
+```{r}
+head(design_list_unst[["gesg"]])
+```
+
+```{r}
+summary(decideTests(qlf_list_unst[["gesg"]]))
+```
+
+```{r}
+summary(decideTests(qlf_1st_coef_list_unst[["gesg"]]))
+```
+
+```{r}
+summary(decideTests(qlf_2nd_coef_list_unst[["gesg"]]))
+```
+
+```{r}
+options(repr.plot.width = 11, repr.plot.height = 4.5)
+par(mfcol = c(1,2))
+plotMD(qlf_1st_coef_list_unst[["gesg"]])
+plotMD(qlf_2nd_coef_list_unst[["gesg"]])
+```
+
+
+## DE analysis across donors - all cells (stimulated and unstimulated)
+
+
+```{r}
+gene_use_DE <- (!rowData(sce_list_filt[[1]])$is_feature_control) # remove ERCC
+for (i in names(sce_list_filt)){
+  gene_use_DE <- gene_use_DE & (rowMeans(counts(sce_list_filt[[i]]) > 1)) # all 0s
+  # 1 count in 10% of cells
+  # rowMeans of counts > 0.5
+}
+
+dge_list_all <- list()
+design_list_all <- list()
+fit_list_all <- list()
+qlf_list_all <- list()
+```
+
+```{r}
+sum(gene_use_DE)
+```
+
+```{r}
+length(sce_list_filt)
+```
+
+```{r}
+table(sce_list_filt[["diku"]]$plate, sce_list_filt[["diku"]]$well_condition)
+```
+
+```{r}
+table(sce_list_filt[["vass"]]$plate, sce_list_filt[["vass"]]$well_condition)
+```
+
+```{r}
+for(i in names(sce_list_filt)) {
+  #sce_list_unst[[i]] <- scran::computeSumFactors(sce_list_unst[[i]])
+    cat("....calculating DE for ", i, "\n")
+    dge_list_all[[i]] <- DGEList(round(counts(sce_list_filt[[i]][gene_use_DE,])))
+    dge_list_all[[i]] <- edgeR::calcNormFactors(dge_list_all[[i]], method = "TMM")
+    sce_list_filt[[i]]$cdr <- (colSums(counts(sce_list_filt[[i]]) > 0) / nrow(sce_list_filt[[i]]))
+    sce_list_filt[[i]]$plate <- as.factor(sce_list_filt[[i]]$plate)
+    sce_list_filt[[i]]$well_condition <- as.factor(sce_list_filt[[i]]$well_condition)
+    design_list_all[[i]] <- model.matrix(~cdr + plate + well_condition + assigned, 
+                                            data = colData(sce_list_filt[[i]]))
+    if (qr(design_list_all[[i]])$rank < ncol(design_list_all[[i]])) {
+        cat("Design matrix not of full rank for", i, "\n")
+    } else if (nlevels(as.factor(sce_list_filt[[i]]$assigned)) < 2) {
+        cat("assigned factor has only one level for ", i, "\n")
+    } else {
+        dge_list_all[[i]] <- estimateDisp(dge_list_all[[i]], design_list_all[[i]])
+        fit_list_all[[i]] <- glmQLFit(dge_list_all[[i]], design_list_all[[i]])
+        num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+        qlf_list_all[[i]] <- glmQLFTest(fit_list_all[[i]],
+                              coef = (ncol(design_list_all[[i]]) - num_clones + 2):ncol(design_list_all[[i]]))
+        sum(p.adjust(qlf_list_all[[i]]$table$PValue, method = "BH") <= 0.05, na.rm = TRUE)
+    }
+}
+```
+
+```{r}
+sce_list_filt[[i]]
+```
+
+Conduct QL F-test for first clone coefficient alone (typically clone2 - clone1).
+
+```{r}
+qlf_1st_coef_list_all <- list()
+```
+
+```{r}
+pryr::mem_used()
+```
+
+```{r}
+for(i in names(fit_list_all)) {
+  cat("....calculating DE for ", i, "\n")
+  num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+  qlf_1st_coef_list_all[[i]] <- glmQLFTest(fit_list_all[[i]],
+                              coef = (ncol(design_list_all[[i]]) - num_clones + 2))
+  print(summary(decideTestsDGE(qlf_1st_coef_list_all[[i]])))
+}
+```
+
+Conduct QL F-test for second clone coefficient alone (typically clone3 - clone1).
+
+```{r}
+qlf_2nd_coef_list_all <- list()
+for(i in names(fit_list_all)) {
+    cat("....calculating DE for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        qlf_2nd_coef_list_all[[i]] <- glmQLFTest(fit_list_all[[i]],
+                              coef = (ncol(design_list_all[[i]]) - num_clones + 3))
+        print(summary(decideTestsDGE(qlf_2nd_coef_list_all[[i]])))
+    }
+}
+```
+
+```{r}
+qlf_3rd_coef_list_all <- list()
+for(i in names(fit_list_all)) {
+    cat("....calculating DE for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        qlf_3rd_coef_list_all[[i]] <- glmQLFTest(fit_list_all[[i]],
+                              coef = (ncol(design_list_all[[i]]) - num_clones + 4))
+        print(summary(decideTestsDGE(qlf_3rd_coef_list_all[[i]])))
+    }
+}
+```
+
+```{r}
+pryr::mem_used()
+```
+
+### Gene set testing
+
+#### Oncogenic gene sets (c6)
+
+Testing first clone coefficient (typically clone2 - clone1).
+
+```{r}
+camera_msigdb_c6_1st_coef_list_all <- list()
+fry_msigdb_c6_1st_coef_list_all <- list()
+for(i in names(fit_list_all)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 1.5) {
+        qlf_1st_coef_list_all[[i]]$table$ensembl_gene_id <- strsplit2(rownames(qlf_1st_coef_list_all[[i]]$table), split = "_")[,1]
+        qlf_1st_coef_list_all[[i]]$table$hgnc_symbol <- strsplit2(rownames(qlf_1st_coef_list_all[[i]]$table), split = "_")[,2]
+        qlf_1st_coef_list_all[[i]]$table$entrezid <- NA
+        for (j in seq_len(nrow(qlf_1st_coef_list_all[[i]]$table))) {
+            if (qlf_1st_coef_list_all[[i]]$table$ensembl_gene_id[j] %in% names(xx))
+                qlf_1st_coef_list_all[[i]]$table$entrezid[j] <- xx[[qlf_1st_coef_list_all[[i]]$table$ensembl_gene_id[j]]][1]
+        }
+        idx <- ids2indices(Hs.c6, id=qlf_1st_coef_list_all[[i]]$table$entrezid)
+        camera_msigdb_c6_1st_coef_list_all[[i]] <- camera(dge_list_all[[i]], idx, qlf_list_all[[i]]$design, 
+                                                      contrast = (ncol(design_list_all[[i]]) - num_clones + 2))
+        cat("                camera significant MSigDB oncogenic genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c6_1st_coef_list_all[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c6_1st_coef_list_all[[i]] <- fry(dge_list_all[[i]], idx, qlf_1st_coef_list_all[[i]]$design, 
+                                                contrast = (ncol(design_list_all[[i]]) - num_clones + 2))    
+        cat("                fry significant MSigDB oncogenic genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c6_1st_coef_list_all[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing second clone coefficient (typically clone3 - clone1).
+
+```{r}
+camera_msigdb_c6_2nd_coef_list_all <- list()
+fry_msigdb_c6_2nd_coef_list_all <- list()
+for(i in names(fit_list_all)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        qlf_2nd_coef_list_all[[i]]$table$ensembl_gene_id <- strsplit2(rownames(qlf_2nd_coef_list_all[[i]]$table), split = "_")[,1]
+        qlf_2nd_coef_list_all[[i]]$table$hgnc_symbol <- strsplit2(rownames(qlf_2nd_coef_list_all[[i]]$table), split = "_")[,2]
+        qlf_2nd_coef_list_all[[i]]$table$entrezid <- NA
+        for (j in seq_len(nrow(qlf_2nd_coef_list_all[[i]]$table))) {
+            if (qlf_2nd_coef_list_all[[i]]$table$ensembl_gene_id[j] %in% names(xx))
+                qlf_2nd_coef_list_all[[i]]$table$entrezid[j] <- xx[[qlf_2nd_coef_list_all[[i]]$table$ensembl_gene_id[j]]][1]
+        }
+        idx <- ids2indices(Hs.c6, id=qlf_2nd_coef_list_all[[i]]$table$entrezid)
+        camera_msigdb_c6_2nd_coef_list_all[[i]] <- camera(dge_list_all[[i]], idx, qlf_list_all[[i]]$design, 
+                                                      contrast = (ncol(design_list_all[[i]]) - num_clones + 3))
+        cat("                camera significant MSigDB oncogenic genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c6_2nd_coef_list_all[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c6_2nd_coef_list_all[[i]] <- fry(dge_list_all[[i]], idx, qlf_2nd_coef_list_all[[i]]$design, 
+                                                contrast = (ncol(design_list_all[[i]]) - num_clones + 3))    
+        cat("                fry significant MSigDB oncogenic genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c6_2nd_coef_list_all[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing third clone coefficient (typically clone4 - clone1).
+
+```{r}
+camera_msigdb_c6_3rd_coef_list_all <- list()
+fry_msigdb_c6_3rd_coef_list_all <- list()
+for(i in names(fit_list_all)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        qlf_3rd_coef_list_all[[i]]$table$ensembl_gene_id <- strsplit2(rownames(qlf_3rd_coef_list_all[[i]]$table), split = "_")[,1]
+        qlf_3rd_coef_list_all[[i]]$table$hgnc_symbol <- strsplit2(rownames(qlf_3rd_coef_list_all[[i]]$table), split = "_")[,2]
+        qlf_3rd_coef_list_all[[i]]$table$entrezid <- NA
+        for (j in seq_len(nrow(qlf_3rd_coef_list_all[[i]]$table))) {
+            if (qlf_3rd_coef_list_all[[i]]$table$ensembl_gene_id[j] %in% names(xx))
+                qlf_3rd_coef_list_all[[i]]$table$entrezid[j] <- xx[[qlf_3rd_coef_list_all[[i]]$table$ensembl_gene_id[j]]][1]
+        }
+        idx <- ids2indices(Hs.c6, id=qlf_3rd_coef_list_all[[i]]$table$entrezid)
+        camera_msigdb_c6_3rd_coef_list_all[[i]] <- camera(dge_list_all[[i]], idx, qlf_list_all[[i]]$design, 
+                                                      contrast = (ncol(design_list_all[[i]]) - num_clones + 4))
+        cat("                camera significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c6_3rd_coef_list_all[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c6_3rd_coef_list_all[[i]] <- fry(dge_list_all[[i]], idx, qlf_3rd_coef_list_all[[i]]$design, 
+                                                contrast = (ncol(design_list_all[[i]]) - num_clones + 4))    
+        cat("                fry significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c6_3rd_coef_list_all[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+#### Curated gene sets (c2)
+
+Testing first clone coefficient (typically clone2 - clone1).
+
+```{r}
+camera_msigdb_c2_1st_coef_list_all <- list()
+fry_msigdb_c2_1st_coef_list_all <- list()
+for (i in names(fit_list_all)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 1.5) {
+        idx <- ids2indices(Hs.c2, id=qlf_1st_coef_list_all[[i]]$table$entrezid)
+        camera_msigdb_c2_1st_coef_list_all[[i]] <- camera(dge_list_all[[i]], idx, qlf_list_all[[i]]$design, 
+                                                      contrast = (ncol(design_list_all[[i]]) - num_clones + 2))
+        cat("                camera significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c2_1st_coef_list_all[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c2_1st_coef_list_all[[i]] <- fry(dge_list_all[[i]], idx, qlf_1st_coef_list_all[[i]]$design, 
+                                                contrast = (ncol(design_list_all[[i]]) - num_clones + 2))    
+        cat("                fry significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c2_1st_coef_list_all[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing second clone coefficient (typically clone3 - clone1).
+
+```{r}
+camera_msigdb_c2_2nd_coef_list_all <- list()
+fry_msigdb_c2_2nd_coef_list_all <- list()
+for (i in names(fit_list_all)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        idx <- ids2indices(Hs.c2, id=qlf_2nd_coef_list_all[[i]]$table$entrezid)
+        camera_msigdb_c2_2nd_coef_list_all[[i]] <- camera(dge_list_all[[i]], idx, qlf_list_all[[i]]$design, 
+                                                      contrast = (ncol(design_list_all[[i]]) - num_clones + 3))
+        cat("                camera significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c2_2nd_coef_list_all[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c2_2nd_coef_list_all[[i]] <- fry(dge_list_all[[i]], idx, qlf_2nd_coef_list_all[[i]]$design, 
+                                                contrast = (ncol(design_list_all[[i]]) - num_clones + 3))    
+        cat("                fry significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c2_2nd_coef_list_all[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing third clone coefficient (typically clone4 - clone1).
+
+```{r}
+camera_msigdb_c2_3rd_coef_list_all <- list()
+fry_msigdb_c2_3rd_coef_list_all <- list()
+for (i in names(fit_list_all)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        idx <- ids2indices(Hs.c2, id=qlf_3rd_coef_list_all[[i]]$table$entrezid)
+        camera_msigdb_c2_3rd_coef_list_all[[i]] <- camera(dge_list_all[[i]], idx, qlf_list_all[[i]]$design, 
+                                                      contrast = (ncol(design_list_all[[i]]) - num_clones + 4))
+        cat("                camera significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(camera_msigdb_c2_3rd_coef_list_all[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_c2_3rd_coef_list_all[[i]] <- fry(dge_list_all[[i]], idx, qlf_3rd_coef_list_all[[i]]$design, 
+                                                contrast = (ncol(design_list_all[[i]]) - num_clones + 4))    
+        cat("                fry significant MSigDB c2 genesets (FDR < 5%): ", 
+           sum(fry_msigdb_c2_3rd_coef_list_all[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+#### Hallmark gene sets (H)
+
+Testing first clone coefficient (typically clone2 - clone1).
+
+```{r}
+camera_msigdb_H_1st_coef_list_all <- list()
+fry_msigdb_H_1st_coef_list_all <- list()
+for (i in names(fit_list_all)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 1.5) {
+        idx <- ids2indices(Hs.H, id=qlf_1st_coef_list_all[[i]]$table$entrezid)
+        camera_msigdb_H_1st_coef_list_all[[i]] <- camera(dge_list_all[[i]], idx, qlf_list_all[[i]]$design, 
+                                                      contrast = (ncol(design_list_all[[i]]) - num_clones + 2))
+        cat("                camera significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(camera_msigdb_H_1st_coef_list_all[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_H_1st_coef_list_all[[i]] <- fry(dge_list_all[[i]], idx, qlf_1st_coef_list_all[[i]]$design, 
+                                                contrast = (ncol(design_list_all[[i]]) - num_clones + 2))    
+        cat("                fry significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(fry_msigdb_H_1st_coef_list_all[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing second clone coefficient (typically clone3 - clone1).
+
+```{r}
+camera_msigdb_H_2nd_coef_list_all <- list()
+fry_msigdb_H_2nd_coef_list_all <- list()
+for(i in names(fit_list_all)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        idx <- ids2indices(Hs.H, id=qlf_2nd_coef_list_all[[i]]$table$entrezid)
+        camera_msigdb_H_2nd_coef_list_all[[i]] <- camera(dge_list_all[[i]], idx, qlf_list_all[[i]]$design, 
+                                                      contrast = (ncol(design_list_all[[i]]) - num_clones + 3))
+        cat("                camera significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(camera_msigdb_H_2nd_coef_list_all[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_H_2nd_coef_list_all[[i]] <- fry(dge_list_all[[i]], idx, qlf_2nd_coef_list_all[[i]]$design, 
+                                                contrast = (ncol(design_list_all[[i]]) - num_clones + 3))    
+        cat("                fry significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(fry_msigdb_H_2nd_coef_list_all[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+Testing third clone coefficient (typically clone4 - clone1).
+
+```{r}
+camera_msigdb_H_3rd_coef_list_all <- list()
+fry_msigdb_H_3rd_coef_list_all <- list()
+for(i in names(fit_list_all)) {
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        idx <- ids2indices(Hs.H, id=qlf_3rd_coef_list_all[[i]]$table$entrezid)
+        camera_msigdb_H_3rd_coef_list_all[[i]] <- camera(dge_list_all[[i]], idx, qlf_list_all[[i]]$design, 
+                                                      contrast = (ncol(design_list_all[[i]]) - num_clones + 4))
+        cat("                camera significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(camera_msigdb_H_3rd_coef_list_all[[i]]$FDR < 0.05), "\n")
+        fry_msigdb_H_3rd_coef_list_all[[i]] <- fry(dge_list_all[[i]], idx, qlf_3rd_coef_list_all[[i]]$design, 
+                                                contrast = (ncol(design_list_all[[i]]) - num_clones + 4))    
+        cat("                fry significant MSigDB hallmark genesets (FDR < 5%): ", 
+           sum(fry_msigdb_H_3rd_coef_list_all[[i]]$FDR < 0.05), "\n")
+    }
+}
+```
+
+```{r}
+de_results_list_all <- list()
+```
+
+```{r}
+de_results_list_all[["camera"]] <- list()
+de_results_list_all[["camera"]][["c2"]] <- list()
+de_results_list_all[["camera"]][["c6"]] <- list()
+de_results_list_all[["camera"]][["H"]] <- list()
+```
+
+```{r}
+de_results_list_all[["camera"]][["c2"]][["1st_coef"]] <- camera_msigdb_c2_1st_coef_list_all
+de_results_list_all[["camera"]][["c2"]][["2nd_coef"]] <- camera_msigdb_c2_2nd_coef_list_all
+de_results_list_all[["camera"]][["c2"]][["3rd_coef"]] <- camera_msigdb_c2_3rd_coef_list_all
+de_results_list_all[["camera"]][["c6"]][["1st_coef"]] <- camera_msigdb_c6_1st_coef_list_all
+de_results_list_all[["camera"]][["c6"]][["2nd_coef"]] <- camera_msigdb_c6_2nd_coef_list_all
+de_results_list_all[["camera"]][["c6"]][["3rd_coef"]] <- camera_msigdb_c6_3rd_coef_list_all
+de_results_list_all[["camera"]][["H"]][["1st_coef"]] <- camera_msigdb_H_1st_coef_list_all
+de_results_list_all[["camera"]][["H"]][["2nd_coef"]] <- camera_msigdb_H_2nd_coef_list_all
+de_results_list_all[["camera"]][["H"]][["3rd_coef"]] <- camera_msigdb_H_3rd_coef_list_all
+```
+
+```{r}
+de_results_list_all[["fry"]] <- list()
+de_results_list_all[["fry"]][["c2"]] <- list()
+de_results_list_all[["fry"]][["c6"]] <- list()
+de_results_list_all[["fry"]][["H"]] <- list()
+de_results_list_all[["fry"]][["c2"]][["1st_coef"]] <- fry_msigdb_c2_1st_coef_list_all
+de_results_list_all[["fry"]][["c2"]][["2nd_coef"]] <- fry_msigdb_c2_2nd_coef_list_all
+de_results_list_all[["fry"]][["c2"]][["3rd_coef"]] <- fry_msigdb_c2_3rd_coef_list_all
+de_results_list_all[["fry"]][["c6"]][["1st_coef"]] <- fry_msigdb_c6_1st_coef_list_all
+de_results_list_all[["fry"]][["c6"]][["2nd_coef"]] <- fry_msigdb_c6_2nd_coef_list_all
+de_results_list_all[["fry"]][["c6"]][["3rd_coef"]] <- fry_msigdb_c6_3rd_coef_list_all
+de_results_list_all[["fry"]][["H"]][["1st_coef"]] <- fry_msigdb_H_1st_coef_list_all
+de_results_list_all[["fry"]][["H"]][["2nd_coef"]] <- fry_msigdb_H_2nd_coef_list_all
+de_results_list_all[["fry"]][["H"]][["3rd_coef"]] <- fry_msigdb_H_3rd_coef_list_all
+```
+
+```{r}
+de_results_list_all[["design_list"]] <- design_list_all
+de_results_list_all[["dge_list"]] <- dge_list_all
+de_results_list_all[["fit_list"]] <- fit_list_all
+de_results_list_all[["qlf_list"]] <- qlf_list_all
+de_results_list_all[["qlf_1st_coef_list"]] <- qlf_1st_coef_list_all
+de_results_list_all[["qlf_2nd_coef_list"]] <- qlf_2nd_coef_list_all
+de_results_list_all[["qlf_3rd_coef_list"]] <- qlf_3rd_coef_list_all
+de_results_list_all[["sce_list_unst"]] <- sce_list_filt
+```
+
+```{r}
+data_dir
+```
+
+```{r}
+saveRDS(object = de_results_list_all, 
+    file = file.path(data_dir, 
+    paste0(params$callset, ".de_results_all_cells.rds")))
+```
+
+```{r}
+pryr::object_size(de_results_list_all)
+```
+
+### Camera results
+
+```{r}
+fdr_thresh <- 0.05
+df_camera_sig_all <- data_frame()
+for (geneset in names(de_results_list_all[["camera"]])) {
+    for (coeff in names(de_results_list_all[["camera"]][[geneset]])) {
+        for (donor in names(de_results_list_all[["camera"]][[geneset]][[coeff]])) {
+            tmp <- de_results_list_all[["camera"]][[geneset]][[coeff]][[donor]]
+            tmp <- tmp[tmp$FDR < 0.05,]
+            if (nrow(tmp) > 0.5) {
+                tmp[["collection"]] <- geneset
+                tmp[["geneset"]] <- rownames(tmp)
+                tmp[["coeff"]] <- coeff
+                tmp[["donor"]] <- donor
+                df_camera_sig_all <- bind_rows(df_camera_sig_all, tmp)
+            }
+        }
+    }
+}
+```
+
+```{r}
+nrow(df_camera_sig_all)
+```
+
+```{r}
+head(df_camera_sig_all)
+```
+
+```{r}
+df_camera_sig_all <- dplyr::mutate(df_camera_sig_all,
+                              contrast = plyr::mapvalues(coeff, from = c("1st_coef", "2nd_coef", "3rd_coef"), to = c("clone2 - clone1", "clone3 - clone1", "clone4 - clone1")),
+                              msigdb_collection = plyr::mapvalues(collection, from = c("c2", "c6", "H"), to = c("MSigDB curated (c2)", "MSigDB oncogenic (c6)", "MSigDB Hallmark")))
+```
+
+```{r}
+head(df_camera_sig_all)
+```
+
+```{r}
+table(df_camera_sig_all[["contrast"]])
+```
+
+```{r}
+options(repr.plot.height = 9, repr.plot.width = 12)
+ggplot(df_camera_sig_all, aes(y = -log10(PValue), x = donor, colour = contrast)) +
+    geom_sina(alpha = 0.7) +
+    facet_wrap(~msigdb_collection, scales = "free_x") + 
+    ggthemes::scale_colour_few() +
+    coord_flip() + ggtitle("All cells")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.camera_pvals.png")),
+        width = 12, height = 9)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.camera_pvals.pdf")),
+        width = 12, height = 9)
+```
+
+```{r}
+options(repr.plot.height = 10, repr.plot.width = 12)
+group_by(df_camera_sig_all, donor, msigdb_collection, contrast) %>% 
+    summarise(n_sig = n()) %>%
+    ungroup() %>%
+ggplot(aes(y = n_sig, x = reorder(donor, n_sig, max), colour = contrast)) +
+    geom_point(alpha = 0.7, size = 2) +
+    facet_wrap(~msigdb_collection, scales = "free_x") + 
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Donor") + ylab("Number of significant genesets") +
+    ggtitle("Camera gene set enrichment results - all cells")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_genesets.v1.png")),
+        width = 12, height = 10)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_genesets.v1.pdf")),
+        width = 12, height = 10)
+```
+
+```{r}
+options(repr.plot.height = 10, repr.plot.width = 12)
+group_by(df_camera_sig_all, donor, msigdb_collection) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(n_sig = n()) %>%
+    ungroup() %>%
+ggplot(aes(y = n_sig, x = reorder(donor, n_sig, max))) +
+    geom_point(alpha = 0.7, size = 3) +
+    facet_wrap(~msigdb_collection, scales = "free_x") + 
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Donor") + ylab("Number of significant genesets") +
+    ggtitle("Camera gene set enrichment results (all cells)")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_genesets.v2.png")),
+        width = 12, height = 10)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_genesets.v2.pdf")),
+        width = 12, height = 10)
+```
+
+```{r}
+df_camera_sig_all %>% dplyr::filter(donor == "sohd", collection == "H") 
+```
+
+```{r}
+df_camera_sig_all %>% dplyr::filter(donor == "laey", collection == "H") 
+```
+
+```{r}
+df_camera_sig_all %>% dplyr::filter(donor == "wetu", collection == "H") 
+```
+
+```{r}
+df_camera_sig_all %>% dplyr::filter(collection == "H") %>% dplyr::arrange(FDR) %>% head
+```
+
+```{r}
+table(de_results_list_all[["sce_list_unst"]][["sohd"]]$assigned)
+```
+
+```{r}
+table(de_results_list_all[["sce_list_unst"]][["sehl"]]$assigned)
+```
+
+```{r}
+table(de_results_list_all[["sce_list_unst"]][["qayj"]]$assigned)
+```
+
+```{r}
+table(de_results_list_all[["sce_list_unst"]][["laey"]]$assigned)
+```
+
+```{r}
+table(de_results_list_all[["sce_list_unst"]][["wetu"]]$assigned)
+```
+
+
+```{r}
+df_camera_sig_all %>% dplyr::filter(donor == "sehl", collection == "H")  %>% dplyr::arrange(FDR)
+```
+
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 5)
+if (is.numeric(de_results_list_all$qlf_2nd_coef_list$sehl$table$logFC)) {
+    idx <- ids2indices(Hs.H, id=de_results_list_all$qlf_2nd_coef_list$sehl$table$entrezid)
+    barcodeplot(de_results_list_all$qlf_2nd_coef_list$sehl$table$logFC, index=idx$HALLMARK_E2F_TARGETS, 
+            index2=idx$HALLMARK_G2M_CHECKPOINT, xlab = "logFC", main="sehl: Clone3 - Clone1\n HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT")
+}
+```
+
+```{r}
+df_camera_sig_all %>% dplyr::filter(donor == "laey", collection == "H") %>% dplyr::arrange(FDR)
+```
+
+
+```{r}
+options(repr.plot.width = 11, repr.plot.height = 7)
+df_camera_sig_all %>% dplyr::filter(collection == "H") %>% group_by(geneset, contrast, Direction) %>% 
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max), colour = Direction, shape = contrast)) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB Hallmark gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_hallmark_genesets.v1.png")),
+        width = 11, height = 7)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_hallmark_genesets.v1.pdf")),
+        width = 11, height = 7)
+```
+
+```{r}
+options(repr.plot.width = 11, repr.plot.height = 7.5)
+df_camera_sig_all %>% dplyr::filter(collection == "H") %>% group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max))) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB Hallmark gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_hallmark_genesets.v2.png")),
+        width = 11, height = 7.5)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_hallmark_genesets.v2.pdf")),
+        width = 11, height = 7.5)
+```
+
+```{r}
+options(repr.plot.width = 11, repr.plot.height = 7.5)
+df_camera_sig_all %>% dplyr::filter(collection == "c6") %>% group_by(geneset, contrast, Direction) %>% 
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max), colour = Direction, shape = contrast)) +
+    geom_point(alpha = 0.7, size = 3) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB oncogenic gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_oncogenic_genesets.png")),
+        width = 11, height = 7.5)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_oncogenic_genesets.pdf")),
+        width = 11, height = 7.5)
+```
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 14)
+df_camera_sig_all %>% dplyr::filter(collection == "c2") %>% group_by(geneset, contrast, Direction) %>% 
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::filter(geneset %in% geneset[n_donors > 6.5]) %>% dplyr::mutate(geneset_short = substr(geneset, 1, 40)) %>%
+ggplot(aes(y = n_donors, x = reorder(geneset_short, n_donors, max), colour = Direction, shape = contrast)) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(14) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB curated (c2) gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_c2_genesets.v1.png")),
+        width = 12, height = 14)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_c2_genesets.v1.pdf")),
+        width = 12, height = 14)
+```
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 14)
+df_camera_sig_all %>% dplyr::filter(collection == "c2") %>% group_by(geneset, contrast, Direction) %>% 
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::filter(geneset %in% geneset[n_donors > 6.5]) %>% dplyr::mutate(geneset_short = substr(geneset, 1, 40)) %>%
+ggplot(aes(y = n_donors, x = reorder(geneset_short, n_donors, max), colour = contrast, shape = contrast)) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(14) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB curated (c2) gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_c2_genesets.v2.png")),
+        width = 12, height = 14)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_c2_genesets.v2.pdf")),
+        width = 12, height = 14)
+```
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 14)
+df_camera_sig_all %>% dplyr::filter(collection == "c2") %>% group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::filter(geneset %in% geneset[n_donors > 19.5]) %>% dplyr::mutate(geneset_short = substr(geneset, 1, 40)) %>%
+ggplot(aes(y = n_donors, x = reorder(geneset_short, n_donors, max))) +
+    geom_segment(aes(x = reorder(geneset_short, n_donors, max), xend = reorder(geneset_short, n_donors, max), y = 0, yend = n_donors),
+                alpha = 0.5) +
+    geom_point(colour = "gray40", size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_classic(14) + ylim(0, 31) +
+    xlab("Gene set") + ylab("Number of significant donors")  +
+    ggtitle("Camera MSigDB curated (c2) gene set enrichment")
+
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_c2_genesets.v3.png")),
+        width = 12, height = 14)
+ggsave(file.path(to_working_dir, "figures/clonality/de_pathways/", 
+        paste0(params$callset, ".all_cells.nsig_c2_genesets.v3.pdf")),
+        width = 12, height = 14)
+```
+

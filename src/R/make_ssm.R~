@@ -1,0 +1,107 @@
+"
+Make SSM format data from VAF site data
+
+Usage:
+make_ssm.R --input_file <DATA_IN> --output_file <DATA_OUT> [-hv]
+
+Options:
+-i --input_file <DATA_IN>      input file
+-o --output_file <DATA_OUT>    output file
+-h --help                      show this
+-v --version                   print version and stop
+
+This program reads in VAF data prepared by Petr Danecek and produces a data file
+ in SSM format required for input to phyloWGS.
+
+The program returns results as a .txt (tab-delimited) file.
+
+Davis McCarthy
+March 2017
+" -> doc
+
+## Script to identify HIPSCI donor for a cell's VCF file
+suppressPackageStartupMessages(library(tidyverse))
+
+main <- function(input_vcf, output_prefix, donor_lines, donor_vcf, fasta_idx) {
+    ## define samples in donor VCF
+    hdr_donor <- scanVcfHeader(donor_vcf)
+    ave_allelic_corr <- wght_ave_allelic_corr <-
+        rep(0, length(samples(hdr_donor)))
+    names(ave_allelic_corr) <- names(wght_ave_allelic_corr) <-
+        samples(hdr_donor)
+    ## define donors and names
+    short_names <- gsub("HPSI[0-9a-z]+-", "", names(ave_allelic_corr))
+    these_donors <- strsplit(donor_lines, ";")[[1]]
+    these_donors_idx <- grepl(gsub(";", "|", donor_lines),
+                              names(ave_allelic_corr))
+    ## define output data frame
+    output_df <- init_output_df(input_vcf, ave_allelic_corr,
+                                wght_ave_allelic_corr, these_donors,
+                                short_names)
+    ## Read in VCF from this sample
+    vcf_sample <- read_sample_vcf(input_vcf)
+    if (length(vcf_sample) < 1) {
+        write.csv(output_df, file = paste0(output_prefix, ".csv"),
+                  row.names = FALSE)
+        message("No variants in sample VCF after filtering.\n")
+        return("Done.")
+    }
+    output_df$nvars_called <- length(vcf_sample)
+    message("...read ", length(vcf_sample), " variants from sample VCF\n")
+    ## Read in Donor VCF
+    donor_data <- read_donor_vcf(donor_vcf)
+    isSNV_idx <- donor_data$isSNV_idx
+    vcf_donor <- donor_data$vcf
+    if (!any(isSNV_idx)) {
+        write.csv(output_df, file = paste0(output_prefix, ".csv"),
+                  row.names = FALSE)
+        message("No single-nucleotide variants overlapping in sample VCF and Donor VCF\n")
+        return("Done.")
+    }
+    vcf_donor <- vcf_donor[isSNV_idx]
+    ## get snp matrices
+    snpmat_list <- get_snp_matrices(vcf_sample, vcf_donor, short_names)
+    if (snpmat_list$stop_program) {
+        write.csv(output_df, file = paste0(output_prefix, ".csv"),
+                  row.names = FALSE)
+        message("No common variants overlapping in sample VCF and Donor VCF\n")
+        return("Done.")
+    }
+    sm_sample <- snpmat_list$sm_sample
+    sm_donor <- snpmat_list$sm_donor
+    rel_scores <- compute_relatedness_score(sm_sample, sm_donor, short_names)
+    output_df <- full_output_df(input_vcf, vcf_sample, vcf_donor, sm_sample,
+                                rel_scores$ave_allelic_corr,
+                                rel_scores$wght_ave_allelic_corr,
+                                these_donors, short_names)    
+    ## define best match from those donors known to have been used
+    wm <- which.max(ave_allelic_corr[these_donors_idx])
+    best_donor_long_id <- output_df$donor_long_id[these_donors_idx][wm]
+    output_df$best_match[output_df$donor_long_id == best_donor_long_id] <- TRUE
+    output_df <- compute_confidence_score(output_df, these_donors, short_names)
+    ## write output to file
+    message("Writing output to CSV\n")
+    write.csv(output_df, file = paste0(output_prefix, ".csv"),
+              row.names = FALSE)
+    return("Done.")
+}
+
+## Get command line options
+opt <- docopt::docopt(doc, version = "version 0.0.1\n")
+
+message("working directory: ", getwd(), "\n")
+message("input vcf: ", opt$input_file, "\n")
+message("output prefix: ", opt$output_prefix, "\n")
+message("donor vcf: ", opt$donor_vcf, "\n")
+message("lines used: ", opt$donor_lines, "\n")
+
+## Run main function
+main(opt$input_file, opt$output_file)
+
+## # params for testing
+## opt <-  list()
+## opt[["input_file"]] <- "data_raw/scrnaseq/run_21999/vcf/21999_1#56.filtered.vcf.gz"
+## opt[["output_prefix"]] <- "data_raw/scrnaseq/run_21999/donor_id/tmp.donor_id"
+## opt[["donor_vcf"]] <- "data_raw/scrnaseq/run_21999/vcf/21999_1#56.filtered.hipsci.overlap.vcf.gz"
+## opt[["donor_lines"]] <- "fasu_2;kegd_2;zerv_8;zoio_2;xojn_3;fuai_1;eevy_7;oaqd_3;paab_4;sita_1;toss_3;zoio_2;heth_1;jogf_2;pelm_3;vass_1;wibj_2;zapk_3"
+

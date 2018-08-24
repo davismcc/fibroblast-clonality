@@ -1,0 +1,287 @@
+---
+title: "`r paste(params$title, params$donor`"
+author: "`r params$author`"
+date: "`r Sys.Date()`"
+params:
+    donor: "NULL"
+    author: "Davis McCarthy"
+    title: "Canopy analysis:"
+    to_working_dir: "./"
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        highlight: tango
+        number_sections: true
+        code_folding: hide
+bibliography: reports/clonality.bib
+csl: biomed-central.csl
+---
+
+# Introduction
+
+This document runs and presents a Canopy analysis of clonality for the
+donor `r params$donor` from fibroblast deep exome data.
+
+Somatic mutation sites ("variants" or "sites" or "SSMs") are defined
+by conducting a Fisher Exact Test comparing the variant allele
+frequency (VAF) of the alternative allele between iPSC whole-exome
+data and fibroblast whole-exome data. Sites with a p-value less than
+1e-04 are deemed "significant" and are used for clonal inference
+with [Canopy](https://github.com/yuchaojiang/Canopy) [@Jiang2016-ra].
+
+Canopy uses the VAF in the fibroblast deep-exome data to infer
+phylogenetic tree structures for the fibroblast tissue using the
+following steps:
+
+1. Cluster variants;
+2. Use Bayesian Information Criterion (BIC) to decide on optimal
+   number of clusters;
+3. Use Markov Chain Monte Carlo sampling to generate clonal trees from
+   the model's posterior likelihood;
+4. Use BIC on MCMC samples to decide on the best number of clones in
+   the tree;
+5. Analyse sampled trees to infer clonal structure and configuration
+   of variants tagging specific clones.
+
+We will use the output of Canopy to define the inferred tree structure
+defining the clonal populations present in the original fibroblast
+cell lines, and then assign single cells to these clonal populations
+in downstream analyses.
+
+This document produces the following output files:
+
+*
+*
+*
+*
+
+
+
+# Setup
+
+This analysis uses the following packages available
+from [CRAN](https://cran.r-project.org/)
+and [Bioconductor](http://www.bioconductor.org/).
+
+```{r setup}
+library(tidyverse)
+library(ggthemes)
+library(cowplot)
+library(stringi)
+library(viridis)
+library(ggbeeswarm)
+library(ggridges)
+library(ggtree)
+library(Canopy)
+```
+
+We also add some helper functions.
+
+```{r setup-src-tools}
+source("../src/R/clone_id_tools.R")
+```
+
+```{r setup-rmote, include=FALSE}
+source("../src/R/clone_id_tools.R")
+if (interactive()) {
+    rmote::rmote_on(server_dir="/hps/nobackup/hipsci/scratch/singlecell_fibroblast/figures/servr")
+    rmote::rmote_device(width=900, height=600)
+}
+```
+
+
+# Load exome site data
+
+We first need to load the exome data that we use to define significant
+mutation sites.
+
+Petr Danecek prepared the exome dataset as follows. For each donor: 
+
+* detect all sites where we see a non-reference base in the pileup;
+* require minimum per-sample coverage of 20 reads;
+* require at least 3 alternate reads in either fibroblast or iPS;
+* require allele frequency in ExAC and 1000GP < 5%.
+
+Fisher's Exact Test is then performed on these variants to detect 
+fibroblast-iPS pairs with significantly changed proportion of REF/ALT 
+reads.  
+
+On output a tab-delimited text file is produced which includes fields
+shown below (*) and which should be further filtered, depending on the
+purpose of the analysis. 
+
+
+```{r load-exome-sites}
+exome_sites <- read_tsv(
+    "Data/exome-point-mutations/highcov.2017-05-26.txt.gz",
+    col_types = cols(), comment = "#",
+    col_names = c("chrom", "pos", "fibro", "ips", "ref", "alt",
+                  "Fisher_Pval_fibro_ips_locov",
+                  "Fisher_Pval_fibro_locov_fibro_hicov", 
+                  "propALT_fibro_locov", "propALT_fibro_hicov",
+                  "nREF_fibro_locov", "nALT_fibro_locov",
+                  "nREF_ips_locov", "nALT_ips_locov",
+                  "nREF_fibro_hicov", "nALT_fibro_hicov"))
+exome_sites <- dplyr::mutate(
+    exome_sites, propALT_ips_locov = (nALT_ips_locov /
+                                      (nREF_ips_locov + nALT_ips_locov)),
+    donor_short_id = gsub("HPS.*-", "", fibro),
+    fdr = p.adjust(Fisher_Pval_fibro_ips_locov, method = "BH"),
+    var_id = paste0(chrom, ":", pos, "_", ref, "_", alt))
+```
+
+For clonal inference, we apply the following filters:
+
+* a Benjamini-Hochberg FDR of less than 1%;
+* a minimum VAF in high-coverage fibroblast of 1%;
+* a maximum VAF in high-coverage fibroblast of 70% (to avoid the rare
+  possibility of a homozygous alternative mutation);
+* at least 3 alternative alleles observed for the site;
+* require uniqueness of sites across donors as it is highly unlikely
+  to observe the same point mutations and they are most likely
+  artefacts of some sort.
+
+
+```{r filter-sites}
+exome_sites_sig <- exome_sites %>%
+    dplyr::filter(fdr < 0.01, propALT_fibro_hicov > 0.01,
+                  propALT_fibro_hicov < 0.7, nALT_fibro_hicov > 2.5)
+
+nonuniq_sites <- exome_sites_sig %>% group_by(var_id) %>%
+    summarise(n_donors = length(unique(donor_short_id))) %>%
+    filter(n_donors > 1.5)
+
+exome_sites_sig <- filter(exome_sites_sig,
+                          !(var_id%in% nonuniq_sites[["var_id"]]))
+```
+
+This leaves us with `r nrow(exome_sites_sig)` variants across 
+`r length(unique(exome_sites_sig[["donor_short_id"]]))` donors for 
+Canopy analysis.
+
+
+# Analysis with Canopy
+
+## Prepare input for this donor
+
+Prepare input for Canopy from significant exome sites for donor `r
+params$donor`. This involves defining the matrix `R` of read counts
+for the alternate allele and the matrix `X` of total read counts for
+every significant site for the donor.
+
+```{r canopy-input-our-data}
+canopy_input <- list()
+tmpdf <- exome_sites_sig %>%
+    dplyr::filter(donor_short_id == params$donor)
+if (nrow(tmpdf) == 0)
+    stop("No variants left after filtering!\n")
+canopy_input[["R"]] <- as.matrix(tmpdf[, "nALT_fibro_hicov"])
+canopy_input[["X"]] <- canopy_input[["R"]] + as.matrix(tmpdf[, "nREF_fibro_hicov"])
+rownames(canopy_input[["R"]]) <- rownames(canopy_input[["X"]]) <- tmpdf[["var_id"]]
+colnames(canopy_input[["X"]]) <- "nALL_fibro_hicov"
+```
+
+
+## Canopy analysis: cluster variants
+
+The first step of the Canopy analysis is to cluster the variants.
+
+```{r canopy-analysis}
+R <- canopy_input$R
+X <- canopy_input$X
+num_cluster <- 2:8
+num_run <- 10
+tau_kplus1 <- 0.05 # pre-specified proportion of noise component
+canclust <- canopy.cluster(R = R, X = X,
+                            num_cluster = num_cluster,
+                            num_run = num_run,
+                            Tau_Kplus1 = tau_kplus1)
+str(canclust)
+
+# BIC to determine the optimal number of mutation clusters
+graphics.off()
+data_frame(bic_output = canclust$bic_output,
+           num_cluster = num_cluster) %>%
+    ggplot(aes(x = num_cluster, y = bic_output)) +
+    geom_line(colour = "gray50") + ylab("BIC") +
+    geom_point(colour = "firebrick") + xlab("Number of mutation clusters") +
+    ggtitle("vass: BIC for model selection") + theme_bw(20)
+
+# Visualization of clustering result
+data_frame(sna_cluster = as.factor(canclust$sna_cluster), # cluster identity for each mutation
+           vaf = (R/X)[,1]) %>%
+    ggplot(aes(x = vaf, fill = sna_cluster)) +
+    geom_density(alpha = 0.6) + xlab("Variant allele frequency") +
+    scale_fill_hue() + theme_bw(20) +
+    ggtitle("SNA variant allele frequency by Canopy cluster")
+
+
+## MCMC sampling
+projectname <- 'vass'
+K <- 2:6 # number of subclones
+numchain <- 15 # number of chains with random initiations
+sampchain <- canopy.sample.cluster.nocna(
+    R = R, X = X, sna_cluster = canclust$sna_cluster,
+    K = K, numchain = numchain,
+    max.simrun = 100000, min.simrun = 20000,
+    writeskip = 200, projectname = projectname,
+    cell.line = FALSE, plot.likelihood = FALSE)
+
+## BIC for model selection
+burnin <- 100
+thin <- 5
+bic <- canopy.BIC(sampchain, projectname = projectname, K = K,
+                  numchain = numchain, burnin = burnin, thin = thin, pdf = TRUE)
+
+graphics.off()
+data_frame(K = as.integer(K), BIC = bic) %>%
+    ggplot(aes(x = K, y = BIC)) +
+    geom_vline(xintercept = K[which.max(bic)], linetype = 2, colour = "gray50") +
+    geom_line(colour = "gray50") + geom_point(colour = "firebrick", size = 4) +
+    xlab("Number of subclones") + theme_bw(20) +
+    ggtitle("Model selection for vass")
+
+optK <- K[which.max(bic)]
+
+
+## posterior tree evaluation ## 
+post <- canopy_post(sampchain = sampchain, projectname = projectname, K = K,
+                    numchain = numchain, burnin = burnin, thin = thin,
+                    optK = optK, C = NULL, post.config.cutoff = 0.01)
+samptreethin <- post[[1]]   # list of all post-burnin and thinning trees
+samptreethin.lik <- post[[2]]   # likelihoods of trees in samptree
+config <- post[[3]]
+config.summary <- post[[4]]
+print(config.summary)
+                                        # first column: tree configuration
+                                        # second column: posterior configuration probability in the entire tree space
+                                        # third column: posterior configuration likelihood in the subtree space
+                                        # note: if modes of posterior probabilities aren't obvious, run sampling longer.
+saveRDS(post, file = "../Data/processed/canopy_full_post_results.rds")
+plot_tree(post[[1]][[1]], "vass posterior tree: 1") 
+canopy_output_to_df(post[[1]][[1]]) %>%
+    ggplot(aes(x = vaf, y = clone, fill = clone)) +
+    geom_density_ridges() +
+    scale_fill_viridis(option = "B", discrete = TRUE)
+
+plist <- list()
+for (i in 1:6) {
+    plist[[i]] <- plot_tree(post[[1]][[i]],
+                            paste("vass posterior tree:", i)) 
+}
+plot_grid(plotlist = plist, nrow = 3)
+
+## tree output and plot ##
+# choose the configuration with the highest posterior likelihood
+vass.config.i <- config.summary[which.max(config.summary[,3]),1]
+cat('Configuration', vass.config.i, 'has the highest posterior likelihood.\n')
+vass.output.tree <- canopy.output(post, vass.config.i, C = NULL)
+
+
+plot_tree(vass.output.tree, "vass posterior tree") 
+
+results_df <- canopy_output_to_df(vass.output.tree)
+results <- list(tree = vass.output.tree, df = results_df)
+
+```

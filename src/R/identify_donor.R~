@@ -1,0 +1,135 @@
+"
+Identify donor from a cell's filtered VCF file
+
+Usage:
+compile_report.R --input_file <DATA_IN> --output_prefix <PRFX_OUT>
+                 [--donor_vcf <DONOR_VCF> --fasta_idx <FASTA_IDX> -hv]
+
+Options:
+-i --input_file <DATA_IN>      input file
+-o --output_prefix <HTML_OUT>  prefix for output files; .RData, .feather and .csv files produced
+-d --donor_vcf <DONOR_VCF>     VCF file containing the genotype data for all donors [default: '/nfs/research2/stegle/projects/hipsci/data/genotypes/imputed/REL-2014-11_SS/hipsci.wec.gtarray.HumanCoreExome-12_v1_0.REL-2014-11.imputed_phased.20151005.genotypes.gdid.mac1.recode.WGS.vcf.gz']
+-f --fasta_idx <FASTA_IDX>     FASTA index file for FASTA file that was used for read alignment [default: '/nfs/research2/stegle/datasets/references/human/STAR_GRCh37.75_ERCC/GRCh37.p13.genome.ERCC92.fa.fai']
+-h --help                      show this
+-v --version                   print version and stop
+
+This program does compares called genotypes from RNA-seq reads for a cell to
+genotype data for all HipSci donors to find the best match in terms of
+(weighted) average genotypic correlation across called variants.
+
+The program returns results as .RData, .feather and .csv files.
+
+This program requires the R packages 'VariantAnnotation' and 'snpStats'
+(Bioconductor) and 'feather' (CRAN).
+
+Davis McCarthy
+December 2015
+" -> doc
+
+## Script to identify HIPSCI donor for a cell's VCF file
+library(scater)
+library(VariantAnnotation)
+library(snpStats)
+
+readVcfInChunks <- function(vcf_to_read, filt_object) {
+    ## read each chromosome in 50 chunks
+    vcf_out <- NULL
+    for (chr in 1:22) {
+        cat("Processing chr", chr, "\n")
+        seqs <- seq(0, seq_lengths[paste0("chr", chr), 2], length.out = 11)
+        for (i in 1:50) {
+            cat("    chunk ", i, "...\n")
+            rng <- GRanges(seqnames = as.character(chr),
+                           ranges = IRanges(start = seqs[i], end = seqs[i + 1]))
+            vcf_chunk <- readVcf(vcf_to_read, "GRCh37", param = rng)
+            vcf_chunk <- vcf_chunk[isSNV(vcf_chunk)]
+            cat("       ", length(vcf_chunk), "SNVs in VCF chunk\n")
+            ovlap <- findOverlaps(vcf_chunk, filt_object, type = "any")
+            vcf_chunk_filt <- vcf_chunk[queryHits(ovlap)]
+            cat("       ", length(vcf_chunk_filt), "SNVs overlapping sample VCF\n")
+            if (is.null(vcf_out))
+                vcf_out <- vcf_chunk_filt
+            else
+                vcf_out <- rbind(vcf_out, vcf_chunk_filt)
+        }
+    }
+    vcf_out
+}
+
+
+## Define main function
+main <- function(input_file, output_prefix, donor_vcf, fasta_idx) {
+    ## Define files and other global variables
+    hipsci_file <- donor_vcf
+    sample_file <- input_file
+    seq_lengths <- read.delim(fasta_idx, header = FALSE,
+                              stringsAsFactors = FALSE)
+    
+
+}
+
+## Get command line options
+opt <- docopt::docopt(doc, version = "version 0.0.1\n")
+
+## Run main function
+main(opt$input_file, opt$output_prefix, opt$donor_vcf, opt$fasta_idx)
+
+
+
+## Define files and other global variables
+hipsci_file <- "/nfs/research2/stegle/projects/hipsci/data/genotypes/imputed/REL-2014-11_SS/hipsci.wec.gtarray.HumanCoreExome-12_v1_0.REL-2014-11.imputed_phased.20151005.genotypes.gdid.mac1.recode.WGS.vcf.gz"
+sample_file <- "19776_1#1_filtered.vcf"
+fasta_idx <- "/nfs/research2/stegle/datasets/references/human/STAR_GRCh37.75_ERCC/GRCh37.p13.genome.ERCC92.fa.fai"
+seq_lengths <- read.delim(fasta_idx, header = FALSE, stringsAsFactors = FALSE)
+rownames(seq_lengths) <- seq_lengths[, 1]
+
+## Read in VCF from this sample
+vcf_sample <- readVcf(sample_file, "GRCh37")
+keep_seqs <- seqnames(vcf_sample)  %in% paste0("chr", c(1:22, "X", "Y", "MT"))
+vcf_sample_filt <- vcf_sample[keep_seqs]
+vcf_sample_filt <- vcf_sample_filt[isSNV(vcf_sample_filt)]
+sm_sample <- genotypeToSnpMatrix(geno(vcf_sample_filt, "GT"),
+                                 ref = ref(vcf_sample_filt),
+                                 alt = alt(vcf_sample_filt))
+sm_sample
+new_snp_names <- paste0("snp_",
+                        gsub("chr", "",
+                             gsub(":", "_",
+                                  gsub("_[ATCG]/[ATCG]", "",
+                                       sm_sample$map$snp.names))))
+sm_sample$map$snp.names <- colnames(sm_sample$genotypes) <- new_snp_names
+sm_sample$map$quality <- qual(vcf_sample_filt)
+sm_sample$map$weight <- qual(vcf_sample_filt) / sum(qual(vcf_sample_filt))
+summary(sm_sample$map$weight)
+
+## Read in HipSci VCF
+## the HipSci VCF is insanely large, so will need to chunk this bastard
+#vcf_hipsci <- readVcf(hipsci_file, "GRCh37")
+tab_hipsci <- TabixFile(hipsci_file)
+vcf_hipsci <- readVcfInChunks(tab_hipsci, vcf_sample_filt)
+sm_hipsci <- genotypeToSnpMatrix(
+    geno(vcf_hipsci, "GT"), ref = ref(vcf_hipsci), alt = alt(vcf_hipsci))
+        
+sm_hipsci
+snp_stats_hipsci <- col.summary(sm_hipsci$genotypes)
+donor_stats_hipsci <- row.summary(sm_hipsci$genotypes)
+seqnames(vcf_hipsci_filt)
+
+## standardise genotypes
+sm_sample_stand$genotype <- ( (sm_sample$genotype[1, ] - 2 *
+                               snp_stats_hipsci$RAF)
+    / 2 * snp_stats_hipsci$RAF * (1 - snp_stats_hipsci$RAF) )
+
+sm_hipsci_stand$genotype <- t( (t(sm_hipsci$genotype) - 2 *
+                               snp_stats_hipsci$RAF)
+    / 2 * snp_stats_hipsci$RAF * (1 - snp_stats_hipsci$RAF) )
+
+## compute weighted correlation between genotypes of each hipsci donor and the sample
+wght_corr_mat <- t( (t(sm_hipsci_stand$genotype) * sm_sample_stand$genotype *
+                     sm_sample$map$weight))
+wght_corr_vec <- rowMeans(wght_corr_mat)
+names(wght_corr_vec) <- rownames(sm_hipsci_stand$genotype)
+
+## then extract the correlation for the donors that we know were used for this
+## experiment
+

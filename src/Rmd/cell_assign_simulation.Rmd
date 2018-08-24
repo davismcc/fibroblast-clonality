@@ -1,0 +1,165 @@
+---
+title: "Simulation for cell assignment to clones"
+to_working_dir: "/Users/huangh/research/cellseq/clonality/fibroblast/reports/"
+output:
+  html_document:
+        toc: false
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: true
+        code_folding: hide
+---
+
+This notebook is for simulating scRNA-seq counts covering genetic variants for 
+assigning cell to known clones. The simulation is based on parameters that are 
+copied, sampled or learned from real data.
+
+1) Clonal tree and genetype (`C`): copied from real data, e.g., inferred from 
+bulk exome data with Canopy
+2) Sequencing depth (`D`): sampled from real data, sequnecing depth is variant
+specific.
+3) Variant allelic frequency (`theta`): learned from real data. The allele
+frequency (VAF) in scRNA-seq ranges from 0 to 1, depending on the allelic
+expression balance (i.e., strand specific expression). Note, this is different 
+from VAF in DNA-seq, which ranges from 0 to 0.5.
+
+
+# load example data for simulation
+```{r}
+donor <- "rozh"
+#"rozh", "vabj", "xugn"#"qolg" #"lexy" #"vass" #"zoxy" "wuye"
+
+data_dir <- "/Users/huangh/research/cellseq/clonality/examples"
+load(paste0(data_dir, "/example_data_", donor, ".RData"))
+```
+
+# Simulation of read counts
+```{r}
+library(cardelino)
+
+set.seed(1) 
+
+C <- tree$Z
+Psi <- tree$P[,1]
+sim_dat <- sim_read_count(C, D, Psi=NULL, means=c(0.03, 0.45), vars=c(0.1, 0.1),
+                          cell_num=300) #c(0.03, 0.45)
+
+A_sim <- sim_dat$A_sim
+D_sim <- sim_dat$D_sim
+I_sim <- sim_dat$I_sim
+
+table(colSums(is.na(D)))
+table(colSums(is.na(D_sim)))
+```
+
+
+## Estimate with Benoulli base model
+```{r}
+library(gridExtra)
+library(ggplot2)
+
+library(latex2exp)
+library(cardelino)
+
+K <- length(Psi)
+Bern_EM <- cell_assign_EM(A_sim, D_sim, C, Psi=rep(1/K, K), model="Bernoulli")
+prob_Bern_EM <- Bern_EM$prob
+Bern_EM$theta
+Bern_EM$logLik
+
+dat <- data.frame(theta1=sim_dat$p_sim[,1], theta2=sim_dat$p_sim[,2])
+
+fig.theta1 <- ggplot(dat, aes(x=theta1)) +
+  geom_histogram(bins=8, colour="black", fill="white") +
+  geom_vline(aes(xintercept=Bern_EM$theta[1]), color="red") + 
+  ylab("variant count") + theme_classic(base_size = 12) + pub.theme()
+
+fig.theta2 <- ggplot(dat, aes(x=theta2)) +
+  geom_histogram(bins=8, colour="black", fill="white") +
+  geom_vline(aes(xintercept=Bern_EM$theta[2]), color="red") +
+  ylab("variant count") + theme_classic(base_size = 12) + pub.theme() 
+```
+
+## tree and confusion matrix
+```{r}
+library(gridExtra)
+library(ggplot2)
+
+assign_0 <- get_prob_label(I_sim)
+assign_1 <- get_prob_label(prob_Bern_EM)
+prob_gap <- get_prob_gap(prob_Bern_EM)
+idx <- prob_gap >= 0.2
+
+sum(idx)
+mean(assign_0 == assign_1)
+mean((assign_0 == assign_1)[idx])
+
+acc = mean((assign_0 == assign_1)[idx])
+confusion_matrix <- as.data.frame(table(assign_0[idx], assign_1[idx]))
+
+confusion.plot <- ggplot(data=confusion_matrix, mapping=aes(x=Var1, y=Var2)) +
+  geom_tile(aes(fill = Freq), colour = "grey") + 
+  xlab("true clone") + ylab("estimated clone") + 
+  geom_text(aes(label = sprintf("%1.0f", Freq)), vjust = 0.5) + 
+  ggtitle(sprintf("confusion matrix (acc=%.1f%%)", acc*100)) + 
+  scale_fill_gradient(low = "white", high = "steelblue") +  
+  theme_grey(base_size = 12) + pub.theme() + 
+  theme(legend.position="none", 
+        panel.grid.major = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank()) 
+```
+
+
+## clonal assignment probability matrix
+```{r}
+library(gridExtra)
+library(ggplot2)
+library(reshape2)
+
+I_sim_use <- I_sim[prob_gap >= 0.2, ]
+prob_EM_use <- prob_Bern_EM[prob_gap >= 0.2, ]
+colnames(I_sim_use) <- colnames(prob_EM_use)
+
+hc <- hclust(dist(prob_EM_use))
+cell_order <- order(I_sim_use[hc$order,] %*% 2^seq_len(dim(I_sim_use)[2]))
+cell_order <- hc$order[cell_order]
+
+nba.m <- melt(I_sim_use[cell_order,]) #hc$order, cell_order
+plot.simulate <- ggplot(nba.m, aes(Var2, Var1, fill = value)) + 
+  geom_tile(show.legend=T) + ggtitle("true clone") + 
+  scale_fill_gradient(low = "white", high = "firebrick4") +
+  ylab(paste("probability for", length(hc$order), "cells")) + 
+  heatmap.theme(legend.position = "none") + pub.theme()
+
+nba.m <- melt(prob_EM_use[cell_order,])
+plot.Bern.EM <- ggplot(nba.m, aes(Var2, Var1, fill = value)) + 
+  geom_tile(show.legend=T) + ggtitle("estimated clone") + 
+  scale_fill_gradient(low = "white", high = "firebrick4") +
+  ylab(paste("probability for", length(hc$order), "cells")) +
+  heatmap.theme(legend.position = "none") + pub.theme()
+```
+
+
+## Save figures
+```{r fig1, fig.width = 10, fig.asp=0.75, fig.align = "center"}
+tree$P[,1] <- 1/length(tree$P)
+fig.tree <- plot_tree(tree=tree) + ylim(0.5, length(tree$P) + 0.2) + pub.theme()
+
+library(ggpubr)
+fig_dir="/Users/huangh/research/cellseq/clonality/figures/simulation/"
+
+fig.output <- ggarrange(fig.tree, fig.theta1, fig.theta2, 
+                        confusion.plot, plot.simulate, plot.Bern.EM,
+                        labels=c("A", "B", "C", "D", "E", "F"), 
+                        heights=c(1,1.5), widths=c(1.2,1,1), ncol=3, nrow=2)
+
+ggsave(paste0(fig_dir,"/simulation_plot_", donor, ".png"),
+       fig.output, height = 7, width = 10, dpi = 300)
+
+fig.output
+```
+

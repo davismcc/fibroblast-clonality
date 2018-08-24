@@ -1,0 +1,104 @@
+---
+title: "`r params$title`"
+author: "`r params$author`"
+date: "`r Sys.Date()`"
+params:
+    input_file: "MISSING"
+    author: "Davis McCarthy"
+    title: "Canopy analysis"
+    donor: "MISSING"
+    to_working_dir: "./"
+    output_file: "MISSING"
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: true
+        code_folding: hide
+
+---
+
+# Introduction
+
+This document reads in a QC'd SingleCellExperiment object and outputs a 
+SingleCellExperiment object (saved to file) for a defined donor (passed as an 
+argument parameter).
+
+The input file used is:
+
+* `r params$input_file`
+
+This document produces the following output files:
+
+* `r params$output_file`
+
+
+# Setup
+
+This analysis uses the following packages available
+from [CRAN](https://cran.r-project.org/)
+and [Bioconductor](http://www.bioconductor.org/).
+
+```{r setup, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(ggthemes)
+library(cowplot)
+library(scater)
+```
+
+
+
+# Load SingleCellExperiment for all donors
+
+Load and filter to specified donor.
+
+```{r load-sce}
+sce_filt <- readRDS(file.path(params$to_working_dir, params$input_file))
+sce_filt[, sce_filt$donor == params$donor]
+```
+
+# Save a list of all cells for the donor
+
+```{r save-cell-list}
+cells <- colnames(sce_filt)[sce_filt$donor == params$donor]
+runs <- gsub("#.*", "", cells)
+bam_list <- paste0("Data/SS2_2017/", runs, "/star/", cells, "/", 
+                cells, ".2pass.Aligned.sortedByCoord.split.realigned.bqsr.bam")
+readr::write_tsv(
+    data.frame(cells = cells),
+    path = file.path(params$to_working_dir, 
+                    paste0("Data/SS2_2017/donor-cell-lists/",
+                            params$donor, ".qc-pass.cells.txt")),
+    col_names = FALSE)
+readr::write_tsv(
+    data.frame(bams = bam_list),
+    path = file.path(params$to_working_dir, 
+                    paste0("Data/SS2_2017/donor-cell-lists/",
+                            params$donor, ".qc-pass.bams.txt")),
+    col_names = FALSE)
+```
+
+# Save an SCE object for the given donor
+
+```{r, save-donor-file}
+cat("....", params$donor, "\n")
+saveRDS(object = sce_filt[, sce_filt$donor == params$donor],
+            file = file.path(params$to_working_dir, params$output_file))
+```
+
+
+# Session info
+
+```{r, sesh-info}
+devtools::session_info()
+```
+
+# References
+
+bibliography: /hps/nobackup/hipsci/scratch/singlecell_fibroblast/reports/clonality.bib
+csl: /hps/nobackup/hipsci/scratch/singlecell_fibroblast/reports/biomed-central.csl
+
+
+

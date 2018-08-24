@@ -1,0 +1,270 @@
+---
+title: "`r params$title`"
+author: "`r params$author`"
+date: "`r Sys.Date()`"
+params:
+    rdata_file: "test.RData"
+    author: "Davis McCarthy"
+    title: "Rough QC Report"
+    to_working_dir: "./"
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        highlight: tango
+        number_sections: true
+        code_folding: hide
+---
+
+# Quick Quality Control
+
+Here we take a quick first look at the data from the provided dataset.
+
+
+```{r load-data, results='hide', message=FALSE}
+library(scater, quietly = TRUE)
+library(knitr, quietly = TRUE)
+library(ggplot2)
+library(viridis)
+library(ggthemes, quietly = TRUE)
+library(cowplot)
+library(magrittr)
+library(destiny)
+## options
+message(cat(paste("Working dir: ", getwd(), "\n")))
+message(cat(params$rdata_file))
+# opts_knit$set(root.dir = as.character(params$to_working_dir))
+#opts_knit$set(root.dir = "../../")
+opts_chunk$set(fig.align = 'center', fig.width = 10, fig.height = 5, dev = 'png',
+               warning = FALSE, message = FALSE)
+message(cat(paste("New Working dir: ", getwd(), "\n")))
+#setwd(params$working_dir)
+## load data
+#rdata_file <- file.path(params$to_working_dir, params$rdata_file)
+#cat(rdata_file)
+sce <- readRDS(params$rdata_file)
+```
+
+
+## Calculate QC metrics
+
+To help with the QC of the dataset, `scater` enables straight-forward 
+calculation of many QC metrics with the `calculateQCMetrics` function. To help 
+produce useful metrics, it is good to identify gene and cell controls, if 
+present. In this case, we use ERCC spike-ins and mitochondrial genes as gene
+controls (called "feature_controls" in `scater).
+
+But first, filter out genes with no expression at all - time-wasters.
+
+```{r filter-no-exprs, results = 'hide'}
+nonzero_genes <- (rowSums(counts(sce)) > 0)
+sum(nonzero_genes)
+sce_filt <- sce[nonzero_genes,]
+```
+
+This leaves us with `r dim(sce_filt)[1]` genes and `r dim(sce_filt)[2]` cells.
+
+However, I will set a low threshold to call an observation "expressed" - any count above zero suffices. Below is a summary of the percentage of counts coming from ERCC spike-in controls and mitochondrial (MT) genes.
+
+
+```{r calculate-qc-metrics}
+count_thresh <- 0
+is_exprs(sce_filt) <- (counts(sce_filt) > count_thresh)
+ercc_genes <- grepl("^ERCC", featureNames(sce_filt))
+mt_genes <- grepl("^MT-", fData(sce_filt)$hgnc_symbol)
+sce_filt <- calculateQCMetrics(sce_filt, 
+    feature_controls = list(ERCC = ercc_genes, MT = mt_genes))
+```
+
+```{r summary-ercc-pct}
+stats <- summary(sce_filt$pct_counts_feature_controls_ERCC)
+kable(data.frame("Stat" = names(stats), "Pct Counts from ERCC" = as.vector(stats)))
+stats_MT <- summary(sce_filt$pct_counts_feature_controls_MT)
+kable(data.frame("Stat" = names(stats_MT), "Pct Counts from MT" = as.vector(stats_MT)))
+```
+
+
+## Expressed genes vs total counts
+
+Plot number of expressed features against total counts, with cells coloured by
+different QC metrics:
+
+```{r plot-pheno-1}
+p1 <- plotPhenoData(sce_filt, 
+              aes(x = log10_total_counts, y = total_features, 
+                  colour =  filter_on_total_features)) +
+    theme(legend.position = "bottom") +
+    geom_vline(xintercept = 5, linetype = 2)
+p2 <- plotPhenoData(sce_filt, 
+              aes(x = log10_total_counts, y = total_features, 
+                  colour =  pct_counts_top_100_features)) +
+    theme(legend.position = "bottom") +
+    geom_vline(xintercept = 5, linetype = 2)
+p3 <- plotPhenoData(sce_filt, 
+              aes(x = log10_total_counts, y = total_features, 
+                  colour =  pct_counts_feature_controls_ERCC)) +
+    theme(legend.position = "bottom") +
+    geom_vline(xintercept = 5, linetype = 2)
+plot_grid(p1, p2, p3, labels = c("A", "B", "C"), 
+          nrow = 1)
+```
+
+
+## % Dropout vs % Counts from ERCC spike-ins
+
+Look at percentage of genes not expressed (percentage dropout) for each cell plotted against the percentage of counts obtained from ERCC spike-in controls. 
+
+```{r plot-pheno-dropout, echo = FALSE, eval = TRUE}
+p1 <- plotPhenoData(sce_filt, 
+              aes(x = pct_counts_feature_controls_ERCC, y = pct_dropout, 
+                  colour =  pct_counts_feature_controls_MT)) +
+    theme(legend.position = "bottom") 
+p2 <- plotPhenoData(sce_filt, 
+              aes(x = pct_counts_feature_controls_ERCC, y = pct_dropout,
+                  colour =  pct_counts_top_100_features)) +
+    theme(legend.position = "bottom")
+p3 <- plotPhenoData(sce_filt, 
+              aes(x = pct_counts_feature_controls_ERCC, y = pct_dropout,
+                  colour =  pct_counts_feature_controls_ERCC)) +
+    theme(legend.position = "bottom")
+plot_grid(p1, p2, p3, labels = c("A", "B", "C"), nrow = 1)
+```
+
+## % Dropout vs % Counts from mitochondrial genes
+
+```{r plot-pheno-dropout-MT-genes, echo = FALSE}
+p1 <- plotPhenoData(sce_filt, 
+              aes(x = pct_counts_feature_controls_MT, y = pct_dropout, 
+                  colour =  pct_counts_feature_controls_MT)) +
+    theme(legend.position = "bottom") + 
+    geom_vline(xintercept = 0, linetype = 2)
+p2 <- plotPhenoData(sce_filt, 
+              aes(x = pct_counts_feature_controls_MT, y = pct_dropout,
+                  colour =  pct_counts_top_100_features)) +
+    theme(legend.position = "bottom") + 
+    geom_vline(xintercept = 0, linetype = 2)
+p3 <- plotPhenoData(sce_filt, 
+              aes(x = pct_counts_feature_controls_MT, y = pct_dropout,
+                  colour =  pct_counts_feature_controls_ERCC)) +
+    theme(legend.position = "bottom") + 
+    geom_vline(xintercept = 0, linetype = 2)
+plot_grid(p1, p2, p3, labels = c("A", "B", "C"), nrow = 1)
+```
+
+
+
+
+## Cumulative Expression Plots
+
+The cumulative expression plot (with cells coloured by percentage of counts
+coming from feature controls, i.e. ERCC and MT genes) shows a handful of low
+complexity libraries and otherwise a range of library complexities associated 
+with the percentage of expression accounted for by feature controls..
+
+```{r compare-overall-cumul-plots, fig.height=8}
+p1 <- plot(sce_filt, exprs_values = "counts",
+           colour_by = "pct_exprs_feature_controls_ERCC") +
+    theme(legend.position = "bottom")
+p2 <- plot(sce_filt, exprs_values = "counts",
+           colour_by = "pct_exprs_feature_controls_MT") +
+    theme(legend.position = "bottom")
+plot_grid(p1, p2, labels = c("A", "B"), nrow = 1)
+```
+
+## Most expressed genes
+
+Plot the most expressed genes across each dataset. Surprisingly, the ERCC spike-ins do not feature in the list of most-expressed genes. Many MT and ribosomal genes appear, along with GAPDH, as expected. The most expressed gene is the Y chromosome gene AC010970.2.
+
+```{r plot-QC-most-exprs}
+plotQC(sce_filt)
+```
+
+## Gene expression frequency against mean
+
+Plot expression frequency against mean expression. This highlights generally 
+decreasing dropout with increasing mean expression. 
+
+```{r plot-QC-exprs-freq-vs-mean, echo=FALSE}
+tryCatch({plotQC(sce_filt, type = "exprs")}, warning = function(w){plotQC(sce_filt, type = "exprs") + theme(legend.position = "right")}, error = function(e){print("Error during execution.")}, finaly={})
+
+```
+
+
+## PCA on QC metrics with outlier detection
+
+Another option available in `scater` is to conduct PCA on a set of QC metrics.
+The advantage of doing this is that the QC metrics focus on technical aspects of
+the libraries that are likely to distinguish problematics cells. Automatic 
+outlier detection on PCA plots using QC metrics is available to help identify 
+potentially problematic cells.
+
+We use the following metrics for PCA-based outlier detection:
+
+* `pct_counts_top_100_features`
+* `total_features`
+* `pct_counts_feature_controls_MT`
+* `pct_counts_feature_controls_ERCC`
+* `n_detected_feature_controls`
+* `log10_counts_endogenous_features`
+* `log10_counts_feature_controls`
+
+A particular set of variables to be used can be specified with the 
+`selected_variables` argument as shown in the example below. 
+
+```{r pca-qc-metrics, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=8, fig.height=5, fig.align="center"}
+plotPCA(sce_filt, size_by = "total_features", 
+        shape_by = "filter_on_total_features", 
+        pca_data_input = "pdata", detect_outliers = TRUE)
+```
+
+
+## Standard PCA
+
+Produce a standard PCA too.
+
+```{r pca-qc, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10, fig.height=5, fig.align="center"}
+plotPCA(sce_filt, size_by = "total_features", 
+        colour_by = "pct_counts_feature_controls_ERCC")
+```
+
+
+## Correlation of PCs with QC metrics
+
+Look at which PCs are most correlated with certain QC metrics, such as...
+
+*Total features*
+
+```{r plot-QC-find-pcs-total-features, fig.height=7}
+plotQC(sce_filt, type = "find-pcs", 
+       variable = "total_features") 
+```
+
+*% counts from top 50 features*
+
+```{r find-pcs-pct-top-50, fig.height=7}
+plotQC(sce_filt, type = "find-pcs", 
+       variable = "pct_counts_top_50_features") 
+```
+
+
+
+## Plot explanatory variables
+
+```{r expl-vars}
+sce_filt$start_time <- NULL
+zero_var <- matrixStats::rowVars(exprs(sce_filt)) == 0
+plotQC(sce_filt[!zero_var,], "expl",
+       variables = c("pct_dropout", "total_features", 
+                     "pct_counts_top_200_features", 
+                     "pct_counts_feature_controls_ERCC", 
+                     "pct_counts_feature_controls_MT", 
+                     "n_detected_feature_controls",
+                     "log10_counts_endogenous_features",
+                     "log10_counts_feature_controls_ERCC",
+                     "log10_counts_feature_controls_MT"))
+```
+
+
+
+
+

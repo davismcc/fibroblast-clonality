@@ -1,0 +1,1065 @@
+---
+title: "Merge data across lanes"
+author: "Davis McCarthy"
+date: "`r Sys.Date()`"
+output:
+    html_document:
+        toc: true
+        toc_float: true
+        toc_depth: 3
+        number_sections: true
+        theme: lumen
+        highlight: tango
+        fig_width: 9
+        fig_height: 7
+        code_folding: hide
+---
+
+
+# QC Merged Data
+
+Merge the datasets from the different experiments and QC them to get a combined dataset for downstream analysis.
+
+We do not use data from Expt 08 in our merged dataset as it was produced with a different protocol and sequenced much more deeply than our other plates.
+
+```{r setup}
+library(knitr)
+library(tidyverse)
+library(viridis)
+library(ggthemes)
+library(ggbeeswarm)
+library(ggridges)
+library(cowplot)
+library(scater)
+library(scran)
+library(DT)
+#library(future)
+library(pryr)
+```
+
+# Load data
+
+Load data from `rds` files.
+
+```{r}
+lanes <- c("22226_3","22226_4","22259_1","22259_2","22259_3","22259_4","22259_5",
+  "22259_6","22259_7","22303_3","22303_4","22303_5","22303_6","22303_7",
+  "22334_5","22334_6","22334_7","22334_8","22365_4","22365_5","22379_1",
+  "22379_2","22380_1","22380_2","22380_3","22380_4","22380_5","22380_6",
+  "22380_7","22380_8","22388_2","22388_3","22388_4","22388_5","22388_6",
+  "22453_1","22453_2","22453_3","22453_4","22453_5","22453_6","22453_7",
+  "22453_8","22467_4","22467_5","22540_1","22540_6","22666_1","22666_2",
+  "22666_3","22666_4","22666_5","22666_6","22666_7","22666_8","22710_1",
+  "22721_1","22721_2","22721_3","22721_4","22727_1","22727_2","22727_3",
+  "22727_4","22727_5","22727_6","22727_7","22727_8","22728_6","22728_7",
+  "22728_8","22773_1","22773_2","22773_3","22773_4","22773_5","22773_6",
+  "22773_7","22773_8","22774_1","22774_2","22774_3","22774_4","22774_5",
+  "22774_6","22774_7","22774_8","22782_5","22782_6","22782_7","22829_2",
+  "22940_7","22940_8","22943_2","22943_5","22951_1")
+sce_list <- list()
+for(ln in lanes) {
+    rdata_file <- file.path("../../data/raw", ln, "sces",
+                            "sce.salmon.GRCh37.preqc_gene.rds")
+    cat(rdata_file, "........\n")
+    sce_list[[ln]] <- readRDS(rdata_file)
+    # Get rid of TPM values (never used) to reduce object size.
+    tpm(sce_list[[ln]]) <- NULL
+}
+for(obj in names(sce_list)) {
+    rowData(sce_list[[obj]])$gene_strand <- rowData(sce_list[[obj]])$strand
+    rowData(sce_list[[obj]])$strand <- NULL
+}
+for(obj in names(sce_list)) {
+    rowData(sce_list[[obj]]) <- rowData(sce_list[[obj]])[, 2:11]
+}
+colnames_coldata <- list()
+for(obj in names(sce_list)) {
+    colnames_coldata[[obj]] <- colnames(colData(sce_list[[obj]]))
+}
+common_coldatanames <- Reduce(intersect, colnames_coldata)
+for(obj in names(sce_list)) {
+    colData(sce_list[[obj]]) <- colData(sce_list[[obj]])[, common_coldatanames]
+}
+
+for (i in lanes) {
+    cat(i, " ", identical(rowData(sce_list[[1]])[, 1:10],
+                          rowData(sce_list[[i]])[, 1:10]), "\n")
+}
+
+
+sce <- do.call("cbind", sce_list)
+colnames(sce) <- gsub("quant_salmon/", "", colnames(sce))
+sce
+
+rm(sce_list)
+
+## add metadata
+cell_meta <- read_csv("../../metadata/cell_metadata.csv")
+cell_meta
+
+mm <- match(colnames(sce), cell_meta[["sample_id"]])
+sce$lane <- NULL
+new_cdata <- bind_cols(as.data.frame(colData(sce)), cell_meta[mm,])
+colData(sce) <- DataFrame(new_cdata)
+colnames(sce) <- sce$sample_id
+
+```
+
+# Basic QC
+
+```{r}
+sce$lane <- gsub("#.*", "", colnames(sce))
+
+ggplot(as.data.frame(colData(sce)),
+       aes(x = total_counts_endogenous + 1, y = run_lane, fill = run_lane)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_x_log10(breaks = c(10, 100, 1000, 10000, 100000, 1e6)) +
+    geom_vline(xintercept = c(1e4, 1e5, 1e6), linetype = 2,
+               colour = "gray50") +
+    theme(legend.position = "none")
+
+ggplot(as.data.frame(colData(sce)),
+       aes(x = pct_counts_ERCC, y = run_lane, fill = run_lane)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_viridis(discrete = TRUE) +
+    facet_wrap(~well_condition) +
+    theme(legend.position = "none")
+
+
+ggplot(as.data.frame(colData(sce)),
+       aes(x = pct_counts_MT, y = run_lane, fill = run_lane)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_viridis(discrete = TRUE) +
+    coord_cartesian(xlim = c(0, 40)) +
+    facet_wrap(~well_condition) +
+    theme(legend.position = "none")
+
+ggplot(as.data.frame(colData(sce)),
+       aes(x = total_features, y = run_lane, fill = run_lane)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_viridis(discrete = TRUE) +
+    facet_wrap(~well_condition) +
+    theme(legend.position = "none")
+
+ggplot(as.data.frame(colData(sce)),
+       aes(x = log10_total_counts_endogenous, y = run_lane, fill = run_lane)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_viridis(discrete = TRUE) +
+    facet_wrap(~well_condition) +
+    theme(legend.position = "none")
+
+```
+
+
+
+# Get donor information
+
+With the analysis pipeline we called variants from the scRNA-seq data and used 
+cardelino to compute the posterior probability that each each cell came from 
+each HipSci donor.
+
+## Analysis of donor information
+
+
+```{r}
+df_donors_used <- read_tsv("../../metadata/data_processing_metadata.tsv")
+## fix "kajh" recorded as "kaja" in table
+df_donors_used$donor1 <- gsub("kaja", "kajh", df_donors_used$donor1)
+df_donors_used$donor2 <- gsub("kaja", "kajh", df_donors_used$donor2)
+df_donors_used$donor3 <- gsub("kaja", "kajh", df_donors_used$donor3)
+## fix "qayj" recorded as "qayg" in table
+df_donors_used$donor1 <- gsub("qayg", "qayj", df_donors_used$donor1)
+df_donors_used$donor2 <- gsub("qayg", "qayj", df_donors_used$donor2)
+df_donors_used$donor3 <- gsub("qayg", "qayj", df_donors_used$donor3)
+## fix "ieki" recorded as "ieke" in table
+df_donors_used$donor1 <- gsub("ieke", "ieki", df_donors_used$donor1)
+df_donors_used$donor2 <- gsub("ieke", "ieki", df_donors_used$donor2)
+df_donors_used$donor3 <- gsub("ieke", "ieki", df_donors_used$donor3)
+df_donor_list <- list()
+for (ln in lanes) {
+    donor_file <- file.path("../../data/raw", ln, "donor_id_all_cardelino_v2.csv")
+    cat(donor_file, "........\n")
+    df_donor_list[[ln]] <- read_csv(donor_file, col_types = cols())
+}
+for (ln in lanes) {
+    cat(ln, " ", nrow(df_donor_list[[ln]]), "\n")
+}
+
+for (ln in lanes) {
+    ln_idx <- which(df_donors_used$run_lane == ln)
+    donors_used <- c(df_donors_used$donor1[ln_idx], 
+                        df_donors_used$donor2[ln_idx],
+                        df_donors_used$donor3[ln_idx])
+    df_donor_list[[ln]] <- dplyr::mutate(
+        df_donor_list[[ln]],
+        donor_long = donor_id,
+        donor = gsub("HPS.*-", "", donor_id),
+        used_in_expt = donor %in% donors_used,
+        assigned = !(donor_id %in% c("doublet", "unassigned"))
+    )
+}
+df_donor <- do.call("bind_rows", df_donor_list)
+df_donor$run_lane <- gsub("#.*", "", df_donor$cell)
+## Check rate of assignment per plate
+group_by(df_donor, run_lane) %>% 
+    summarise(
+            prop_assigned_to_donor = mean(!(donor_id %in% c("doublet", "unassigned"))),
+            prop_used_in_expt = mean(used_in_expt),
+            prop_doublet = mean(donor_id == "doublet"),
+            prop_unassigned = mean(donor_id == "unassigned"),
+            mean_nvars = mean(n_vars),
+            mean_total_reads = mean(n_total_reads)
+            ) %>% print(n = Inf)
+
+## Check rate of assignment to donor in experiment for cells assigned to donor per plate
+df_ncells_assigned_by_runlane <- group_by(df_donor, run_lane) %>% 
+    dplyr::filter(!(donor_id %in% c("doublet", "unassigned"))) %>%
+    summarise(
+            ncells_assigned_to_donor = n(),
+            prop_used_in_expt = mean(used_in_expt),
+            mean_nvars = mean(n_vars),
+            mean_total_reads = mean(n_total_reads)
+            )
+
+table(df_donor$donor[df_donor$assigned])
+```
+
+Look at the plates for which less than 95% of donors assigned to cells come from
+the expected set of donors for the plate:
+
+```{r}
+df_ncells_assigned_by_runlane <- left_join(df_donors_used,
+                                            df_ncells_assigned_by_runlane)
+
+df_ncells_assigned_by_runlane %>% 
+    dplyr::filter(prop_used_in_expt < 0.85) %>%
+    dplyr::select(run_lane, plate, condition, donor1, donor2, donor3,
+                    ncells_assigned_to_donor, prop_used_in_expt, mean_nvars,
+                    mean_total_reads) %>%
+    print(n = Inf)
+```
+
+There are 9 of 95 plates that have fewer than 85% of assigned donors among the
+expected donors for the plate.
+
+Plates with 85-95% of assigned cells assigned to expected donors just look low 
+quality (e.g. `22666_3`, `22666_6`, `22782_7`, `22943_5`)
+
+The following look like potential plate/annotation data swaps:
+
+* `22710_1`: 148 cells assigned to (sohd, sehl, qolg), but expecting (oicx, jogf, tixi)
+* `22727_4`: 201 cells assigned to (eofe, laey, xugn), expecting (pahc, laey, xugn)
+* `22727_5`: 129 cells assigned to (eofe, laey, xugn), expecting (pahc, laey, xugn)
+* `22728_8`: 234 cells assigned to (eofe, laey, xugn), expecting (eika, eofe, dons)
+* `22829_2`: 207 cells assigned to (eofe, laey, xugn), expecting (pahc, laey, xugn) 
+
+The following are low-quality runs, all annotated as plate 1834.
+
+* `22782_5`: 9 cells assigned to (eika, dons, eofe), expecting (pahc, laey, xugn) [plate 1834]
+* `22782_6`: 11 cells assigned to (eika, dons, eofe), expecting (pahc, laey, xugn) [plate 1834]
+* `22940_7`: 19 cells assigned to (eika, dons, eofe), expecting (pahc, laey, xugn) [plate 1834]
+* `22943_2`: 21 cells assigned to (eika, dons, eofe), expecting (pahc, laey, xugn) [plate 1834]
+
+Plate 1834 is repeated 4 times. Plates 1674, 1680, 1768, 1771, 1798 repeated 
+twice. We take these to be examples of low-quality plates that were resequenced.
+
+The donor ID results very strongly suggest that eofe was used on a number of 
+plates instead of pahc. As such we adjust our expected donors for these plates.
+
+```{r}
+df_donor$used_in_expt[df_donor$run_lane %in% 
+                        c("22727_4", "22727_5", "22728_8", "22829_2") & 
+                        df_donor$donor %in% c("eofe", "laey", "xugn")] <- TRUE
+```
+
+Look at overall donor ID results.
+
+```{r}
+df_ncells_assigned_by_runlane <- group_by(df_donor, run_lane) %>% 
+    dplyr::filter(!(donor_id %in% c("doublet", "unassigned"))) %>%
+    summarise(
+            ncells_assigned_to_donor = n(),
+            prop_used_in_expt = mean(used_in_expt),
+            mean_nvars = mean(n_vars),
+            mean_total_reads = mean(n_total_reads)
+            )
+df_ncells_assigned_by_runlane %>% print(n = Inf)
+```
+
+Now, if cell is assigned to a donor not used in the experiment, assign it to
+"unassigned".
+
+```{r}
+not_used <- (!(df_donor$donor_id == "doublet") & !df_donor$used_in_expt)
+df_donor$donor[not_used] <- "unassigned"
+df_donor$donor_id[not_used] <- "unassigned"
+df_donor$donor_long <- df_donor$donor_id
+```
+
+
+We can plot the results to get a better idea of which cells we are incorrectly assigning the donor.
+
+```{r}
+p1 <- ggplot(df_donor, aes(x = post_prob, y = nvars_used, 
+                fill = used_in_expt, colour = used_in_expt)) +
+    geom_point(colour = "black") +
+    geom_point(alpha = 0.7) +
+    scale_colour_tableau() +
+    scale_fill_tableau(guide = "legend") +
+    ylab("Number of variants used") + xlab("Posterior probability") +
+    theme_bw()
+p1
+```
+
+Add donor ID info to SCE object.
+
+```{r}
+mm <- match(colnames(sce), df_donor$sample_id)
+identical(df_donor$sample_id[mm], colnames(sce))
+sce$best_donor <- df_donor$donor[mm]
+sce$donor_post_prob <- df_donor$prob_max[mm]
+sce$donor_prob_doublet <- df_donor$prob_doublet[mm]
+sce$donor_assignable <- df_donor$assigned[mm]
+sce$donor_n_vars <- df_donor$n_vars[mm]
+sce$donor_n_total_reads <- df_donor$n_total_reads[mm]
+sce$donor_n_alt_reads <- df_donor$n_alt_reads[mm]
+sce$donor <- df_donor$donor[mm]
+sce$donor_long <- df_donor$donor_long[mm]
+## make sure all cells with fewer than 25 vars are unassigned
+sce$donor[sce$donor_n_vars < 25] <- "unassigned"
+sce$donor_long[sce$donor_n_vars < 25] <- "unassigned"
+## assignment categories
+sce$donor_assign_cat <- "plaus. donor"
+sce$donor_assign_cat[sce$donor == "doublet"] <- "doublet"
+sce$donor_assign_cat[sce$donor == "unassigned"] <- "unassigned"
+```
+
+The following proportion of cells are confidently assigned to donors known to 
+have been used in the experiment: `r mean(!(sce$donor %in% c("doublet", "unassigned")))`.
+
+Make some plots!
+
+```{r}
+
+plotColData(sce, y = "donor_n_vars", x = "log10_total_counts_endogenous",
+              colour_by = "donor_assignable") + 
+    ggtitle("Number of variants used for ID vs total endogenous counts")
+ggsave("../../figures/qc/donor_id_all_nvars_vs_total_counts.png",
+        width = 10, height = 7)
+
+plotColData(sce, y = "donor_post_prob", x = "log10_total_counts_endogenous",
+              colour_by = "donor_assignable") + 
+    ggtitle("Posterior probability ID vs total endogenous counts")
+ggsave("../../figures/qc/donor_id_all_post_prob_vs_total_counts.png",
+        width = 10, height = 7)
+
+plotColData(sce, y = "donor_post_prob", x = "donor_n_vars",
+              colour_by = "donor_assignable") + 
+    ggtitle("Posterior probability ID vs number of variants used")
+ggsave("../../figures/qc/donor_id_all_post_prob_vs_nvars_linscale.png",
+        width = 10, height = 7)
+
+plotColData(sce, y = "donor_post_prob", x = "donor_n_vars",
+              colour_by = "donor_assignable") + 
+    ggtitle("Posterior probability ID vs number of variants used") +
+    scale_x_sqrt()
+ggsave("../../figures/qc/donor_id_all_post_prob_vs_nvars_sqrtscale.png",
+        width = 10, height = 7)
+
+ggplot(as.data.frame(colData(sce)), 
+        aes_string(y = "donor_post_prob", x = "donor_n_vars",
+              colour = "donor_assignable")) + 
+    geom_point() +
+    ggthemes::scale_color_canva(palette = "Crisp complementary colors") +
+    ggtitle("Posterior probability ID vs number of variants used") +
+    facet_wrap(~well_type)
+ggsave("../../figures/qc/donor_id_all_post_prob_vs_nvars_linscale_facet_welltype.png",
+        width = 10, height = 7)
+
+ggplot(as.data.frame(colData(sce)), 
+        aes_string(y = "donor_post_prob", x = "donor_n_vars",
+              colour = "donor_assign_cat")) + 
+    geom_point() +
+    scale_x_log10() +
+    geom_vline(xintercept = 25, linetype = 2) +
+    ggthemes::scale_color_canva(palette = "Crisp complementary colors") +
+    ggtitle("Posterior probability ID vs number of variants used") +
+    facet_wrap(~well_type)
+ggsave("../../figures/qc/donor_id_all_post_prob_vs_nvars_logscale_facet_welltype.png",
+        width = 10, height = 7)
+
+ggplot(as.data.frame(colData(sce)), 
+        aes_string(y = "donor_post_prob", x = "donor_n_vars",
+              colour = "donor_assign_cat")) + 
+    geom_point() +
+    scale_x_log10() +
+    geom_vline(xintercept = 25, linetype = 25) +
+    ggthemes::scale_color_canva(palette = "Crisp complementary colors") +
+    ggtitle("Posterior probability ID vs number of variants used") +
+    facet_wrap(~well_type)
+ggsave("../../figures/qc/donor_id_all_post_prob_vs_nvars_logscale_facet_welltype.png",
+        width = 10, height = 7)
+
+colData(sce) %>% as.data.frame %>% dplyr::filter(!is.na(donor_n_vars)) %>%
+    ggplot(aes(x = donor_post_prob, fill = (donor %in% c("doublet","unassigned")),
+               y = well_type)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_tableau() +
+    ggtitle("Posterior probability by well type") +
+    theme_ridges()
+ggsave("../../figures/qc/donor_id_all_post_prob_ridgline.png",
+        width = 10, height = 7)
+
+```
+
+
+## Save pre-QC data to disk
+
+Save this object with everything to disk.
+
+```{r}
+sce$donor_short_id <- sce$donor
+saveRDS(object = sce, file = "../../data/raw/all/sce_merged_with_donors_preqc_cardelino_donorid.rds")
+```
+
+
+## Load full dataset
+
+```{r}
+sce <- readRDS("../../data/raw/all/sce_merged_with_donors_preqc_cardelino_donorid.rds")
+```
+
+```{r}
+object_size(sce)
+```
+
+
+## Filter out very lowly-expressed genes
+
+Replace NA HGNC symbol for ERCCs with ERCC name.
+
+```{r}
+sce$lane <- gsub("#.*", "", colnames(sce))
+
+plotColData(sce, x = "log10_total_counts_endogenous", y = "total_features",
+              colour_by = "donor") + 
+    ggtitle("Total features vs total endogenous counts")
+
+plotColData(sce, x = "log10_total_counts_endogenous", y = "total_features",
+              colour_by = "lane") + 
+    ggtitle("Total features vs total endogenous counts")
+
+rowData(sce)$hgnc_symbol[is.na(rowData(sce)$hgnc_symbol)] <-
+               rowData(sce)$feature_id[is.na(rowData(sce)$hgnc_symbol)]
+missing_hgnc <- is.na(rowData(sce)$hgnc_symbol) | rowData(sce)$hgnc_symbol == ""
+missing_hgnc[is.na(missing_hgnc)] <- TRUE
+table(missing_hgnc)
+low_genes <- (rowSums(counts(sce)) < 100)
+table(low_genes)
+dup_gene <- duplicated(rowData(sce)$hgnc_symbol)
+table(dup_gene)
+```
+
+Filter out genes with no HGNC symbol and retain just one gene for each HGNC symbol.
+
+
+```{r}
+keep_gene <- (!(missing_hgnc | low_genes | dup_gene))
+table(keep_gene)
+
+length(grep("^ERCC", rownames(sce)[keep_gene]))
+sce <- sce[keep_gene,]
+sce
+```
+
+```{r}
+object_size(sce)
+```
+
+Merged dataset across all experiments sequenced so far contains data for ~10000 cells. These cells need serious QC before use.
+
+
+## Distributions of QC metrics across lanes
+
+```{r, fig.width = 10, fig.height = 8, message = FALSE, warning = FALSE}
+
+ggplot(as.data.frame(colData(sce)), aes(x = num_processed, y = run_lane,
+                         fill =  run_lane)) +
+    geom_density_ridges(scale = 4) + theme_ridges() +
+    geom_vline(xintercept = 50, linetype = 2, colour = "gray50") +
+    scale_fill_viridis(discrete = TRUE) +
+    scale_x_log10() +
+    ggtitle("Number of reads processed by Salmon") +
+    scale_y_discrete(expand = c(0.01, 0))    # will generally have to set the `expand` option
+
+
+ggplot(as.data.frame(colData(sce)), aes(x = percent_mapped, y = run_lane,
+                         fill =  run_lane)) +
+    geom_density_ridges(scale = 4) + theme_ridges() +
+    geom_vline(xintercept = 50, linetype = 2, colour = "gray50") +
+    scale_fill_viridis(discrete = TRUE) +
+    ggtitle("Percent mapped by Salmon") +
+    scale_x_continuous(breaks = c(0, 20, 40, 60, 80, 100)) +
+    scale_y_discrete(expand = c(0.01, 0))    # will generally have to set the `expand` option
+
+
+ggplot(as.data.frame(colData(sce)), aes(x = log10_total_counts_endogenous, y = run_lane,
+                         fill =  run_lane)) +
+    geom_density_ridges(scale = 4) + theme_ridges() +
+    geom_vline(xintercept = c(4, log10(50000)), linetype = 2, colour = "gray50") +
+ scale_fill_viridis(discrete = TRUE) +
+    ggtitle("Endogenous counts (log10 scale)") +
+   scale_y_discrete(expand = c(0.01, 0))    # will generally have to set the `expand` option
+#   scale_x_continuous(expand = c(0, 0))   
+
+ggplot(as.data.frame(colData(sce)), aes(x = total_features, y = run_lane, fill =  run_lane)) +
+    geom_density_ridges(scale = 4) + theme_ridges() +
+    geom_vline(xintercept = 5000, linetype = 2, colour = "gray50") +
+ scale_fill_viridis(discrete = TRUE) +
+    ggtitle("Total features (number of genes detected)") +
+   scale_y_discrete(expand = c(0.01, 0))    # will generally have to set the `expand` option
+#   scale_x_continuous(expand = c(0, 0))   
+
+ggplot(as.data.frame(colData(sce)),
+       aes(x = pct_counts_ERCC, y = run_lane, fill =  run_lane)) +
+    geom_density_ridges(scale = 4) + theme_ridges() +
+ scale_fill_viridis(discrete = TRUE) +
+    ggtitle("% counts from ERCC spike-ins") +
+   scale_y_discrete(expand = c(0.01, 0))    # will generally have to set the `expand` option
+#   scale_x_continuous(expand = c(0, 0))   
+
+ggplot(as.data.frame(colData(sce)), aes(x = log10_total_counts_ERCC,
+                                        y = run_lane, fill =  run_lane)) +
+    geom_density_ridges(scale = 4) + theme_ridges() +
+ scale_fill_viridis(discrete = TRUE) +
+    ggtitle("Counts from ERCC spike-ins (log10 scale)" ) +
+   scale_y_discrete(expand = c(0.01, 0))    # will generally have to set the `expand` option
+#   scale_x_continuous(expand = c(0, 0))   
+
+ggplot(as.data.frame(colData(sce)), aes(x = pct_counts_MT,
+                                        y = run_lane, fill = run_lane)) +
+    geom_density_ridges(scale = 4) + theme_ridges() +
+ scale_fill_viridis(discrete = TRUE) +
+    ggtitle("% counts from mitochondrial genes") + 
+    coord_cartesian(xlim = c(0, 40)) +
+   scale_y_discrete(expand = c(0.01, 0))    # will generally have to set the `expand` option
+#   scale_x_continuous(expand = c(0, 0))   
+
+
+ggplot(as.data.frame(colData(sce)), aes(x = pct_counts_top_100_features,
+                                        y = run_lane, fill = run_lane)) +
+    geom_density_ridges(scale = 4) + theme_ridges() +
+    geom_vline(xintercept = 90, linetype = 2, colour = "gray50") +
+ scale_fill_viridis(discrete = TRUE) +
+    ggtitle("% counts from top 100 most expressed genes") + 
+    coord_cartesian(xlim = c(0, 100)) +
+    scale_y_discrete(expand = c(0.01, 0))    # will generally have to set the `expand` option
+
+
+```
+
+
+# Filter cells
+
+Now we will proceed to filtering out potentially problematic cells. We apply the following criteria for filtering:
+
+STRICT:
+* total counts from endogenous features > 50,000
+* total features > 5000 (and we also allow filter cells more than one MAD from the median for `total_features` in case that capture more cells)
+* % counts from top 100 most expressed features < 90%
+* % counts from ERCC < 20%
+* mapping rate > 40%
+
+We also filter out cells for which the donor cell line remains "unknown".
+
+```{r}
+table(sce$lane, sce$well_condition)
+```
+
+```{r}
+cell_filter_strict <- (sce$total_counts_endogenous > 50000 &
+                           sce$total_features > 5000 &
+                           sce$pct_counts_ERCC < 20 &
+                           sce$pct_counts_top_100_features < 90 &
+                           sce$percent_mapped > 40 &
+                           #sce$donor != "unknown" &
+                           sce$well_type == "single_cell" & 
+                           !isOutlier(sce$total_features, 1, type = "lower"))                           
+```
+
+Drop plates that do not have at least 50 QC-passing cells.
+
+```{r}
+sce$cell_filter <- cell_filter_strict
+qc_pass_per_lane <- table(sce$run_lane[sce$cell_filter])
+drop_lane <- names(qc_pass_per_lane)[qc_pass_per_lane < 50]
+cell_filter_strict[sce$run_lane %in% drop_lane] <- FALSE
+sce$cell_filter <- cell_filter_strict
+```
+
+`r sum(cell_filter_strict)` cells pass this relatively strict QC
+procedure. That means that `r round(mean(cell_filter_strict) * 100)`
+of cells overall pass QC.
+
+We can check the number of QC-passing cells that are assigned confidently to a 
+donor.
+
+```{r}
+table(cell_filter_strict, sce$donor_assign_cat)
+```
+
+96.95% of cells passing expression QC are assigned confidently to a donor used 
+in the experiment, with 600 doublets and 900 cells unassigned.
+
+Just unstimulated cells.
+
+```{r}
+table(cell_filter_strict[sce$well_condition == "unstimulated"], 
+        sce$donor_assign_cat[sce$well_condition == "unstimulated"])
+```
+
+97.39% of cells assigned confidently to a plausible donor.
+
+
+As a sanity check, we also see that positive controls and minibulk wells are 
+almost always identified as doublets, and negative controls are unassigned.
+
+```{r}
+table(sce$donor, sce$well_type)
+```
+
+Make some plots for donor ID post expression QC.
+
+```{r}
+
+plotColData(sce[, cell_filter_strict], y = "donor_n_vars", x = "log10_total_counts_endogenous",
+              colour_by = "donor_assignable") + 
+    ggtitle("Number of variants used for ID vs total endogenous counts")
+ggsave("../../figures/qc/donor_id_postqc_all_nvars_vs_total_counts.png",
+        width = 10, height = 7)
+
+plotColData(sce[, cell_filter_strict], y = "donor_post_prob", x = "log10_total_counts_endogenous",
+              colour_by = "donor_assignable") + 
+    ggtitle("Posterior probability ID vs total endogenous counts")
+ggsave("../../figures/qc/donor_id_postqc_all_post_prob_vs_total_counts.png",
+        width = 10, height = 7)
+
+plotColData(sce[, cell_filter_strict], y = "donor_post_prob", x = "donor_n_vars",
+              colour_by = "donor_assignable") + 
+    ggtitle("Posterior probability ID vs number of variants used")
+ggsave("../../figures/qc/donor_id_postqc_all_post_prob_vs_nvars_linscale.png",
+        width = 10, height = 7)
+
+plotColData(sce[, cell_filter_strict], y = "donor_post_prob", x = "donor_n_vars",
+              colour_by = "donor_assignable") + 
+    ggtitle("Posterior probability ID vs number of variants used") +
+    scale_x_sqrt()
+ggsave("../../figures/qc/donor_id_postqc_all_post_prob_vs_nvars_sqrtscale.png",
+        width = 10, height = 7)
+
+ggplot(as.data.frame(colData(sce[, cell_filter_strict])), 
+        aes_string(y = "donor_post_prob", x = "donor_n_vars",
+              colour = "donor_assignable")) + 
+    geom_point() +
+    ggthemes::scale_color_canva(palette = "Crisp complementary colors") +
+    ggtitle("Posterior probability ID vs number of variants used") +
+    facet_wrap(~well_type)
+ggsave("../../figures/qc/donor_id_postqc_all_post_prob_vs_nvars_linscale_facet_welltype.png",
+        width = 10, height = 7)
+
+ggplot(as.data.frame(colData(sce[, cell_filter_strict])), 
+        aes_string(y = "donor_post_prob", x = "donor_n_vars",
+              colour = "donor_assign_cat")) + 
+    geom_point() +
+    scale_x_log10() +
+    geom_vline(xintercept = 25, linetype = 2) +
+    ggthemes::scale_color_canva(palette = "Crisp complementary colors") +
+    ggtitle("Posterior probability ID vs number of variants used") +
+    facet_wrap(~well_type)
+ggsave("../../figures/qc/donor_id_postqc_all_post_prob_vs_nvars_logscale_facet_welltype.png",
+        width = 10, height = 7)
+
+ggplot(as.data.frame(colData(sce[, cell_filter_strict])), 
+        aes_string(y = "donor_post_prob", x = "donor_n_vars",
+              colour = "donor_assign_cat")) + 
+    geom_point() +
+    scale_x_log10() +
+    geom_vline(xintercept = 25, linetype = 25) +
+    ggthemes::scale_color_canva(palette = "Crisp complementary colors") +
+    ggtitle("Posterior probability ID vs number of variants used") +
+    facet_wrap(~well_type)
+ggsave("../../figures/qc/donor_id_postqc_all_post_prob_vs_nvars_logscale_facet_welltype.png",
+        width = 10, height = 7)
+
+colData(sce[, cell_filter_strict]) %>% as.data.frame %>% dplyr::filter(!is.na(donor_n_vars)) %>%
+    ggplot(aes(x = donor_post_prob, fill = (donor %in% c("doublet","unassigned")),
+               y = well_type)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_tableau() +
+    ggtitle("Posterior probability by well type") +
+    theme_ridges()
+ggsave("../../figures/qc/donor_id_postqc_all_post_prob_ridgline.png",
+        width = 10, height = 7)
+
+```
+
+Make plots just for unstimulated cells.
+
+```{r}
+plotColData(sce[, cell_filter_strict & sce$well_condition == "unstimulated"], 
+            y = "donor_n_vars", x = "log10_total_counts_endogenous",
+              colour_by = "donor_assignable") + 
+    ggtitle("Number of variants used for ID vs total endogenous counts")
+ggsave("../../figures/qc/donor_id_postqc_unstim_nvars_vs_total_counts.png",
+        width = 10, height = 7)
+
+plotColData(sce[, cell_filter_strict & sce$well_condition == "unstimulated"], y = "donor_post_prob", x = "log10_total_counts_endogenous",
+              colour_by = "donor_assignable") + 
+    ggtitle("Posterior probability ID vs total endogenous counts")
+ggsave("../../figures/qc/donor_id_postqc_unstim_post_prob_vs_total_counts.png",
+        width = 10, height = 7)
+
+plotColData(sce[, cell_filter_strict & sce$well_condition == "unstimulated"], y = "donor_post_prob", x = "donor_n_vars",
+              colour_by = "donor_assignable") + 
+    ggtitle("Posterior probability ID vs number of variants used")
+ggsave("../../figures/qc/donor_id_postqc_unstim_post_prob_vs_nvars_linscale.png",
+        width = 10, height = 7)
+
+plotColData(sce[, cell_filter_strict & sce$well_condition == "unstimulated"], y = "donor_post_prob", x = "donor_n_vars",
+              colour_by = "donor_assignable") + 
+    ggtitle("Posterior probability ID vs number of variants used") +
+    scale_x_sqrt()
+ggsave("../../figures/qc/donor_id_postqc_unstim_post_prob_vs_nvars_sqrtscale.png",
+        width = 10, height = 7)
+
+ggplot(as.data.frame(colData(sce[, cell_filter_strict & sce$well_condition == "unstimulated"])), 
+        aes_string(y = "donor_post_prob", x = "donor_n_vars",
+              colour = "donor_assignable")) + 
+    geom_point() +
+    ggthemes::scale_color_canva(palette = "Crisp complementary colors",
+                                name = "donor\nassignable") +
+    ylab("Highest donor posterior probability") +
+    xlab("Number of variants used") +
+    facet_wrap(~well_type)
+ggsave("../../figures/qc/donor_id_postqc_unstim_post_prob_vs_nvars_linscale_facet_welltype.png",
+        width = 10, height = 7)
+
+ggplot(as.data.frame(colData(sce[, cell_filter_strict & sce$well_condition == "unstimulated"])), 
+        aes_string(y = "donor_post_prob", x = "donor_n_vars",
+              colour = "donor_assign_cat")) + 
+    geom_point() +
+    scale_x_log10() +
+    geom_vline(xintercept = 25, linetype = 2) +
+    ggthemes::scale_color_canva(palette = "Crisp complementary colors",
+                    name = "donor\nassignment\ncategory") +
+    ylab("Highest donor posterior probability") +
+    xlab("Number of variants used") +
+    facet_wrap(~well_type)
+ggsave("../../figures/qc/donor_id_postqc_unstim_post_prob_vs_nvars_logscale_facet_welltype.png",
+        width = 10, height = 7)
+
+ggplot(as.data.frame(colData(sce[, cell_filter_strict & sce$well_condition == "unstimulated"])), 
+        aes_string(y = "donor_post_prob", x = "donor_n_vars",
+              colour = "donor_assign_cat")) + 
+    geom_point() +
+    scale_x_log10() +
+    geom_vline(xintercept = 25, linetype = 25) +
+    ggthemes::scale_color_canva(palette = "Crisp complementary colors",
+                            name = "donor\nassignment\ncategory") +
+    ylab("Highest donor posterior probability") +
+    xlab("Number of variants used") +
+    facet_wrap(~well_type)
+ggsave("../../figures/qc/donor_id_postqc_unstim_post_prob_vs_nvars_logscale_facet_welltype.png",
+        width = 10, height = 7)
+
+colData(sce[, cell_filter_strict & sce$well_condition == "unstimulated"]) %>% as.data.frame %>% dplyr::filter(!is.na(donor_n_vars)) %>%
+    ggplot(aes(x = donor_post_prob, fill = (donor %in% c("doublet","unassigned")),
+               y = well_type)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_tableau() +
+    ggtitle("Posterior probability by well type") +
+    theme_ridges()
+ggsave("../../figures/qc/donor_id_postqc_unstim_post_prob_ridgline.png",
+        width = 10, height = 7)
+
+```
+
+
+Finally, we will only retain cells that are assigned confidently to a donor
+known to have been used in the experiment.
+
+```{r}
+sce$cell_filter[sce$donor %in% c("doublet", "unassigned")] <- FALSE
+```
+
+
+The table below shows the number of QC-passing cells per experiment and day.
+
+```{r, results = 'asis'}
+table(sce$cell_filter)
+table(sce$run_lane[sce$cell_filter])
+saveRDS(object = sce, file = "../../data/raw/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds")
+```
+
+We now have 20,725 cells passing QC.
+
+Now filter to QC-passing cells, compute logcounts values for the object and save.
+
+```{r}
+sce_filt <- sce[, sce$cell_filter]
+keep_gene <- (rowMeans(counts(sce_filt)) > 0.5) 
+table(keep_gene)
+sce_filt <- sce_filt[keep_gene,]
+sce_filt
+object_size(sce_filt)
+
+logcounts(sce_filt) <- log2(
+    calculateCPM(sce_filt, use_size_factors = FALSE) + 1)
+saveRDS(object = sce_filt, file = "../../data/raw/sce_merged_donors_cardelino_donorid_all_qc_filt.rds")
+```
+
+# Normalization with *scran* size factors
+
+We can compute the "sum factors" with *scran* and look at their distributions across experiments and days, especially in relation to the number of counts from endogenous features.
+
+```{r, fig.width = 16, fig.height = 8}
+#sce_filt <- readRDS(file = "../../data/raw/sce_merged_donors_all_qc_filt.rds")
+isSpike(sce_filt, "ERCC") <- grepl("^ERCC-", rownames(sce_filt))
+sce_filt <- computeSumFactors(sce_filt)
+sce_filt <- computeSpikeFactors(sce_filt, general.use = FALSE)
+
+sce_filt$size_factor <- sizeFactors(sce_filt)
+
+colData(sce_filt) %>% as.data.frame %>%
+    ggplot(aes(x = log2(size_factor), y = log10(total_counts_endogenous))) + 
+    geom_point() + geom_smooth(method = "lm", colour = "firebrick") +
+    facet_wrap(~ run_lane) + theme_bw() +
+    ggtitle("Total endogenous counts vs size factors")
+
+colData(sce_filt) %>% as.data.frame %>%
+    ggplot(aes(x = log2(size_factor))) + 
+    geom_histogram() + geom_vline(xintercept = 0, linetype = 2) +
+    facet_wrap(~run_lane) + theme_bw()
+
+colData(sce_filt) %>% as.data.frame %>%
+    ggplot(aes(x = log2(size_factor), y = run_lane, fill = run_lane)) + 
+    geom_density_ridges(alpha = 0.5) + geom_vline(xintercept = 0, linetype = 2) +
+    theme_ridges() + ggtitle("Distribution of size factors") +
+    scale_fill_viridis(discrete = TRUE) 
+
+table(sce_filt$lane, sizeFactors(sce_filt) < 0.05)
+
+table(sce_filt$lane, sizeFactors(sce_filt) > 20)
+
+sum(sizeFactors(sce_filt) > 8 | sizeFactors(sce_filt) < 1 / 8)
+mean(sizeFactors(sce_filt) > 8 | sizeFactors(sce_filt) < 1 / 8)
+sum(sizeFactors(sce_filt) > 6 | sizeFactors(sce_filt) < 1 / 6)
+mean(sizeFactors(sce_filt) > 6 | sizeFactors(sce_filt) < 1 / 6)
+sum(sizeFactors(sce_filt) > 4 | sizeFactors(sce_filt) < 1 / 4)
+mean(sizeFactors(sce_filt) > 4 | sizeFactors(sce_filt) < 1 / 4)
+```
+
+We will remove another 2% of cells with size factors <0.125 or greater than 8.
+
+Very high correlation between size factors and total counts from endogenous features (both on the log scale). 
+
+```{r}
+sce_filt <- sce_filt[, (sizeFactors(sce_filt) < 8 & sizeFactors(sce_filt) > 0.125)]
+```
+
+```{r}
+summary(sizeFactors(sce_filt))
+```
+
+These look more reasonable now, so we will go with this set of cells and size factors.
+
+```{r}
+dim(sce_filt)
+```
+
+Now normalize the expression data using these *scran* size factors.
+
+```{r}
+sce_filt <- normalize(sce_filt)
+```
+
+```{r}
+## unique(which(is.na(exprs(sce_filt)), arr.ind = TRUE)[,2])
+## length(unique(which(is.na(exprs(sce_filt)), arr.ind = TRUE)[,2]))
+```
+
+```{r}
+prle <- plotRLE(sce_filt[!rowData(sce_filt)$is_feature_control,], 
+                list(counts = "counts", exprs = "exprs"),
+                exprs_logged = c(FALSE, TRUE), colour_by = "run_lane",
+                style = "minimal")
+prle
+```
+
+# Identify highly variable genes
+
+```{r}
+## sce_filt <- readRDS("../../../../data_processed/merged/sce_merged_qc_filt_20170829.rds")
+design <- model.matrix(~run_lane, data = colData(sce_filt))
+alt.fit <- trendVar(sce_filt, design = design, use.spikes = FALSE)
+alt.decomp <- decomposeVar(sce_filt, alt.fit)
+
+data_frame(mean = alt.decomp$mean, total = alt.decomp$total,
+           tech = alt.decomp$tech) %>%
+    ggplot(aes(x = mean, y = total)) +
+    geom_point(alpha = 0.6) +
+    geom_smooth(aes(x = mean, y = tech), colour = "firebrick") +
+    ylab("Variance") + xlab("Mean log-expression")
+
+```
+
+```{r}
+top.hvgs <- order(alt.decomp$bio, decreasing = TRUE)
+head(alt.decomp[top.hvgs,])
+dim(alt.decomp)
+sum(alt.decomp$FDR < 0.05, na.rm = TRUE)
+sum(alt.decomp$FDR < 0.01, na.rm = TRUE)
+sum(alt.decomp$bio >= 0.1 * alt.decomp$tech)
+high_exprs <- rowMeans(calculateCPM(sce_filt))
+high_exprs_genes <- names(high_exprs)[high_exprs > 3]
+alt.decomp$FDR[is.na(alt.decomp$FDR)] <- 1
+hvgs <- rownames(alt.decomp[alt.decomp$FDR < 0.01,])
+hvgs <- intersect(hvgs, high_exprs_genes)
+length(hvgs)
+high_cor_genes <- hvgs
+
+vardecomp <-  data_frame(mean = alt.decomp$mean, total = alt.decomp$total,
+                         tech = alt.decomp$tech, bio = alt.decomp$bio,
+                         fdr = alt.decomp$FDR,
+                         hvg = (rownames(alt.decomp) %in% hvgs)
+                         )
+ggplot(vardecomp, aes(x = mean, y = total)) +
+    geom_point(alpha = 0.6) +
+    geom_point(aes(x = mean, y = total), colour = "dodgerblue3",
+               data = dplyr::filter(vardecomp, hvg)) +
+    geom_smooth(aes(x = mean, y = tech), colour = "firebrick") +
+    ylab("Variance") + xlab("Mean log-expression")
+
+```
+
+```{r}
+null.dist <- correlateNull(ncol(sce_filt), block = as.factor(sce_filt$lane),
+                            design = design, iters = 5e04) # fewer iterations can to speed it up.
+# cor.genes <- correlatePairs(sce_filt[top.hvgs,], null.dist=null.dist, per.gene=TRUE)
+# head(cor.genes)
+cor.pairs <- correlatePairs(sce_filt[hvgs,], null.dist = null.dist,
+                            block = as.factor(sce_filt$lane), design = design, 
+                            iters = 5e04)
+head(cor.pairs)
+g1 <- cor.pairs$gene1[cor.pairs$FDR < 0.05]
+g2 <- cor.pairs$gene2[cor.pairs$FDR < 0.05]
+high_cor_genes <- unique(c(g1, g2))
+```
+
+Filter down to an object just containing the 
+`r length(intersect(high_cor_genes, hvgs))` highly-variable genes.
+
+```{r}
+hvgs <- intersect(high_cor_genes, hvgs)
+rowData(sce_filt)$high_var_gene <- (rownames(sce_filt) %in% hvgs)
+saveRDS(object = sce_filt, file = "../../data/raw/sce_merged_donors_cardelino_donorid_all_qc_filt.rds")
+```
+
+# Infer cell cycle phase with cyclone
+
+```{r infer-cell-cycle}
+## sce_filt <- readRDS("../../data/raw/sce_merged_donors_all_qc_filt.rds")
+hs_pairs <- readRDS(system.file("exdata", "human_cycle_markers.rds",
+                                package = "scran"))
+assignments <- cyclone(
+    sce_filt, hs_pairs,
+    gene.names = rowData(sce_filt)$ensembl_gene_id,
+    BPPARAM = MulticoreParam(workers = 8))
+sce_filt$G1 <- assignments$scores$G1
+sce_filt$G2M <- assignments$scores$G2M
+sce_filt$S <- assignments$scores$S
+sce_filt$cyclone_phase <- assignments$phases
+
+
+table(sce_filt$donor, sce_filt$cyclone_phase)
+
+ggplot(as.data.frame(colData(sce_filt)),
+       aes(x = cyclone_phase, fill = cyclone_phase)) +
+    geom_bar() + ggtitle("Cell cycle phase by clone") +
+    facet_wrap(~donor) +
+    scale_fill_tableau() + theme_bw() +
+    theme(legend.position = "none")
+
+## cl2 <- sce_list_hvg[["vass"]]$clone_apk3== "clone4"
+## chisq.test(table(sce_list_hvg[["vass"]]$cyclone_phase[!cl2],
+##                  sce_list_hvg[["vass"]]$clone_apk3[!cl2])) 
+## table(sce_list_hvg[["vass"]]$cyclone_phase, sce_list_hvg[["vass"]]$clone_apk3)
+## chisq.test(table(sce_vass_hvg$cyclone_phase, sce_vass_hvg$condition))
+
+table(sce_filt$donor)
+```
+
+# Write lists of QC-passing cells by donor
+
+Later steps in the analysis require lists of cells assigned to each 
+
+```{r write-cell-lists}
+donors <- sort(unique(sce_filt$donor))
+cellnames <- colnames(sce_filt)
+for (don in donors) {
+    readr::write_tsv(as.data.frame(cellnames[sce_filt$donor == don]), 
+    path = paste0("../../data/donor-cell-lists/", don, ".qc-pass.cells.txt"), 
+    col_names = FALSE)
+}
+```
+
+# Save the data.
+
+Save just unstimulated cells.
+
+```{r}
+saveRDS(object = sce_filt[, sce_filt$well_condition == "unstimulated"], 
+        file = "../../data/raw/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds")
+```
+
+Save all cells.
+
+```{r}
+saveRDS(object = sce_filt, file = "../../data/raw/sce_merged_donors_cardelino_donorid_all_qc_filt.rds")
+```
+
+Save plain text output.
+
+```{r}
+tmp <- cbind(data_frame(gene = rownames(sce_filt)),
+            as_data_frame(counts(sce_filt)))
+readr::write_tsv(
+        tmp,
+        path = "../../data/raw/counts_merged_donors_cardelino_donorid_all_qc_filt.txt.gz",
+        col_names = TRUE)
+tmp <- cbind(data_frame(gene = rownames(sce_filt)),
+            as_data_frame(logcounts(sce_filt)))
+readr::write_tsv(
+        tmp,
+        path = "../../data/raw/logcounts_merged_donors_cardelino_donorid_all_qc_filt.txt.gz",
+        col_names = TRUE)
+readr::write_tsv(
+        as.data.frame(colData(sce)),
+        path = "../../data/raw/coldata_merged_donors_cardelino_donorid_all_qc_filt.txt.gz",
+        col_names = TRUE)
+readr::write_tsv(
+        as.data.frame(rowData(sce)),
+        path = "../../data/raw/rowdata_merged_donors_cardelino_donorid_all_qc_filt.txt.gz",
+        col_names = TRUE)
+
+```
+
+
+
+# Session Info
+
+```{r}
+devtools::session_info()
+```
+
+

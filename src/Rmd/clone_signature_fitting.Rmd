@@ -1,0 +1,95 @@
+---
+title: "Signature fittnig for clones"
+author: "Davis J. McCarthy"
+to_working_dir: "../../"
+output:
+  html_document:
+        toc: false
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: false
+        code_folding: hide
+---
+# Load full genotype data
+
+```{r}
+library(vcfR)
+library(sigfit)
+library(BSgenome)
+library(GenomicRanges)
+
+system.time(
+    vcf <- read.vcfR("genotypes/cells_merged_clone_id.vcf.gz")
+)
+dp_full <- extract.gt(vcf, element = "DP", as.numeric = TRUE)
+ad_full <- extract.gt(vcf, element = "AD")
+ad_full <- masplit(ad_full, record = 2, sort = FALSE)
+rownames(ad_full) <- rownames(dp_full) <- paste0(vcf@fix[, 1], "_", vcf@fix[, 2])
+```
+
+
+```{r cosmic-data}
+data("cosmic_signatures", package = "sigfit")
+
+set.seed(1)
+probs <- c(0.4, 0.3, 0.2, 0.1) %*% as.matrix(cosmic_signatures[c(1, 3, 7, 11), ])
+mutations <- matrix(rmultinom(1, 20000, probs), nrow = 1)
+colnames(mutations) <- colnames(cosmic_signatures)
+
+sigfit::plot_spectrum(mutations)
+
+mcmc_samples_fit <- sigfit::fit_signatures(counts = mutations, 
+                                           signatures = cosmic_signatures,
+                                           iter = 2000, 
+                                           warmup = 1000, 
+                                           chains = 1, 
+                                           seed = 1)
+
+exposures <- sigfit::retrieve_pars(mcmc_samples_fit, 
+                                   par = "exposures", 
+                                   hpd_prob = 0.90)
+names(exposures)
+
+sigfit::plot_exposures(mcmc_samples = mcmc_samples_fit)
+
+
+sigfit::plot_reconstruction(mcmc_samples = mcmc_samples_fit,
+                            pdf_path = NULL)
+```
+
+# Load clone data
+
+```{r load-clones}
+card <- readRDS("Data/processed/cell_assignment/cardelino_results.gesg.filt_lenient.all_filt_sites.rds")
+names(card)
+
+rownames(card$tree$Z)
+clone_df <- dplyr::data_frame(
+    chrom = gsub("chr", "", gsub(":.*", "", rownames(card$tree$Z))))
+clone_df[["start"]] <- gsub("chr.*:([0-9]+)_[ACTG]_[ACTG]", "\\1", 
+                          rownames(card$tree$Z))
+clone_df[["ref"]] <- gsub("chr.*:[0-9]+_([ACTG])_[ACTG]", "\\1", 
+                          rownames(card$tree$Z))
+clone_df[["alt"]] <- gsub("chr.*:[0-9]+_[ACTG]_([ACTG])", "\\1", 
+                          rownames(card$tree$Z))
+
+clone_df <- dplyr::bind_cols(clone_df, as.data.frame(card$tree$Z))
+clone_gr <- makeGRangesFromDataFrame(clone_df, keep.extra.columns = TRUE,
+                                     start.field = "start", end.field = "start")
+
+clone_gr[clone_gr$clone2 == 1]
+clone_gr[clone_gr$clone3 == 1]
+
+clone_df[["start"]] <- as.numeric(clone_df[["start"]]) - 1
+clone_df[["end"]] <- clone_df[["start"]] + 2
+clone_gr_tri <- makeGRangesFromDataFrame(clone_df, keep.extra.columns = TRUE)
+
+
+```
+
+
+
+
+
+

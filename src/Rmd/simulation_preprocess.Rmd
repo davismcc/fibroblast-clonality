@@ -1,0 +1,150 @@
+---
+title: "Preprocessing for simulation"
+author: "Yuanhua Huang"
+to_working_dir: "/Users/huangh/research/cellseq/clonality/fibroblast/reports/"
+output:
+  html_document:
+        toc: true
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: true
+        code_folding: hide
+---
+
+This preprocessing file will save sequencing coverages from scRNA-seq, clonal 
+tree from Canopy that contains tree structures, variants, clonal prevalence, 
+missing rate. Learned theta (including mean VAF and error rate) is included too.
+
+# Load full genotyp data
+```{r}
+setwd("/Users/huangh/research/cellseq/clonality/fibroblast")
+fig_dir="/Users/huangh/research/cellseq/clonality/figures/technical/"
+
+library(vcfR)
+
+system.time(
+    vcf <- read.vcfR("genotypes/cells_merged_clone_id.vcf.gz")
+)
+dp_full <- extract.gt(vcf, element = "DP", as.numeric = TRUE)
+ad_full <- extract.gt(vcf, element = "AD")
+ad_full <- masplit(ad_full, record = 2, sort = FALSE)
+rownames(ad_full) <- rownames(dp_full) <- paste0(vcf@fix[, 1], "_", vcf@fix[, 2])
+```
+
+```{r}
+donor <- "wuye"
+#"rozh", "vabj", "xugn"#"qolg" #"lexy" #"vass" #"zoxy" "wuye"
+```
+
+# Load donor data
+```{r}
+setwd("/Users/huangh/research/cellseq/clonality/fibroblast")
+library(vcfR)
+
+## Load data
+canopy <- readRDS(paste0("canopy/canopy_results.", donor, ".rds"))
+sce <- readRDS(paste0("sces/sce_", donor, "_qc.rds"))
+
+## Match exome-seq and scRNA-seq data
+# match cells
+mm <- match(colnames(sce), colnames(dp_full))
+mm <- mm[!is.na(mm)]
+
+# match variants
+C_row_names <- row.names(canopy$tree$Z)
+for (i in seq_len(length(C_row_names))){
+  temp_name <- strsplit(strsplit(C_row_names[i], split="_")[[1]][1], split=":")[[1]]
+  C_row_names[i] <- paste0("chr", temp_name[1], "_", temp_name[2])
+}
+
+dp <- dp_full[rownames(dp_full) %in% C_row_names,][,mm]
+ad <- ad_full[rownames(ad_full) %in% C_row_names,][,mm]
+idx_var <- match(rownames(dp), C_row_names)
+idx_var <- idx_var[!is.na(idx_var)]
+
+# filter variants with no cells
+idx_var_use <- rowMeans(is.na(dp))<1 #<1
+
+A <- ad[idx_var_use,]
+D <- dp[idx_var_use,]
+
+mapped.tree <- canopy$tree
+mapped.tree$Z <- canopy$tree$Z[idx_var[idx_var_use],]
+mapped.tree$sna <- canopy$tree$sna[idx_var[idx_var_use],]
+mapped.tree$VAF <- matrix(canopy$tree$VAF[idx_var[idx_var_use],], ncol = 1)
+mapped.tree$CCF <- matrix(canopy$tree$CCF[idx_var[idx_var_use],], ncol = 1)
+
+Psi <- mapped.tree$P[, 1]
+Config <- mapped.tree$Z
+
+table(canopy$tree$Z %*% 2**seq_len(dim(Config)[2]))
+table(mapped.tree$Z %*% 2**seq_len(dim(Config)[2]))
+```
+
+# EM algorithm for cell assignment
+## Bernoulli base model
+```{r}
+## Cell assignment with EM Algorithm
+# source("/Users/huangh/Dropbox/mycodes/cellseq/clonality/models/cell_assign_EM.R")
+# devtools::install_github("davismcc/cardelino")
+library(cardelino)
+
+Config <- mapped.tree$Z
+Psi <- mapped.tree$P[, 1]
+
+vass_Bern_EM <- cell_assign_EM(A, D, Config, Psi=rep(1/ncol(Config), ncol(Config)), model="Bernoulli")
+prob_Bern_EM <- vass_Bern_EM$prob
+vass_Bern_EM$theta #false positive rate; 1-false negative rate
+vass_Bern_EM$logLik
+
+conf_labels <- rep(0, dim(prob_Bern_EM)[1])
+prob_gaps <- rep(0, dim(prob_Bern_EM)[1])
+for (i in 1:dim(prob_Bern_EM)[1]){
+  prob_sorted <- sort(prob_Bern_EM[i,], decreasing=T)
+  prob_gaps[i] <- prob_sorted[1] - prob_sorted[2]
+  if (prob_gaps[i] > 0.2){
+    conf_labels[i] = which.max(prob_Bern_EM[i,])
+  }
+}
+clone_ids <- colnames(prob_Bern_EM)
+clone_perc <- clone_ids
+for (i in seq_len(length(clone_perc))){
+  conf_frac <- sum(conf_labels == i) / length(conf_labels)
+  clone_perc[i] <- paste0(clone_perc[i], ": ", round(conf_frac*100,digits=1), "%")
+}
+colnames(prob_Bern_EM) <- clone_perc
+```
+
+# Save preprocessed data for simulation
+```{r}
+# dp_cnt = table(D)
+# dp_val = c(0, as.integer(row.names(dp_cnt)))
+# dp_cnt = c(dim(D)[2] * dim(canopy$tree$Z)[1] - sum(dp_cnt), dp_cnt)
+# dp_table = cbind(dp_val, dp_cnt)
+# row.names(dp_table) = NULL
+
+theta = vass_Bern_EM$theta
+
+#tree <- canopy$tree
+tree <- mapped.tree
+var_ids_orig <- row.names(tree$sna)
+var_ids_fake <- sprintf("SNA_%d",seq_len(dim(tree$sna)[1]))
+row.names(tree$Z) <- var_ids_fake
+row.names(tree$sna) <- var_ids_fake
+row.names(tree$VAF) <- var_ids_fake
+row.names(tree$CCF) <- var_ids_fake
+for (k in seq_len(length(tree$clonalmut))){
+  ii = match(tree$clonalmut[[k]], var_ids_orig)
+  var_ids_use <- var_ids_fake[ii]
+  tree$clonalmut[[k]] <- var_ids_use[!is.na(var_ids_use)]
+}
+sna_use <- var_ids_fake[idx_var[idx_var_use]]
+
+row.names(D) <- var_ids_fake
+colnames(D) <- sprintf("cell_%d",seq_len(dim(D)[2]))
+
+data_dir="/Users/huangh/research/cellseq/clonality/examples/"
+save(tree, D, theta, file = paste0(data_dir, "/example_data_", donor, ".RData"))
+```
+

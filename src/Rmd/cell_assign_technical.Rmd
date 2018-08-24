@@ -1,0 +1,297 @@
+---
+title: "Technical report for clonal assignment with scRNA-seq data"
+author: "Yuanhua Huang"
+to_working_dir: "/Users/huangh/research/cellseq/clonality/fibroblast/reports/"
+output:
+  html_document:
+        toc: false
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: false
+        code_folding: hide
+---
+
+# Load full genotyp data
+```{r}
+setwd("/Users/huangh/research/cellseq/clonality/fibroblast")
+fig_dir="/Users/huangh/research/cellseq/clonality/figures/technical/"
+
+library(vcfR)
+
+system.time(
+    vcf <- read.vcfR("genotypes/cells_merged_clone_id.vcf.gz")
+)
+dp_full <- extract.gt(vcf, element = "DP", as.numeric = TRUE)
+ad_full <- extract.gt(vcf, element = "AD")
+ad_full <- masplit(ad_full, record = 2, sort = FALSE)
+rownames(ad_full) <- rownames(dp_full) <- paste0(vcf@fix[, 1], "_", vcf@fix[, 2])
+```
+
+
+# Load donor data
+```{r}
+setwd("/Users/huangh/research/cellseq/clonality/fibroblast")
+
+library(vcfR)
+donor_list <- c("lexy", "vabj", "vass", "rozh", "xugn", "zoxy")
+
+#summarized variables
+SNV <- c()
+donor_snv <- c()
+exp_cell_num <- c()
+missing_rate <- c()
+
+for (donor in donor_list){
+  print(donor)
+  
+  canopy <- readRDS(paste0("canopy/canopy_results.", donor, ".rds"))
+  sce <- readRDS(paste0("sces/sce_", donor, "_qc.rds"))
+  
+  ## Match exome-seq and scRNA-seq data
+  # match cells
+  mm <- match(colnames(sce), colnames(dp_full))
+  mm <- mm[!is.na(mm)]
+  
+  # match variants
+  C_row_names <- row.names(canopy$tree$Z)
+  for (i in seq_len(length(C_row_names))){
+    temp_name <- strsplit(strsplit(C_row_names[i], split="_")[[1]][1], split=":")[[1]]
+    C_row_names[i] <- paste0("chr", temp_name[1], "_", temp_name[2])
+  }
+  
+  dp <- dp_full[rownames(dp_full) %in% C_row_names,][,mm]
+  ad <- ad_full[rownames(ad_full) %in% C_row_names,][,mm]
+  idx_var <- match(rownames(dp), C_row_names)
+  idx_var <- idx_var[!is.na(idx_var)]
+  
+  # filter variants with no cells
+  idx_var_use <- rowMeans(is.na(dp))<1
+  
+  A <- ad[idx_var_use,]
+  D <- dp[idx_var_use,]
+  
+  mapped.tree <- canopy$tree
+  mapped.tree$Z <- mapped.tree$Z[idx_var[idx_var_use],]
+  mapped.tree$sna <- mapped.tree$sna[idx_var[idx_var_use],]
+  
+  Psi <- mapped.tree$P[, 1]
+  Config <- mapped.tree$Z
+  
+  # assign_result <- cell_assign_EM(A, D, Config, Psi=rep(1/ncol(Config), ncol(Config)), model="Bernoulli")
+  # prob_Bern_EM <- assign_result$prob
+  # assign_result$theta #false positive rate; 1-false negative rate
+  # assign_result$logLik
+  # idx_assigned <- get_prob_gap(prob_Bern_EM) > 0.2
+  
+  SNV <- c(SNV, row.names(D))
+  donor_snv <- c(donor_snv, rep(donor, dim(D)[1]))
+  missing_rate <- c(missing_rate, rowMeans(is.na(D)))
+  exp_cell_num <- c(exp_cell_num, rowSums(!is.na(D)))
+  #missing_rate <- c(missing_rate, rowMeans(is.na(D[,idx_assigned])))
+  
+}
+
+dat_na_rate <- data.frame(missing_rate=missing_rate, exp_cell_num=exp_cell_num, 
+                          SNV=SNV, donor=donor_snv)
+
+# table(canopy$tree$Z %*% 2**seq_len(dim(Config)[2]))
+# table(mapped.tree$Z %*% 2**seq_len(dim(Config)[2]))
+```
+
+
+# Plot missing rate for variants
+```{r}
+library(cardelino)
+library(ggpubr)
+fig_dir="/Users/huangh/research/cellseq/clonality/figures/technical/"
+
+fig.na_rate <- ggplot(dat_na_rate, aes(y=missing_rate, x=donor, fill = donor)) +
+  geom_boxplot()  + geom_point(size = 1) + xlab("") + ylab("SNV missing rate") +
+  ggtitle(paste("missings in scRNA-seq in", length(donor_list), "donors")) +
+  theme_classic(base_size = 12) + pub.theme() +
+  theme(legend.position="none", panel.grid.major=element_line(size=0.1, colour="#d3d3d3"))
+ggsave(paste0(fig_dir,"/missing_rate.png"),
+       fig.na_rate, height = 3, width = 4.5, dpi = 300)
+
+# fig.exp_num <- ggplot(dat_na_rate, aes(y=exp_cell_num, x=donor, fill = donor)) +
+#   geom_boxplot()  + geom_point(size = 1) + xlab("") + ylab("SNV missing rate") +
+#   ggtitle(paste("Expressed cells in", length(donor_list), "donors")) +
+#   theme_classic(base_size = 12) + pub.theme() + 
+#   theme(legend.position="none", panel.grid.major=element_line(size=0.1, colour="#d3d3d3"))
+# ggsave(paste0(fig_dir,"/expressed_cell.png"),
+#        fig.exp_num, height = 3, width = 4.5, dpi = 300)
+```
+
+# Plot sequencing depths
+```{r}
+donor = "vass"
+
+
+
+dat_dp <- melt(D[var_sort_idx,])
+dat_dp <- dat_dp[!is.na(dat_dp$value), ]
+
+fig.dp <- ggplot(dat_dp, aes(y=value, x=Var1, color=Var1)) +
+  geom_boxplot(outlier.size=0.5) + geom_point(size=0.5) + xlab("SNVs") + 
+  ylab("total counts") + ggtitle(paste("sequencing depth for", nrow(A), "SNVs")) + 
+  theme_classic(base_size = 12) + pub.theme() +
+  theme(legend.position="none", axis.text.x=element_blank(), 
+        panel.grid.major=element_line(size=0.1, colour="#d3d3d3"))
+
+fig.dp
+```
+
+# donor specific data
+```{r}
+setwd("/Users/huangh/research/cellseq/clonality/fibroblast")
+
+donor = "vass"
+for (donor in c(donor)){
+  print(donor)
+  
+  canopy <- readRDS(paste0("canopy/canopy_results.", donor, ".rds"))
+  sce <- readRDS(paste0("sces/sce_", donor, "_qc.rds"))
+  
+  ## Match exome-seq and scRNA-seq data
+  # match cells
+  mm <- match(colnames(sce), colnames(dp_full))
+  mm <- mm[!is.na(mm)]
+  
+  # match variants
+  C_row_names <- row.names(canopy$tree$Z)
+  for (i in seq_len(length(C_row_names))){
+    temp_name <- strsplit(strsplit(C_row_names[i], split="_")[[1]][1], split=":")[[1]]
+    C_row_names[i] <- paste0("chr", temp_name[1], "_", temp_name[2])
+  }
+  
+  dp <- dp_full[rownames(dp_full) %in% C_row_names,][,mm]
+  ad <- ad_full[rownames(ad_full) %in% C_row_names,][,mm]
+  idx_var <- match(rownames(dp), C_row_names)
+  idx_var <- idx_var[!is.na(idx_var)]
+  
+  # filter variants with no cells
+  idx_var_use <- rowMeans(is.na(dp))<1
+  
+  A <- ad[idx_var_use,]
+  D <- dp[idx_var_use,]
+  
+  mapped.tree <- canopy$tree
+  mapped.tree$Z <- mapped.tree$Z[idx_var[idx_var_use],]
+  mapped.tree$sna <- mapped.tree$sna[idx_var[idx_var_use],]
+  
+  Psi <- mapped.tree$P[, 1]
+  Config <- mapped.tree$Z
+}
+```
+
+## sequencing depth
+```{r}
+D_no_na <- D
+D_no_na[is.na(D_no_na)] <- 0
+n_var <- colSums(!is.na(D))
+n_read <- colSums(D_no_na)
+var_sort_idx <- order(rowMeans(D_no_na))
+
+dat_cell <- data.frame(n_var=n_var, n_read=n_read)
+fig.cell <- ggplot(dat_cell, aes(y=n_read, x=n_var)) +
+  geom_point(size=2) + xlab("genotyped SNVs") + 
+  ylab("reads for all SNVs") + ggtitle(paste("sequencing depth for", ncol(A), "cells")) + 
+  theme_classic(base_size = 12) + pub.theme() +
+  theme(legend.position="none", 
+        panel.grid.major=element_line(size=0.1, colour="#d3d3d3"))
+
+dat_dp <- melt(D)
+dat_dp <- dat_dp[!is.na(dat_dp$value), ]
+fig.dp <- ggplot(dat_dp, aes(y=value, x=reorder(Var1, value, FUN=median), 
+                                color=Var1)) +
+  geom_boxplot(outlier.size=0.5) + geom_point(size=0.5) + xlab("SNVs") + 
+  ylab("read for each cell") + ggtitle(paste("sequencing depth for", nrow(A), "SNVs")) + 
+  theme_classic(base_size = 12) + pub.theme() +
+  theme(legend.position="none", axis.text.x=element_blank(), 
+        panel.grid.major=element_line(size=0.1, colour="#d3d3d3"))
+```
+
+
+## eVAF for each variant
+```{r}
+set.seed(1)
+
+snv_labels <- c()
+snv_theta1 <- c()
+snv_theta2 <- c()
+Psi <- rep(1/ncol(Config), ncol(Config))
+for (n in seq_len(nrow(D))){
+  res_Gibbs <- cell_assign_Gibbs(A=matrix(A[n,], nrow=1), D=matrix(D[n,], nrow=1), 
+                                 C=matrix(Config[n,], nrow=1), Psi=Psi, 
+                                 model="Binomial")
+  theta_conv <- res_Gibbs$theta[(nrow(res_Gibbs$theta)/2):nrow(res_Gibbs$theta), ]
+  snv_labels <- c(snv_labels, rep(row.names(A)[n], nrow(theta_conv)))
+  snv_theta1 <- c(snv_theta1, theta_conv[,1])
+  snv_theta2 <- c(snv_theta2, theta_conv[,2])
+}
+
+dat_eVAF <- data.frame(theta1=snv_theta1, theta2=snv_theta2, SNV=snv_labels)
+```
+
+## eVAF for merged variants
+```{r}
+library(reshape2)
+Psi <- rep(1/ncol(Config), ncol(Config))
+res_Gibbs <- cell_assign_Gibbs(A=A, D=D, C=Config, Psi=Psi, model="Binomial")
+theta_conv <- res_Gibbs$theta[(nrow(res_Gibbs$theta)/2):nrow(res_Gibbs$theta), ]
+colnames(theta_conv) <- c("theta1", "theta2")
+dat_merg <- melt(theta_conv)
+```
+
+
+## Plot eVAF
+```{r}
+fig_dir="/Users/huangh/research/cellseq/clonality/figures/technical/"
+#reorder(SNV, theta1, FUN=median)
+fig.err <- ggplot(dat_eVAF, aes(y=theta1, x=reorder(SNV, theta1, FUN=median), 
+                                color=SNV)) +
+  geom_boxplot(outlier.size=0.1, boxlwd = 0.1) + xlab("SNVs") + ylab("seq error") +
+  ggtitle(paste("theta1 for", nrow(A), "SNVs")) +
+  theme_classic(base_size = 12) + pub.theme() +
+  theme(legend.position="none", axis.text.x=element_blank(), 
+        panel.grid.major=element_line(size=0.1, colour="#d3d3d3"))
+
+fig.eVAF <- ggplot(dat_eVAF, aes(y=theta2, x=reorder(SNV, theta2, FUN=median), 
+                                color=SNV)) +
+  geom_boxplot(outlier.size=0.1, boxlwd = 0.1) + xlab("SNVs") + ylab("eVAF") +
+  ggtitle(paste("theta2 for", nrow(A), "SNVs")) + 
+  theme_classic(base_size = 12) + pub.theme() +
+  theme(legend.position="none", axis.text.x=element_blank(), 
+        panel.grid.major=element_line(size=0.1, colour="#d3d3d3"))
+
+fig.theta_merge <- ggplot(dat_merg, aes(y=value, x=Var2, color=Var2)) +
+  geom_boxplot(outlier.size=0.1, boxlwd = 0.1) + xlab("") + ylab("value") + 
+  ylim(-0.0,1.0) + 
+  ggtitle(paste("joint theta")) + theme_classic(base_size = 12) + pub.theme() +
+  theme(legend.position="none", 
+        panel.grid.major=element_line(size=0.1, colour="#d3d3d3"))
+
+# dat_dp <- melt(D[var_sort_idx,])
+# dat_dp <- dat_dp[!is.na(dat_dp$value), ]
+
+# fig.theta <- ggarrange(fig.err, fig.eVAF, fig.theta_merge, 
+#                        labels=c("A", "B", "C"), 
+#                        heights=c(1,1.5), widths=c(1.8,1.8,1), ncol=3, nrow=1)
+# ggsave(paste0(fig_dir,"/theta_", donor, ".png"), fig.theta, height=3, width=9, dpi=300)
+
+```
+
+## save figure
+```{r}
+
+fig.output <- ggarrange(ggarrange(fig.cell, fig.dp, labels=c("A", "B"), 
+                                  widths=c(1,1), ncol=2, align = "hv"),
+                        ggarrange(fig.err, fig.eVAF, fig.theta_merge, 
+                                  labels=c("C", "D", "E"), widths=c(1.9,1.9,1), 
+                                  ncol=3, align = "hv"),
+                        heights=c(1,1), nrow=2)
+ggsave(paste0(fig_dir,"/dp_theta_", donor, ".png"), fig.output, height=6, width=9, dpi=300)
+```
+
+

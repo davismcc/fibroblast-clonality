@@ -1,0 +1,484 @@
+---
+title: 'Analysis of FACS Data: Experiment 01'
+author: "`r params$author`"
+date: "`r Sys.Date()`"
+params:
+    rdata_file: "data_processed/diff_1/scesets_diff_1.day1.run_19776.kallisto_preqc.RData"
+    author: "Davis McCarthy"
+    title: "Differentiation 1 Day 1 Donor ID analysis"
+    to_working_dir: "../../"
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        highlight: tango
+        number_sections: true
+        code_folding: hide
+---
+
+
+```{r setup, include=FALSE}
+library(knitr)
+library(flowClean)
+library(flowCore)
+library(flowStats)
+library(flowWorkspace)
+library(openCyto)
+library(ggcyto)
+library(cowplot)
+library(dplyr)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Manual gating
+
+Traditionally, scientists have to draw the gates for each individual sample on each 2D projection (two channels) within `flowJo`, or draw the 'template gates' on one sample and replicate it on other samples and then manually inspect the gate on each sample and correct if necessary. In either case, the procedure is time-consuming and subjective, and not suitable for large data sets such as those being generated in the HipSci EndoDiff project.
+
+```{r sort-out-sample-names}
+wsfile <- "data_raw/facs/experiment_01/flowjo/hipsci.endodiff.exp1.flowjo.sort.wsp"
+ws <- openWorkspace(wsfile)
+samples <- getSamples(ws)
+samples$file <- NA
+
+ws2 <- openWorkspace("metadata/diff_1/20150825-27 sort.wsp")
+
+
+
+## read in file detailing file renaming
+renameing_file <- "data_raw/facs/experiment_01/hipsci.endodiff.exp1.file_receipt.txt"
+renaming <- read.delim(renameing_file, comment.char = "#", header = FALSE)
+head(renaming)
+
+samples$file[1] <- "endodiff/experiment_01/facs/day3/hipsci.endodiff.exp1.HPSI0913i-eika_2.day3.bulk_facs.fcs"
+samples$file[2] <- "endodiff/experiment_01/facs/day0/hipsci.endodiff.exp1.HPSI0913i-eika_2.day0.bulk_facs.fcs"
+samples$file[8] <- "endodiff/experiment_01/facs/day1/hipsci.endodiff.exp1.HPSI0913i-eika_2.day1.bulk_facs.fcs"
+samples$file[25] <- "endodiff/experiment_01/facs/day2/hipsci.endodiff.exp1.HPSI0913i-eika_2.day2.bulk_facs.fcs"
+samples$file[3] <- "endodiff/experiment_01/facs/day0/hipsci.endodiff.exp1.HPSI0314i-xugn_1.day0.bulk_facs.fcs"
+samples$file[23] <- "endodiff/experiment_01/facs/day3/hipsci.endodiff.exp1.HPSI0314i-xugn_1.day3.bulk_facs.fcs"
+samples$file[29] <- "endodiff/experiment_01/facs/day2/hipsci.endodiff.exp1.HPSI0314i-xugn_1.day2.bulk_facs.fcs"
+samples$file[27] <- "endodiff/experiment_01/facs/day1/hipsci.endodiff.exp1.HPSI0314i-xugn_1.day1.bulk_facs.fcs"
+samples$file[5] <- "endodiff/experiment_01/facs/day2/hipsci.endodiff.exp1.HPSI0114i-eipl_1.day2.bulk_facs.fcs"
+samples$file[20] <- "endodiff/experiment_01/facs/day3/hipsci.endodiff.exp1.HPSI0114i-eipl_1.day3.bulk_facs.fcs"
+samples$file[26] <- "endodiff/experiment_01/facs/day1/hipsci.endodiff.exp1.HPSI0114i-eipl_1.day1.bulk_facs.fcs"
+samples$file[30] <- "endodiff/experiment_01/facs/day0/hipsci.endodiff.exp1.HPSI0114i-eipl_1.day0.bulk_facs.fcs"
+samples$file[7] <- "endodiff/experiment_01/facs/day3/hipsci.endodiff.exp1.HPSI1013i-kuxp_1.day3.bulk_facs.fcs"
+samples$file[11] <- "endodiff/experiment_01/facs/day1/hipsci.endodiff.exp1.HPSI1013i-kuxp_1.day1.bulk_facs.fcs"
+samples$file[13] <- "endodiff/experiment_01/facs/day0/hipsci.endodiff.exp1.HPSI1013i-kuxp_1.day0.bulk_facs.fcs"
+samples$file[15] <- "endodiff/experiment_01/facs/day2/hipsci.endodiff.exp1.HPSI1013i-kuxp_1.day2.bulk_facs.fcs"
+samples$file[10] <- "endodiff/experiment_01/facs/day0/hipsci.endodiff.exp1.HPSI1213i-pahc_4.day0.bulk_facs.fcs"
+samples$file[21] <- "endodiff/experiment_01/facs/day2/hipsci.endodiff.exp1.HPSI1213i-pahc_4.day2.bulk_facs.fcs"
+samples$file[22] <- "endodiff/experiment_01/facs/day1/hipsci.endodiff.exp1.HPSI1213i-pahc_4.day1.bulk_facs.fcs"
+samples$file[24] <- "endodiff/experiment_01/facs/day3/hipsci.endodiff.exp1.HPSI1213i-pahc_4.day3.bulk_facs.fcs"
+samples$file[12] <- "endodiff/experiment_01/facs/day0/hipsci.endodiff.exp1.HPSI1113i-podx_1.day0.bulk_facs.fcs"
+samples$file[14] <- "endodiff/experiment_01/facs/day2/hipsci.endodiff.exp1.HPSI1113i-podx_1.day2.bulk_facs.fcs"
+samples$file[16] <- "endodiff/experiment_01/facs/day1/hipsci.endodiff.exp1.HPSI1113i-podx_1.day1.bulk_facs.fcs"
+samples$file[19] <- "endodiff/experiment_01/facs/day3/hipsci.endodiff.exp1.HPSI1113i-podx_1.day3.bulk_facs.fcs"
+samples$file[4] <- "endodiff/experiment_01/facs/day1/hipsci.endodiff.exp1.mixed_population.day1.bulk_facs.fcs"
+samples$file[6] <- "endodiff/experiment_01/facs/day2/hipsci.endodiff.exp1.mixed_population.day2.bulk_facs.fcs"
+samples$file[9] <- "endodiff/experiment_01/facs/day3/hipsci.endodiff.exp1.mixed_population.day3.bulk_facs.fcs"
+samples$file[18] <- "endodiff/experiment_01/facs/day0/hipsci.endodiff.exp1.mixed_population.day0.bulk_facs.fcs"
+samples$file[17] <- "endodiff/experiment_01/facs/day2/hipsci.endodiff.exp1.unstained_control.day2.bulk_facs.fcs"
+samples$file[28] <- "endodiff/experiment_01/facs/day3/hipsci.endodiff.exp1.unstained_control.day3.bulk_facs.fcs"
+
+samples <- mutate(samples, file = gsub("^endodiff", "data_raw/facs", file))
+
+```
+
+
+```{r manual-gating}
+gs_all <- parseWorkspace(ws, name = "All Samples", isNcdf = TRUE, 
+                         path = select(samples, sampleID, file), 
+                         execute = FALSE)
+
+# gs_day0 <- parseWorkspace(ws, name = "Day 0", isNcdf = TRUE, 
+#                          path = select(samples, sampleID, file), 
+#                          execute = TRUE)
+
+```
+
+We can visualize the `Gating Hierarchy`.
+
+```{r plot-gating-hierarchy}
+gh <- gs_all[[1]]
+plot(gh)
+```
+
+And we can also plot the `gates`:
+
+```{r plot-gates}
+plotGate(gh)
+```
+
+-----------------
+
+# Automated Gating - Day 0
+
+Load the gating template developed following the `openCyto` vignette.
+
+```{r load-gating-template}
+gt <- gatingTemplate("data_raw/facs/gating_template.csv", autostart = 1L)
+plot(gt)
+```
+
+Load the raw data.
+
+```{r load-raw-data-day0}
+day0_fcs_files <- list.files("data_raw/facs/experiment_01/facs/day0/",
+                             pattern = "*bulk*", full.names = TRUE)
+day0_ncfs <- read.ncdfFlowSet(day0_fcs_files)
+colnames(day0_ncfs)[11] <- "FSC-A"
+colnames(day0_ncfs)[13] <- "SSC-A"
+relevant_channels <-  c("SSC-A", "FSC-A", "Trigger Pulse Width", "Dy488", "PE",
+                        "Hoechst Blue", "Hoechst Red")
+day0_ncfs
+```
+
+According to Shradha and Jose, no compensation is done (not needed) for our FACS data as we have relatively few channels and they do not overlap.
+
+Apply a logicle transformation to the data.
+
+```{r day0-transform-logicle}
+transFuncts <- estimateLogicle(day0_ncfs[[1]], channels = relevant_channels)
+day0_ncfs_trans <- transform(day0_ncfs, transFuncts)
+plot(day0_ncfs_trans[[1]][, relevant_channels])
+```
+
+With the data pre-processed we load it into a `GatingSet` object.
+
+```{r day0-gating-set}
+gs <- GatingSet(day0_ncfs_trans[, relevant_channels])
+getNodes(gs[[1]])
+```
+
+There is only one population node, `root` at this point.
+
+Now we can apply the gating template to these data:
+
+```{r apply-gating}
+gating(gt, gs, mc.cores = 2, parallel_type = "multicore")
+```
+
+Rename nodes and populations:
+
+```{r rename-pops, results='hide'}
+setNode(gs, "Dy488+", "Tra160+")
+setNode(gs, "PE+", "CXCR4+")
+setNode(gs, "PE-Dy488-", "CXCR4-Tra160-")
+setNode(gs, "PE-Dy488+", "CXCR4-Tra160+")
+setNode(gs, "PE+Dy488-", "CXCR4+Tra160-")
+setNode(gs, "PE+Dy488+", "CXCR4+Tra160+")
+```
+
+Show populations defined by the gating:
+
+```{r show-pops}
+plot(gs[[1]])
+```
+
+Visualize!
+
+```{r plot-gating}
+plotGate(gs[[1]])
+plotGate(gs[[2]])
+plotGate(gs[[3]])
+plotGate(gs[[4]])
+plotGate(gs[[5]])
+plotGate(gs[[6]])
+plotGate(gs[[7]])
+plotGate(gs[[8]])
+plotGate(gs[[7]], c("CXCR4-Tra160-", "CXCR4-Tra160+", "CXCR4+Tra160-", 
+                    "CXCR4+Tra160+"))
+```
+
+
+# Automated Gating - Day 1
+
+Load the raw data fpr Day 1 bulk data.
+
+```{r load-raw-data-day1}
+day1_fcs_files <- list.files("data_raw/facs/experiment_01/facs/day1/",
+                             pattern = "*bulk*", full.names = TRUE)
+day1_ncfs <- read.ncdfFlowSet(day1_fcs_files)
+colnames(day1_ncfs)[11] <- "FSC-A"
+colnames(day1_ncfs)[13] <- "SSC-A"
+relevant_channels <-  c("SSC-A", "FSC-A", "Trigger Pulse Width", "Dy488", "PE",
+                        "Hoechst Blue", "Hoechst Red")
+day1_ncfs
+```
+
+According to Shradha and Jose, no compensation is done (not needed) for our FACS data as we have relatively few channels and they do not overlap.
+
+Apply a logicle transformation to the data.
+
+```{r day1-transform-logicle}
+transFuncts <- estimateLogicle(day1_ncfs[[7]], channels = relevant_channels)
+day1_ncfs_trans <- transform(day1_ncfs, transFuncts)
+plot(day1_ncfs_trans[[1]][, relevant_channels])
+```
+
+With the data pre-processed we load it into a `GatingSet` object.
+
+```{r day1-gating-set}
+gs_day1 <- GatingSet(day1_ncfs_trans[, relevant_channels])
+getNodes(gs_day1[[1]])
+```
+
+There is only one population node, `root` at this point.
+
+Now we can apply the gating template to these data:
+
+```{r day1-apply-gating}
+gating(gt, gs_day1, mc.cores = 2, parallel_type = "multicore")
+```
+
+Rename nodes and populations:
+
+```{r day1-rename-pops, results='hide'}
+setNode(gs_day1, "Dy488+", "Tra160+")
+setNode(gs_day1, "PE+", "CXCR4+")
+setNode(gs_day1, "PE-Dy488-", "CXCR4-Tra160-")
+setNode(gs_day1, "PE-Dy488+", "CXCR4-Tra160+")
+setNode(gs_day1, "PE+Dy488-", "CXCR4+Tra160-")
+setNode(gs_day1, "PE+Dy488+", "CXCR4+Tra160+")
+```
+
+Show populations defined by the gating:
+
+```{r day1-show-pops}
+plot(gs_day1[[1]])
+```
+
+Visualize!
+
+```{r day1-plot-gating}
+plotGate(gs_day1[[1]])
+plotGate(gs_day1[[2]])
+plotGate(gs_day1[[3]])
+plotGate(gs_day1[[4]])
+plotGate(gs_day1[[5]])
+plotGate(gs_day1[[6]])
+plotGate(gs_day1[[7]])
+plotGate(gs_day1[[8]])
+plotGate(gs_day1[[7]], c("CXCR4-Tra160-", "CXCR4-Tra160+", "CXCR4+Tra160-", 
+                    "CXCR4+Tra160+"))
+```
+
+
+# Automated Gating - Day 2
+
+Load the raw data fpr Day 2 bulk data.
+
+```{r load-raw-data-day2}
+day2_fcs_files <- list.files("data_raw/facs/experiment_01/facs/day2/",
+                             pattern = "*bulk*", full.names = TRUE)
+day2_ncfs <- read.ncdfFlowSet(day2_fcs_files)
+colnames(day2_ncfs)[11] <- "FSC-A"
+colnames(day2_ncfs)[13] <- "SSC-A"
+colnames(day2_ncfs)[colnames(day2_ncfs) == "670/30(561)"] <- "7AAD"
+relevant_channels <-  c("SSC-A", "FSC-A", "Trigger Pulse Width", "Dy488", "PE",
+                        "Hoechst Blue", "Hoechst Red", "7AAD")
+day2_ncfs
+```
+
+According to Shradha and Jose, no compensation is done (not needed) for our FACS data as we have relatively few channels and they do not overlap.
+
+Apply a logicle transformation to the data.
+
+```{r day2-transform-logicle}
+transFuncts <- estimateLogicle(day2_ncfs[[7]], channels = relevant_channels)
+day2_ncfs_trans <- transform(day2_ncfs, transFuncts)
+#plot(day2_ncfs_trans[[1]][, relevant_channels])
+```
+
+With the data pre-processed we load it into a `GatingSet` object.
+
+```{r day2-gating-set}
+gs_day2 <- GatingSet(day2_ncfs_trans[, relevant_channels])
+getNodes(gs_day2[[1]])
+```
+
+There is only one population node, `root` at this point.
+
+Now we can apply the gating template to these data:
+
+```{r day2-apply-gating}
+gating(gt, gs_day2, mc.cores = 2, parallel_type = "multicore")
+```
+
+Rename nodes and populations:
+
+```{r day2-rename-pops, results='hide'}
+setNode(gs_day2, "Dy488+", "Tra160+")
+setNode(gs_day2, "PE+", "CXCR4+")
+setNode(gs_day2, "PE-Dy488-", "CXCR4-Tra160-")
+setNode(gs_day2, "PE-Dy488+", "CXCR4-Tra160+")
+setNode(gs_day2, "PE+Dy488-", "CXCR4+Tra160-")
+setNode(gs_day2, "PE+Dy488+", "CXCR4+Tra160+")
+```
+
+Show populations defined by the gating:
+
+```{r day2-show-pops}
+plot(gs_day2[[1]])
+```
+
+Visualize!
+
+```{r day2-plot-gating}
+plotGate(gs_day2[[1]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day2[[2]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day2[[3]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day2[[4]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day2[[5]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day2[[6]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day2[[7]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day2[[8]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day2[[7]], c("CXCR4-Tra160-", "CXCR4-Tra160+", "CXCR4+Tra160-", 
+                    "CXCR4+Tra160+"), xlim = "data", ylim = "data")
+```
+
+
+# Automated Gating - Day 3
+
+Load the raw data for Day 3 bulk data. FITC is used instead of Dy488 for Tra-160 here. The channel names for the Hoechst dyes are misspelled.
+
+```{r load-gating-template}
+gt_fitc <- gatingTemplate("data_raw/facs/gating_template_fitc.csv", autostart = 1L)
+plot(gt_fitc)
+```
+
+```{r load-raw-data-day3}
+day3_fcs_files <- list.files("data_raw/facs/experiment_01/facs/day3/",
+                             pattern = "*bulk*", full.names = TRUE)
+day3_ncfs <- read.ncdfFlowSet(day3_fcs_files)
+colnames(day3_ncfs)[11] <- "FSC-A"
+colnames(day3_ncfs)[13] <- "SSC-A"
+colnames(day3_ncfs)[31] <- "Hoechst Blue"
+colnames(day3_ncfs)[33] <- "Hoechst Red"
+colnames(day3_ncfs)[colnames(day3_ncfs) == "670/30(561)"] <- "7AAD"
+relevant_channels <-  c("SSC-A", "FSC-A", "Trigger Pulse Width", "FITC", "PE",
+                        "Hoechst Blue", "Hoechst Red", "7AAD")
+day3_ncfs
+```
+
+According to Shradha and Jose, no compensation is done (not needed) for our FACS data as we have relatively few channels and they do not overlap.
+
+Apply a logicle transformation to the data.
+
+```{r day3-transform-logicle}
+transFuncts <- estimateLogicle(day3_ncfs[[7]], channels = relevant_channels)
+day3_ncfs_trans <- transform(day3_ncfs, transFuncts)
+#plot(day3_ncfs_trans[[1]][, relevant_channels])
+```
+
+With the data pre-processed we load it into a `GatingSet` object.
+
+```{r day3-gating-set}
+gs_day3 <- GatingSet(day3_ncfs_trans[, relevant_channels])
+getNodes(gs_day3[[1]])
+```
+
+There is only one population node, `root` at this point.
+
+Now we can apply the gating template to these data:
+
+```{r day3-apply-gating}
+gating(gt_fitc, gs_day3, mc.cores = 2, parallel_type = "multicore")
+```
+
+Rename nodes and populations:
+
+```{r day3-rename-pops, results='hide'}
+setNode(gs_day3, "FITC+", "Tra160+")
+setNode(gs_day3, "PE+", "CXCR4+")
+setNode(gs_day3, "PE-FITC-", "CXCR4-Tra160-")
+setNode(gs_day3, "PE-FITC+", "CXCR4-Tra160+")
+setNode(gs_day3, "PE+FITC-", "CXCR4+Tra160-")
+setNode(gs_day3, "PE+FITC+", "CXCR4+Tra160+")
+```
+
+Show populations defined by the gating:
+
+```{r day3-show-pops}
+plot(gs_day3[[1]])
+```
+
+Visualize!
+
+```{r day3-plot-gating}
+plotGate(gs_day3[[1]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day3[[2]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day3[[3]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day3[[4]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day3[[5]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day3[[6]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day3[[7]])
+plotGate(gs_day3[[8]], xlim = c(1, 5), ylim = c(1, 5))
+plotGate(gs_day3[[7]], c("CXCR4-Tra160-", "CXCR4-Tra160+", "CXCR4+Tra160-", 
+                    "CXCR4+Tra160+"), xlim = "data", ylim = "data")
+
+```
+
+Cell cycle:
+
+```{r day3-cell-cycle}
+flowViz::densityplot(~`Hoechst Blue`, day3_ncfs_trans, filter = curv1Filter("Hoechst Blue"))
+
+```
+
+All Day 3 bulk samples:
+
+```{r day3-bulk}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

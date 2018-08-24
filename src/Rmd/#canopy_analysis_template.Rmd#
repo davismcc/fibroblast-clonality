@@ -1,0 +1,530 @@
+---
+title: "`r params$title`"
+author: "`r params$author`"
+date: "`r Sys.Date()`"
+params:
+    rdata_file: "test.RData"
+    author: "Davis McCarthy"
+    title: "Canopy analysis"
+    donor: "MISSING"
+    to_working_dir: "./"
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: true
+        code_folding: hide
+bibliography: /hps/nobackup/hipsci/scratch/singlecell_fibroblast/reports/clonality.bib
+csl: /hps/nobackup/hipsci/scratch/singlecell_fibroblast/reports/biomed-central.csl
+---
+
+# Introduction
+
+This document runs and presents a Canopy analysis of clonality for the
+donor `r params$donor` from fibroblast deep exome data.
+
+Somatic mutation sites ("variants" or "sites" or "SSMs") are defined
+by conducting a Fisher Exact Test comparing the variant allele
+frequency (VAF) of the alternative allele between iPSC whole-exome
+data and fibroblast whole-exome data. Sites with a p-value less than
+1e-04 are deemed "significant" and are used for clonal inference
+with [Canopy](https://github.com/yuchaojiang/Canopy) [@Jiang2016-ra].
+
+Canopy uses the VAF in the fibroblast deep-exome data to infer
+phylogenetic tree structures for the fibroblast tissue using the
+following steps:
+
+1. Cluster variants;
+2. Use Bayesian Information Criterion (BIC) to decide on optimal
+   number of clusters;
+3. Use Markov Chain Monte Carlo sampling to generate clonal trees from
+   the model's posterior likelihood;
+4. Use BIC on MCMC samples to decide on the best number of clones in
+   the tree;
+5. Analyse sampled trees to infer clonal structure and configuration
+   of variants tagging specific clones.
+
+We will use the output of Canopy to define the inferred tree structure
+defining the clonal populations present in the original fibroblast
+cell lines, and then assign single cells to these clonal populations
+in downstream analyses.
+
+The input file required is:
+
+* Data/exome-point-mutations/highcov.2017-05-26.txt.gz
+
+This document produces the following output files:
+
+* `r paste0("Data/processed/canopy/canopy_results.", params$donor, ".rds")`
+
+
+# Setup
+
+This analysis uses the following packages available
+from [CRAN](https://cran.r-project.org/)
+and [Bioconductor](http://www.bioconductor.org/).
+
+```{r setup, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(ggthemes)
+library(cowplot)
+library(stringi)
+library(viridis)
+library(ggbeeswarm)
+library(ggridges)
+library(ggtree)
+library(Canopy)
+library(knitr)
+```
+
+We also add some helper functions.
+
+
+```{r setup-rmote, include=FALSE}
+if (interactive()) {
+    rmote::rmote_on(server_dir="/hps/nobackup/hipsci/scratch/singlecell_fibroblast/figures/servr")
+    rmote::rmote_device(width=900, height=600)
+}
+```
+
+```{r setup-src-tools, debug = TRUE}
+source("../../src/R/clone_id_tools.R")
+```
+
+
+# Load exome site data
+
+We first need to load the exome data that we use to define significant
+mutation sites.
+
+Petr Danecek prepared the exome dataset as follows. For each donor: 
+
+* detect all sites where we see a non-reference base in the pileup;
+* require minimum per-sample coverage of 20 reads;
+* require at least 3 alternate reads in either fibroblast or iPS;
+* require allele frequency in ExAC and 1000GP < 5%.
+
+Fisher's Exact Test is then performed on these variants to detect 
+fibroblast-iPS pairs with significantly changed proportion of REF/ALT 
+reads.  
+
+On output a tab-delimited text file is produced which includes fields
+shown below (*) and which should be further filtered, depending on the
+purpose of the analysis. 
+
+
+```{r load-exome-sites}
+exome_sites <- read_tsv(
+    "../../Data/exome-point-mutations/highcov.2017-05-26.txt.gz",
+    col_types = cols(), comment = "#",
+    col_names = c("chrom", "pos", "fibro", "ips", "ref", "alt",
+                  "Fisher_Pval_fibro_ips_locov",
+                  "Fisher_Pval_fibro_locov_fibro_hicov", 
+                  "propALT_fibro_locov", "propALT_fibro_hicov",
+                  "nREF_fibro_locov", "nALT_fibro_locov",
+                  "nREF_ips_locov", "nALT_ips_locov",
+                  "nREF_fibro_hicov", "nALT_fibro_hicov"))
+exome_sites <- dplyr::mutate(
+    exome_sites, propALT_ips_locov = (nALT_ips_locov /
+                                      (nREF_ips_locov + nALT_ips_locov)),
+    donor_short_id = gsub("HPS.*-", "", fibro),
+    fdr = p.adjust(Fisher_Pval_fibro_ips_locov, method = "BH"),
+    var_id = paste0(chrom, ":", pos, "_", ref, "_", alt))
+```
+
+For clonal inference, we apply the following filters:
+
+* a Benjamini-Hochberg FDR of less than 1%;
+* a minimum VAF in high-coverage fibroblast of 1%;
+* a maximum VAF in high-coverage fibroblast of 70% (to avoid the rare
+  possibility of a homozygous alternative mutation);
+* at least 3 alternative alleles observed for the site;
+* require uniqueness of sites across donors as it is highly unlikely
+  to observe the same point mutations and they are most likely
+  artefacts of some sort.
+
+
+```{r filter-sites}
+exome_sites_sig <- exome_sites %>%
+    dplyr::filter(fdr < 0.01, propALT_fibro_hicov > 0.01,
+                  propALT_fibro_hicov < 0.7, nALT_fibro_hicov > 2.5)
+
+nonuniq_sites <- exome_sites_sig %>% group_by(var_id) %>%
+    summarise(n_donors = length(unique(donor_short_id))) %>%
+    dplyr::filter(n_donors > 1.5)
+
+exome_sites_sig <- dplyr::filter(exome_sites_sig,
+                          !(var_id%in% nonuniq_sites[["var_id"]]))
+```
+
+This leaves us with `r nrow(exome_sites_sig)` variants across 
+`r length(unique(exome_sites_sig[["donor_short_id"]]))` donors for 
+Canopy analysis.
+
+```{r plot-fibro-ipsc-vaf-hex-all, fig.width = 14, fig.height = 9, fig.cap = "Hexbin plot showing density of points for iPSC VAF against fibroblast VAF for all donors with deep exome data processed."}
+
+p <- exome_sites %>% dplyr::filter(Fisher_Pval_fibro_ips_locov < 1e-03) %>%
+    ggplot(aes(x = propALT_fibro_locov, y = propALT_ips_locov)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Sites with Fisher P-value < 1e-03")
+p + facet_wrap(~fibro, nrow = 3)
+
+```
+
+
+```{r plot-fibro-ipsc-vaf-contour-all, fig.width = 14, fig.height = 9, fig.cap = "Contour plot showing density of points for iPSC VAF against fibroblast VAF for all donors with deep exome data processed."}
+## contour
+pp <- exome_sites_sig %>% 
+    ggplot(aes(x = propALT_fibro_locov, y = propALT_ips_locov)) +
+    geom_point(size = 0.5, colour = "gray40", alpha = 0.7) +
+    scale_color_viridis(option = "B", name = "Density") +
+    theme_classic() + scale_y_continuous(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0)) +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Filtered mutation sites") +
+    xlab("Variant allele frequency in fibroblasts") +
+    ylab("Variant allele frequency in iPSCs") 
+pp + geom_density_2d(aes(colour = ..level..^0.25), alpha = 0.8, size = 0.5) +
+    facet_wrap(~fibro, nrow = 3) + theme_few()
+```
+
+
+```{r plot-fibro-ipsc-vaf-ridges-fibro, fig.width = 14, fig.height = 9, fig.cap = "Density plots fibroblast VAF for all donors with deep exome data processed."}
+
+p <- exome_sites_sig %>% dplyr::filter(fibro == "HPSI0114pf-vass") %>%
+    ggplot(aes(x = propALT_fibro_locov, y = fibro, fill = fibro)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_viridis(option = "B", discrete = TRUE) +
+    ggtitle("ALT allele proportion in fibroblasts",
+            subtitle = "Filtered somatic mutation sites") +
+    guides(fill = FALSE) + ylab(NULL) + xlab("VAF in fibroblasts")
+p + theme_ridges()
+
+```
+
+```{r plot-fibro-ipsc-vaf-ridges-ipsc, fig.width = 14, fig.height = 9, fig.cap = "Density plots iPSC VAF for all donors with deep exome data processed."}
+
+p <- exome_sites_sig %>% 
+    ggplot(aes(x = propALT_fibro_locov, y = ips, fill = ips)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_viridis(option = "B", discrete = TRUE) +
+    ggtitle("ALT allele proportion in iPSCs",
+            subtitle = "Filtered somatic mutation sites") +
+    guides(fill = FALSE) + ylab(NULL) + xlab("VAF in iPSCs")
+p + theme_ridges()
+
+```
+
+
+```{r plot-fibro-ipsc-vaf-smooth-all, fig.width = 14, fig.height = 9, eval = FALSE, include = FALSE}
+
+pp <- exome_sites_sig %>% 
+    ggplot(aes(x = propALT_fibro_locov, y = propALT_ips_locov)) +
+    stat_density_2d(geom = "tile", aes(fill = ..density..^0.25, alpha = 1),
+                   contour=FALSE) +
+    geom_point(size = 0.5, colour = "white") +
+    stat_density_2d(geom = "tile",
+                   aes(fill = ..density..^0.25,
+                       alpha = ifelse(..density.. ^ 0.25 < 1, 0, 1)),
+                   contour = FALSE) +
+    scale_fill_viridis(option = "B", name = "Density") +
+    guides(alpha = FALSE) + 
+    theme_classic() + scale_y_continuous(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0)) +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Filtered somatic mutation sites") +
+        xlab("Variant allele frequency in fibroblasts") +
+    ylab("Variant allele frequency in iPSCs") +
+    facet_wrap(~fibro, nrow = 3) + theme_few()
+pp
+
+```
+
+
+
+
+```{r plot-fibro-ipsc-vaf-contour-this-donor, fig.width = 10, fig.height = 7, fig.cap = "Contour plot showing density of points for iPSC VAF against fibroblast VAF for this donor."}
+
+## contour
+ppp <- exome_sites_sig %>%
+    dplyr::filter(gsub("HPS.*-", "", fibro) %in% params$donor) %>% 
+    ggplot(aes(x = propALT_fibro_locov, y = propALT_ips_locov)) +
+    scale_color_viridis(option = "B", name = "Density") +
+    theme_classic() + 
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Filtered mutation sites") +
+    geom_density_2d(aes(colour = ..level..^0.25), alpha = 0.8, size = 0.5) +
+    geom_point(size = 1.5, colour = "gray40", alpha = 0.7) +
+    xlab("Variant allele frequency in fibroblasts") +
+    ylab("Variant allele frequency in iPSCs") +
+    theme_few(20)
+ppp
+
+```
+
+
+
+```{r plot-fibro-ipsc-vaf-smooth-this-donor, include = FALSE, eval = FALSE}
+
+# Plot smoothScatter
+pp <- exome_sites_sig %>%
+    dplyr::filter(gsub("HPS.*-", "", fibro) %in% params$donor) %>% 
+    ggplot(aes(x = propALT_fibro_locov, y = propALT_ips_locov)) +
+    stat_density_2d(geom = "tile", aes(fill = ..density..^0.25, alpha = 1),
+                   contour=FALSE) +
+    geom_point(size = 0.5, colour = "white") +
+    stat_density_2d(geom = "tile",
+                   aes(fill = ..density..^0.25,
+                       alpha = ifelse(..density.. ^ 0.25 < 1, 0, 1)),
+                   contour = FALSE) +
+    scale_fill_viridis(option = "B") +
+#    scale_fill_gradientn(colours = colorRampPalette(c("white", blues9))(256)) +
+    theme_classic() + scale_y_continuous(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0)) +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Filtered somatic mutation sites")
+pp
+
+```
+
+
+
+# Analysis with Canopy
+
+For this donor we have `r sum(exome_sites_sig[["donor_short_id"]] == params$donor)`
+variants passing filtering that we will use for clonal inference.
+
+## Prepare input for this donor
+
+Prepare input for Canopy from significant exome sites for donor 
+`r params$donor`. This involves defining the matrix `R` of read counts
+for the alternate allele and the matrix `X` of total read counts for
+every significant site for the donor.
+
+```{r canopy-input-our-data}
+canopy_input <- list()
+tmpdf <- exome_sites_sig %>%
+    dplyr::filter(donor_short_id == params$donor)
+if (nrow(tmpdf) == 0)
+    stop("No variants left after filtering!\n")
+canopy_input[["R"]] <- as.matrix(tmpdf[, "nALT_fibro_hicov"])
+canopy_input[["X"]] <- canopy_input[["R"]] + as.matrix(tmpdf[, "nREF_fibro_hicov"])
+rownames(canopy_input[["R"]]) <- rownames(canopy_input[["X"]]) <- tmpdf[["var_id"]]
+colnames(canopy_input[["X"]]) <- "nALL_fibro_hicov"
+```
+
+
+## Cluster variants
+
+The first step of the Canopy analysis is to cluster the variants. We
+pre-specify a proportion of 1% of variants belonging to the "noise"
+component/cluster.
+
+```{r, canclust}
+R <- canopy_input$R
+X <- canopy_input$X
+num_cluster <- 2:8
+num_run <- 10
+tau_kplus1 <- 0.01 # pre-specified proportion of noise component
+canclust <- canopy.cluster(R = R, X = X,
+                            num_cluster = num_cluster,
+                            num_run = num_run,
+                            Tau_Kplus1 = tau_kplus1)
+```
+
+
+## Choose number of clusters with BIC
+
+We can visualize the BIC of the clustering models to determine the
+best number of variant clusters and the VAF distributions for variants
+assigned to different clusters.
+
+```{r, mut-clust-bic, fig.cap = "Selecting the number of clusters of mutations. A higher vlue for the Bayesian Information Criterion is preferred, so plotting BIC against number of clusters allows us to select the number of clusters with the highest BIC to provide to the Canopy tree model."}
+## BIC to determine the optimal number of mutation clusters
+data_frame(bic_output = canclust$bic_output,
+           num_cluster = num_cluster) %>%
+    ggplot(aes(x = num_cluster, y = bic_output)) +
+    geom_line(colour = "gray50") + ylab("BIC") +
+    geom_point(colour = "firebrick") + xlab("Number of mutation clusters") +
+    ggtitle(paste0(params$donor, ": BIC for model selection")) + theme_bw(20)
+
+```
+
+```{r, mut-clust-viz, fig.cap = "Mutation variant allele frequency (VAF). Canopy finds the optimal number of clusters of variants, with the final cluster always represting the 'noise' cluster. We observe that different variant clusters have different VAF distributions."}
+# Visualization of clustering result
+data_frame(sna_cluster = as.factor(canclust$sna_cluster), 
+           vaf = (R/X)[, 1]) %>%
+    ggplot(aes(x = vaf, fill = sna_cluster)) +
+    geom_density(alpha = 0.6) + xlab("Variant allele frequency") +
+    scale_fill_tableau() + theme_bw(20) +
+    ggtitle(paste0(params$donor,
+                   ": Canopy variant clustering"))
+
+```
+
+
+
+## MCMC sampling of trees
+
+We take MCMC samples of trees under the model with K = 2 to K = 6
+subclones, and sample 15 chains with random initiations for each
+number of subclones.
+
+```{r, mcmc-sampling, results = 'hide', message = FALSE, eval = TRUE}
+projectname <- params$donor
+K <- 2:6 # number of subclones
+numchain <- 15 # number of chains with random initiations
+sampchain <- canopy.sample.cluster.nocna(
+    R = R, X = X, sna_cluster = canclust$sna_cluster,
+    K = K, numchain = numchain,
+    max.simrun = 100000, min.simrun = 20000,
+    writeskip = 200, projectname = projectname,
+    cell.line = FALSE, plot.likelihood = FALSE)
+
+```
+
+Every 200th sampled tree is kept in the sampling output.
+
+
+## BIC for model selection: number of clones
+
+From the sampled trees we use BIC again to select the best number of
+clones in the tree. We use a "burnin" of 100 and thin the sampled
+chains to keep only every 5th sample.
+
+We define the "optimal K" (number of clones) to be that with the
+highest BIC.
+
+```{r, bic-n-clones, eval = TRUE}
+burnin <- 100
+thin <- 5
+bic <- canopy.BIC(sampchain, projectname = projectname, K = K,
+                  numchain = numchain, burnin = burnin, thin = thin, pdf = TRUE)
+optK <- K[which.max(bic)]
+```
+
+
+```{r, plot-bic-n-clones, fig.cap = "Model selection for number of subclones in population. We choose the number of subclones with the highest value for the Bayesian Information Criterion.", eval = TRUE}
+data_frame(K = as.integer(K), BIC = bic) %>%
+    ggplot(aes(x = K, y = BIC)) +
+    geom_vline(xintercept = K[which.max(bic)], linetype = 2, colour = "gray50") +
+    geom_line(colour = "gray50") + geom_point(colour = "firebrick", size = 4) +
+    xlab("Number of subclones") + theme_bw(20) +
+    ggtitle(paste0("Model selection for ", params$donor)) +
+    theme_bw(20)
+```
+
+The optimal number of clones here is `r optK`.
+
+
+## Evaluation of posterior trees
+
+With MCMC samples of trees obtained, we need to evaluate the output.
+
+The table below shows:
+
+* first column: tree configuration;
+* second column: posterior configuration probability in the entire tree space;
+* third column: posterior configuration likelihood in the subtree space.
+
+Note: if modes of posterior probabilities aren't obvious, run sampling longer.
+
+
+```{r canopy-analysis, results = 'asis', eval = TRUE}
+## posterior tree evaluation ## 
+post <- canopy_post(sampchain = sampchain, projectname = projectname, K = K,
+                    numchain = numchain, burnin = burnin, thin = thin,
+                    optK = optK, C = NULL, post.config.cutoff = 0.01)
+samptreethin <- post[[1]]   # list of all post-burnin and thinning trees
+samptreethin.lik <- post[[2]]   # likelihoods of trees in samptree
+config <- post[[3]]
+config.summary <- post[[4]]
+knitr::kable(config.summary)
+```
+
+Plot the first sampled tree.
+
+```{r, plot-tree-1, fig.cap = "Sampled tree: tree tip labels identify the subclones inferred for this tree. The number in each box at the end of each tip of the tree displays the cell clone prevalence for that subclone (i.e the expected percentage of cells in that clone).", eval = TRUE}
+plot_tree(post[[1]][[1]], paste0(params$donor, " posterior tree: 1")) 
+```
+
+We plot a selection of sampled trees to get an idea of the variability
+in sampled trees.
+
+
+```{r, plot-sampled-trees, fig.width = 14, fig.height = 10, eval = TRUE}
+plist <- list()
+samp <- sample(length(post[[1]]), size = 6)
+for (i in seq_along(samp)) {
+    plist[[i]] <- plot_tree(post[[1]][[samp[i]]],
+                            paste(params$donor, "posterior tree:", i)) 
+}
+plot_grid(plotlist = plist, nrow = 3)
+
+```
+
+# Highest-likelihood clonal tree
+
+For most downstream analysis we will use the tree with the highest
+posterior likelihood (i.e. our "best" tree for when we need to choose
+one).
+
+```{r, highest-lik-tree, eval = TRUE}
+config.i <- config.summary[which.max(config.summary[,3]),1]
+cat('Configuration', config.i, 'has the highest posterior likelihood.\n')
+output.tree <- canopy.output(post, config.i, C = NULL)
+```
+
+```{r, plot-highest-lik-tree, eval = TRUE}
+plot_tree(output.tree, paste(params$donor,
+                              "highest likelihood posterior tree") )
+```
+
+
+Plot the VAF distributions for variants assigned to the clones for the
+first sampled tree in the output.
+
+```{r, plot-vaf-distn, eval = TRUE}
+canopy_output_to_df(post[[1]][[which.max(config.summary[,3])]]) %>%
+    ggplot(aes(x = vaf, y = clone, fill = clone)) +
+    geom_density_ridges(colour = "gray60", alpha = 0.8) +
+    scale_fill_tableau() + theme_bw(20)
+```
+
+# Variant to clone assignment
+
+The table below shows the assignment of variants to clones for the
+highest-likelihood tree sampled from the posterior.
+
+
+```{r, results-all, results = 'asis', eval = TRUE}
+results_df <- canopy_output_to_df(output.tree)
+results <- list(tree = output.tree, df = results_df,
+                post = post, input = canopy_input)
+knitr::kable(results_df)
+```
+
+
+
+# Save results to file
+
+```{r, eval = TRUE}
+saveRDS(results,
+        file = paste0("../../Data/processed/canopy/canopy_results.",
+                      params$donor, ".rds"))
+
+```
+
+
+# Session info
+
+```{r, sesh-info}
+sessionInfo()
+```
+
+# References

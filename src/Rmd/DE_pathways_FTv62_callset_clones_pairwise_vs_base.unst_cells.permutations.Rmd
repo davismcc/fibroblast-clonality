@@ -1,0 +1,681 @@
+---
+title: "`r params$title`"
+author: "`r params$author`"
+date: "`r Sys.Date()`"
+params:
+    callset: "MISSING"
+    author: "Davis McCarthy"
+    title: "Differential gene and pathway analysis between clones"
+    to_working_dir: "./"
+
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: true
+        code_folding: hide
+
+---
+
+# Differential gene and pathway expression analysis between clones: unstimulated cells
+
+**Permuting clones** to get empirical p-values for DE and pathway effects.
+
+**Cardelino cell assignments using Canopy trees**. No merging of clones.
+
+Using the latest callset from Petr Danecek (April 2018): fisher exact test and 
+other filters. This analysis uses the callset: `r params$callset`.
+
+```{r global_options, include=FALSE}
+library(vcfR)
+library(readr)
+library(dplyr)
+library(scran)
+library(scater)
+library(viridis)
+library(ggplot2)
+library(ggridges)
+library(SingleCellExperiment)
+library(edgeR)
+library(limma)
+library(org.Hs.eg.db)
+library(cowplot)
+library(gplots)
+library(goseq)
+```
+
+## Load data
+
+Define the donors for which we have cell assignment results to study.
+
+```{r}
+set.seed(20180520)
+nperm <- 100
+
+cat(getwd())
+fls <- list.files(file.path(to_working_dir, "Data/processed/sces"))
+fls <- fls[grepl(params$callset, fls)]
+donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+length(donors)
+```
+
+Read in annotated SCE objects and create a list of SCE objects containing all 
+cells (stimulated and unstimulated) and just unstimulated cells.
+
+```{r}
+sce_list <- list()
+sce_unst_list <- list()
+for (don in donors) {
+    sce_list[[don]] <- readRDS(file.path(to_working_dir, "Data/processed/sces", 
+        paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
+    sce_unst_list[[don]] <- sce_list[[don]][, sce_list[[don]]$well_condition == "unstimulated"]
+    cat(paste("reading", don, ":   ", ncol(sce_list[[don]]), "cells total,", 
+        ncol(sce_unst_list[[don]]), "cells unstimulated.\n"))
+}
+```
+
+We have `r length(sce_unst_list)` donors for analysis.
+
+### generate sce list with only assigned cells in clones with more than three cells
+
+Filter donors for DE/pathway analysis using all (stimulated and unstimulated cells).
+
+* Keep clones with at least three assigned cells.
+* Keep only cells that are confidently assigned to a (kept) clone. 
+* Keep donors that have at least 15 assigned cells to kept clones
+
+Conduct the filtering for the unstimulated cells only.
+
+```{r}
+sce_unst_list_filt <- list()
+clones_keep_unst <- list()
+for ( i in names(sce_unst_list) ) {
+    clones_keep_unst[[i]] <- table(sce_unst_list[[i]]$assigned)[which(table(sce_unst_list[[i]]$assigned) >= 3)]
+    clones_keep_unst[[i]] <- clones_keep_unst[[i]][!(names(clones_keep_unst[[i]]) %in% "unassigned")]
+    cells_use_unst <- colnames(sce_unst_list[[i]])[sce_unst_list[[i]]$assigned %in% names(clones_keep_unst[[i]])]
+    cat(paste("....", i, ":", length(cells_use_unst), "unstimulated cells for DE analyses.\n"))
+    if (length(cells_use_unst) > 14.5 && length(clones_keep_unst[[i]]) > 1.5)
+        sce_unst_list_filt[[i]] <- sce_unst_list[[i]][, cells_use_unst]
+}
+```
+
+
+`r length(sce_unst_list_filt)` donors are retained for DE/pathway analysis using
+unstimulated cells only.
+
+### filter cells and genes
+
+
+### DE analysis across donors - Unstimulated cells
+
+```{r}
+data_dir <- file.path(to_working_dir, "Data/processed/de_analysis_FTv62/permutations/")
+fig_dir <- file.path(to_working_dir, "figures/clonality/de_pathways/permutations/")
+```
+
+```{r}
+gene_use_DE <- (!rowData(sce_unst_list_filt[[1]])$is_feature_control) # remove ERCC
+for (i in names(sce_unst_list_filt)){
+  gene_use_DE <- gene_use_DE & (rowMeans(counts(sce_unst_list_filt[[i]]) > 1)) # all 0s
+  # 1 count in 10% of cells
+  # rowMeans of counts > 0.5
+}
+
+dge_list_unst <- list()
+design_list_unst <- list()
+fit_list_unst <- list()
+qlf_list_unst <- list()
+```
+
+```{r}
+sum(gene_use_DE)
+```
+
+Create DGEList objects, calculate normalization factors, design matrix and 
+estimate 
+
+```{r}
+for(i in names(sce_unst_list_filt)) {
+  #sce_list_unst[[i]] <- scran::computeSumFactors(sce_list_unst[[i]])
+    cat("....calculating DE for ", i, "\n")
+    dge_list_unst[[i]] <- edgeR::DGEList(round(counts(sce_unst_list_filt[[i]][gene_use_DE,])))
+    dge_list_unst[[i]] <- edgeR::calcNormFactors(dge_list_unst[[i]], method = "TMM")
+    sce_unst_list_filt[[i]]$cdr <- (colSums(counts(sce_unst_list_filt[[i]]) > 0) / nrow(sce_unst_list_filt[[i]]))
+    sce_unst_list_filt[[i]]$plate <- as.factor(sce_unst_list_filt[[i]]$plate)
+    design_list_unst[[i]] <- model.matrix(~cdr + plate + assigned, data = colData(sce_unst_list_filt[[i]]))
+    dge_list_unst[[i]] <- estimateDisp(dge_list_unst[[i]], design_list_unst[[i]])
+ 
+}
+```
+
+
+
+```{r}
+dge_list_unst_perm <- list()
+design_list_unst_perm <- list()
+fit_list_unst_perm <- list()
+qlf_list_unst_perm <- list()
+
+for(i in names(sce_unst_list_filt)) {
+    design_list_unst_perm[[i]] <- list()
+    fit_list_unst_perm[[i]] <- list()
+    qlf_list_unst_perm[[i]] <- list()
+    for (j in seq_len(nperm)) {
+        sce_unst_list_filt[[i]]$assigned_perm <- 
+            sample(sce_unst_list_filt[[i]]$assigned)
+        design_list_unst_perm[[i]][[j]] <- model.matrix(~cdr + plate + assigned_perm, 
+            data = colData(sce_unst_list_filt[[i]]))
+        if (qr(design_list_unst_perm[[i]][[j]])$rank < 
+            ncol(design_list_unst_perm[[i]][[j]])) {
+            cat("Design matrix not of full rank for", i, "\n")
+            fit_list_unst_perm[[i]][[j]] <- NA
+            qlf_list_unst_perm[[i]][[j]] <- NA
+        } else if (nlevels(as.factor(sce_unst_list_filt[[i]]$assigned)) < 2) {
+            cat("assigned factor has only one level for ", i, "\n")
+        } else {
+            fit_list_unst_perm[[i]][[j]] <- glmQLFit(dge_list_unst[[i]], 
+                design_list_unst_perm[[i]][[j]])
+            num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+            ncoef <- ncol(design_list_unst_perm[[i]][[j]])
+            qlf_list_unst_perm[[i]][[j]] <- glmQLFTest(
+                fit_list_unst_perm[[i]][[j]], 
+                coef = (ncoef - num_clones + 2):ncoef)
+        }
+    }
+}
+```
+
+Conduct QL F-test for first clone coefficient alone (typically clone2 - clone1).
+
+```{r}
+qlf_1st_coef_list_unst <- list()
+
+for(i in names(dge_list_unst)) {
+    qlf_1st_coef_list_unst[[i]] <- list()
+    cat("....calculating DE for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    for (j in seq_len(nperm)) {
+        if (is.na(fit_list_unst_perm[[i]][[j]])) {
+            qlf_1st_coef_list_unst[[i]][[j]] <- NA
+        } else {
+            qlf_1st_coef_list_unst[[i]][[j]] <- glmQLFTest(fit_list_unst_perm[[i]][[j]],
+                coef = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 2))
+        }
+    }
+}
+```
+
+Conduct QL F-test for second clone coefficient alone (typically clone3 - clone1).
+
+```{r}
+qlf_2nd_coef_list_unst <- list()
+for(i in names(dge_list_unst)) {
+    qlf_2nd_coef_list_unst[[i]] <- list()
+    cat("....calculating DE for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                qlf_2nd_coef_list_unst[[i]][[j]] <- NA
+            } else {
+                qlf_2nd_coef_list_unst[[i]][[j]] <- glmQLFTest(fit_list_unst_perm[[i]][[j]],
+                              coef = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 3))
+            }
+        }
+    }
+}
+```
+
+```{r}
+qlf_3rd_coef_list_unst <- list()
+for(i in names(dge_list_unst)) {
+    qlf_3rd_coef_list_unst[[i]] <- list()
+    cat("....calculating DE for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                qlf_3rd_coef_list_unst[[i]][[j]] <- NA
+            } else {
+                qlf_3rd_coef_list_unst[[i]][[j]] <- glmQLFTest(fit_list_unst_perm[[i]][[j]],
+                    coef = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 4))
+            }
+        }
+    }
+}
+```
+
+
+### Gene set testing
+
+```{r}
+library(limma)
+library(org.Hs.eg.db)
+load(file.path(to_working_dir, "Data/human_c6_v5p2.rdata"))
+load(file.path(to_working_dir, "Data/human_H_v5p2.rdata"))
+load(file.path(to_working_dir, "Data/human_c2_v5p2.rdata"))
+```
+
+```{r}
+#For the reverse map ENSEMBL2EG:
+# Convert to a list
+xx <- as.list(org.Hs.egENSEMBL2EG)
+```
+
+#### Oncogenic gene sets (c6)
+
+Testing first clone coefficient (typically clone2 - clone1).
+
+```{r}
+camera_msigdb_c6_1st_coef_list_unst <- list()
+fry_msigdb_c6_1st_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    camera_msigdb_c6_1st_coef_list_unst[[i]] <- list()
+    fry_msigdb_c6_1st_coef_list_unst[[i]] <- list()
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 1.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                next
+            }
+            qlf_1st_coef_list_unst[[i]][[j]]$table$ensembl_gene_id <- 
+                strsplit2(rownames(qlf_1st_coef_list_unst[[i]][[j]]$table), split = "_")[,1]
+            qlf_1st_coef_list_unst[[i]][[j]]$table$hgnc_symbol <- 
+                strsplit2(rownames(qlf_1st_coef_list_unst[[i]][[j]]$table), split = "_")[,2]
+            qlf_1st_coef_list_unst[[i]][[j]]$table$entrezid <- NA
+            for (k in seq_len(nrow(qlf_1st_coef_list_unst[[i]][[j]]$table))) {
+                if (qlf_1st_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                    qlf_1st_coef_list_unst[[i]][[j]]$table$entrezid[k] <- 
+                        xx[[qlf_1st_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+            }
+            idx <- ids2indices(Hs.c6, id=qlf_1st_coef_list_unst[[i]][[j]]$table$entrezid)
+            camera_msigdb_c6_1st_coef_list_unst[[i]][[j]] <- camera(
+                dge_list_unst[[i]], idx, qlf_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 2))
+            fry_msigdb_c6_1st_coef_list_unst[[i]][[j]] <- fry(
+                dge_list_unst[[i]], idx, qlf_1st_coef_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 2))
+        }
+    }
+}
+```
+
+Testing second clone coefficient (typically clone3 - clone1).
+
+```{r}
+camera_msigdb_c6_2nd_coef_list_unst <- list()
+fry_msigdb_c6_2nd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    camera_msigdb_c6_2nd_coef_list_unst[[i]] <- list()
+    fry_msigdb_c6_2nd_coef_list_unst[[i]] <- list()
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                next
+            }
+            qlf_2nd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id <- 
+                strsplit2(rownames(qlf_2nd_coef_list_unst[[i]][[j]]$table), split = "_")[,1]
+            qlf_2nd_coef_list_unst[[i]][[j]]$table$hgnc_symbol <- 
+                strsplit2(rownames(qlf_2nd_coef_list_unst[[i]][[j]]$table), split = "_")[,2]
+            qlf_2nd_coef_list_unst[[i]][[j]]$table$entrezid <- NA
+            for (k in seq_len(nrow(qlf_2nd_coef_list_unst[[i]][[j]]$table))) {
+                if (qlf_2nd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                    qlf_2nd_coef_list_unst[[i]][[j]]$table$entrezid[k] <- 
+                        xx[[qlf_2nd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+            }
+            idx <- ids2indices(Hs.c6, id=qlf_2nd_coef_list_unst[[i]][[j]]$table$entrezid)
+            camera_msigdb_c6_2nd_coef_list_unst[[i]][[j]] <- camera(
+                dge_list_unst[[i]], idx, qlf_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 3))
+            fry_msigdb_c6_2nd_coef_list_unst[[i]][[j]] <- fry(
+                dge_list_unst[[i]], idx, qlf_2nd_coef_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 3))
+        }
+    }
+}
+
+```
+
+Testing third clone coefficient (typically clone4 - clone1).
+
+```{r}
+camera_msigdb_c6_3rd_coef_list_unst <- list()
+fry_msigdb_c6_3rd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    camera_msigdb_c6_3rd_coef_list_unst[[i]] <- list()
+    fry_msigdb_c6_3rd_coef_list_unst[[i]] <- list()
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                next
+            }
+            qlf_3rd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id <- 
+                strsplit2(rownames(qlf_3rd_coef_list_unst[[i]][[j]]$table), split = "_")[,1]
+            qlf_3rd_coef_list_unst[[i]][[j]]$table$hgnc_symbol <- 
+                strsplit2(rownames(qlf_3rd_coef_list_unst[[i]][[j]]$table), split = "_")[,2]
+            qlf_3rd_coef_list_unst[[i]][[j]]$table$entrezid <- NA
+            for (k in seq_len(nrow(qlf_3rd_coef_list_unst[[i]][[j]]$table))) {
+                if (qlf_3rd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                    qlf_3rd_coef_list_unst[[i]][[j]]$table$entrezid[k] <- 
+                        xx[[qlf_3rd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+            }
+            idx <- ids2indices(Hs.c6, id=qlf_3rd_coef_list_unst[[i]][[j]]$table$entrezid)
+            camera_msigdb_c6_3rd_coef_list_unst[[i]][[j]] <- camera(
+                dge_list_unst[[i]], idx, qlf_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 4))
+            fry_msigdb_c6_3rd_coef_list_unst[[i]][[j]] <- fry(
+                dge_list_unst[[i]], idx, qlf_3rd_coef_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 4))
+        }
+    }
+}
+
+```
+
+#### Curated gene sets (c2)
+
+Testing first clone coefficient (typically clone2 - clone1).
+
+```{r}
+camera_msigdb_c2_1st_coef_list_unst <- list()
+fry_msigdb_c2_1st_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    camera_msigdb_c2_1st_coef_list_unst[[i]] <- list()
+    fry_msigdb_c2_1st_coef_list_unst[[i]] <- list()
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 1.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                next
+            }
+            qlf_1st_coef_list_unst[[i]][[j]]$table$ensembl_gene_id <- 
+                strsplit2(rownames(qlf_1st_coef_list_unst[[i]][[j]]$table), split = "_")[,1]
+            qlf_1st_coef_list_unst[[i]][[j]]$table$hgnc_symbol <- 
+                strsplit2(rownames(qlf_1st_coef_list_unst[[i]][[j]]$table), split = "_")[,2]
+            qlf_1st_coef_list_unst[[i]][[j]]$table$entrezid <- NA
+            for (k in seq_len(nrow(qlf_1st_coef_list_unst[[i]][[j]]$table))) {
+                if (qlf_1st_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                    qlf_1st_coef_list_unst[[i]][[j]]$table$entrezid[k] <- 
+                        xx[[qlf_1st_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+            }
+            idx <- ids2indices(Hs.c2, id=qlf_1st_coef_list_unst[[i]][[j]]$table$entrezid)
+            camera_msigdb_c2_1st_coef_list_unst[[i]][[j]] <- camera(
+                dge_list_unst[[i]], idx, qlf_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 2))
+            fry_msigdb_c2_1st_coef_list_unst[[i]][[j]] <- fry(
+                dge_list_unst[[i]], idx, qlf_1st_coef_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 2))
+        }
+    }
+}
+```
+
+Testing second clone coefficient (typically clone3 - clone1).
+
+```{r}
+camera_msigdb_c2_2nd_coef_list_unst <- list()
+fry_msigdb_c2_2nd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    camera_msigdb_c2_2nd_coef_list_unst[[i]] <- list()
+    fry_msigdb_c2_2nd_coef_list_unst[[i]] <- list()
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                next
+            }
+            qlf_2nd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id <- 
+                strsplit2(rownames(qlf_2nd_coef_list_unst[[i]][[j]]$table), split = "_")[,1]
+            qlf_2nd_coef_list_unst[[i]][[j]]$table$hgnc_symbol <- 
+                strsplit2(rownames(qlf_2nd_coef_list_unst[[i]][[j]]$table), split = "_")[,2]
+            qlf_2nd_coef_list_unst[[i]][[j]]$table$entrezid <- NA
+            for (k in seq_len(nrow(qlf_2nd_coef_list_unst[[i]][[j]]$table))) {
+                if (qlf_2nd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                    qlf_2nd_coef_list_unst[[i]][[j]]$table$entrezid[k] <- 
+                        xx[[qlf_2nd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+            }
+            idx <- ids2indices(Hs.c2, id=qlf_2nd_coef_list_unst[[i]][[j]]$table$entrezid)
+            camera_msigdb_c2_2nd_coef_list_unst[[i]][[j]] <- camera(
+                dge_list_unst[[i]], idx, qlf_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 3))
+            fry_msigdb_c2_2nd_coef_list_unst[[i]][[j]] <- fry(
+                dge_list_unst[[i]], idx, qlf_2nd_coef_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 3))
+        }
+    }
+}
+
+```
+
+Testing third clone coefficient (typically clone4 - clone1).
+
+```{r}
+camera_msigdb_c2_3rd_coef_list_unst <- list()
+fry_msigdb_c2_3rd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    camera_msigdb_c2_3rd_coef_list_unst[[i]] <- list()
+    fry_msigdb_c2_3rd_coef_list_unst[[i]] <- list()
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                next
+            }
+            qlf_3rd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id <- 
+                strsplit2(rownames(qlf_3rd_coef_list_unst[[i]][[j]]$table), split = "_")[,1]
+            qlf_3rd_coef_list_unst[[i]][[j]]$table$hgnc_symbol <- 
+                strsplit2(rownames(qlf_3rd_coef_list_unst[[i]][[j]]$table), split = "_")[,2]
+            qlf_3rd_coef_list_unst[[i]][[j]]$table$entrezid <- NA
+            for (k in seq_len(nrow(qlf_3rd_coef_list_unst[[i]][[j]]$table))) {
+                if (qlf_3rd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                    qlf_3rd_coef_list_unst[[i]][[j]]$table$entrezid[k] <- 
+                        xx[[qlf_3rd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+            }
+            idx <- ids2indices(Hs.c2, id=qlf_3rd_coef_list_unst[[i]][[j]]$table$entrezid)
+            camera_msigdb_c2_3rd_coef_list_unst[[i]][[j]] <- camera(
+                dge_list_unst[[i]], idx, qlf_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 4))
+            fry_msigdb_c2_3rd_coef_list_unst[[i]][[j]] <- fry(
+                dge_list_unst[[i]], idx, qlf_3rd_coef_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 4))
+        }
+    }
+}
+```
+
+
+#### Hallmark gene sets (H)
+
+Testing first clone coefficient (typically clone2 - clone1).
+
+```{r}
+camera_msigdb_H_1st_coef_list_unst <- list()
+fry_msigdb_H_1st_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    camera_msigdb_H_1st_coef_list_unst[[i]] <- list()
+    fry_msigdb_H_1st_coef_list_unst[[i]] <- list()
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 1.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                next
+            }
+            qlf_1st_coef_list_unst[[i]][[j]]$table$ensembl_gene_id <- 
+                strsplit2(rownames(qlf_1st_coef_list_unst[[i]][[j]]$table), split = "_")[,1]
+            qlf_1st_coef_list_unst[[i]][[j]]$table$hgnc_symbol <- 
+                strsplit2(rownames(qlf_1st_coef_list_unst[[i]][[j]]$table), split = "_")[,2]
+            qlf_1st_coef_list_unst[[i]][[j]]$table$entrezid <- NA
+            for (k in seq_len(nrow(qlf_1st_coef_list_unst[[i]][[j]]$table))) {
+                if (qlf_1st_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                    qlf_1st_coef_list_unst[[i]][[j]]$table$entrezid[k] <- 
+                        xx[[qlf_1st_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+            }
+            idx <- ids2indices(Hs.H, id=qlf_1st_coef_list_unst[[i]][[j]]$table$entrezid)
+            camera_msigdb_H_1st_coef_list_unst[[i]][[j]] <- camera(
+                dge_list_unst[[i]], idx, qlf_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 2))
+            fry_msigdb_H_1st_coef_list_unst[[i]][[j]] <- fry(
+                dge_list_unst[[i]], idx, qlf_1st_coef_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 2))
+        }
+    }
+}
+```
+
+Testing second clone coefficient (typically clone3 - clone1).
+
+```{r}
+camera_msigdb_H_2nd_coef_list_unst <- list()
+fry_msigdb_H_2nd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    camera_msigdb_H_2nd_coef_list_unst[[i]] <- list()
+    fry_msigdb_H_2nd_coef_list_unst[[i]] <- list()
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 2.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                next
+            }
+            qlf_2nd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id <- 
+                strsplit2(rownames(qlf_2nd_coef_list_unst[[i]][[j]]$table), split = "_")[,1]
+            qlf_2nd_coef_list_unst[[i]][[j]]$table$hgnc_symbol <- 
+                strsplit2(rownames(qlf_2nd_coef_list_unst[[i]][[j]]$table), split = "_")[,2]
+            qlf_2nd_coef_list_unst[[i]][[j]]$table$entrezid <- NA
+            for (k in seq_len(nrow(qlf_2nd_coef_list_unst[[i]][[j]]$table))) {
+                if (qlf_2nd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                    qlf_2nd_coef_list_unst[[i]][[j]]$table$entrezid[k] <- 
+                        xx[[qlf_2nd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+            }
+            idx <- ids2indices(Hs.H, id=qlf_2nd_coef_list_unst[[i]][[j]]$table$entrezid)
+            camera_msigdb_H_2nd_coef_list_unst[[i]][[j]] <- camera(
+                dge_list_unst[[i]], idx, qlf_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 3))
+            fry_msigdb_H_2nd_coef_list_unst[[i]][[j]] <- fry(
+                dge_list_unst[[i]], idx, qlf_2nd_coef_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 3))
+        }
+    }
+}
+
+```
+
+Testing third clone coefficient (typically clone4 - clone1).
+
+```{r}
+camera_msigdb_H_3rd_coef_list_unst <- list()
+fry_msigdb_H_3rd_coef_list_unst <- list()
+for(i in names(sce_unst_list_filt)) {
+    camera_msigdb_H_3rd_coef_list_unst[[i]] <- list()
+    fry_msigdb_H_3rd_coef_list_unst[[i]] <- list()
+    cat("....calculating gene set enrichment for ", i, "\n")
+    num_clones <- length(unique(sce_unst_list_filt[[i]]$assigned))
+    if (num_clones > 3.5) {
+        for (j in seq_len(nperm)) {
+            if (is.na(fit_list_unst_perm[[i]][[j]])) {
+                next
+            }
+            qlf_3rd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id <- 
+                strsplit2(rownames(qlf_3rd_coef_list_unst[[i]][[j]]$table), split = "_")[,1]
+            qlf_3rd_coef_list_unst[[i]][[j]]$table$hgnc_symbol <- 
+                strsplit2(rownames(qlf_3rd_coef_list_unst[[i]][[j]]$table), split = "_")[,2]
+            qlf_3rd_coef_list_unst[[i]][[j]]$table$entrezid <- NA
+            for (k in seq_len(nrow(qlf_3rd_coef_list_unst[[i]][[j]]$table))) {
+                if (qlf_3rd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k] %in% names(xx))
+                    qlf_3rd_coef_list_unst[[i]][[j]]$table$entrezid[k] <- 
+                        xx[[qlf_3rd_coef_list_unst[[i]][[j]]$table$ensembl_gene_id[k]]][1]
+            }
+            idx <- ids2indices(Hs.H, id=qlf_3rd_coef_list_unst[[i]][[j]]$table$entrezid)
+            camera_msigdb_H_3rd_coef_list_unst[[i]][[j]] <- camera(
+                dge_list_unst[[i]], idx, qlf_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 4))
+            fry_msigdb_H_3rd_coef_list_unst[[i]][[j]] <- fry(
+                dge_list_unst[[i]], idx, qlf_3rd_coef_list_unst[[i]][[j]]$design, 
+                contrast = (ncol(design_list_unst_perm[[i]][[j]]) - num_clones + 4))
+        }
+    }
+}
+```
+
+
+
+# Save results to file
+
+```{r}
+de_results_list_unst <- list()
+```
+
+```{r}
+de_results_list_unst[["camera"]] <- list()
+de_results_list_unst[["camera"]][["c2"]] <- list()
+de_results_list_unst[["camera"]][["c6"]] <- list()
+de_results_list_unst[["camera"]][["H"]] <- list()
+```
+
+```{r}
+de_results_list_unst[["camera"]][["c2"]][["1st_coef"]] <- camera_msigdb_c2_1st_coef_list_unst
+de_results_list_unst[["camera"]][["c2"]][["2nd_coef"]] <- camera_msigdb_c2_2nd_coef_list_unst
+de_results_list_unst[["camera"]][["c2"]][["3rd_coef"]] <- camera_msigdb_c2_3rd_coef_list_unst
+de_results_list_unst[["camera"]][["c6"]][["1st_coef"]] <- camera_msigdb_c6_1st_coef_list_unst
+de_results_list_unst[["camera"]][["c6"]][["2nd_coef"]] <- camera_msigdb_c6_2nd_coef_list_unst
+de_results_list_unst[["camera"]][["c6"]][["3rd_coef"]] <- camera_msigdb_c6_3rd_coef_list_unst
+de_results_list_unst[["camera"]][["H"]][["1st_coef"]] <- camera_msigdb_H_1st_coef_list_unst
+de_results_list_unst[["camera"]][["H"]][["2nd_coef"]] <- camera_msigdb_H_2nd_coef_list_unst
+de_results_list_unst[["camera"]][["H"]][["3rd_coef"]] <- camera_msigdb_H_3rd_coef_list_unst
+```
+
+```{r}
+de_results_list_unst[["fry"]] <- list()
+de_results_list_unst[["fry"]][["c2"]] <- list()
+de_results_list_unst[["fry"]][["c6"]] <- list()
+de_results_list_unst[["fry"]][["H"]] <- list()
+de_results_list_unst[["fry"]][["c2"]][["1st_coef"]] <- fry_msigdb_c2_1st_coef_list_unst
+de_results_list_unst[["fry"]][["c2"]][["2nd_coef"]] <- fry_msigdb_c2_2nd_coef_list_unst
+de_results_list_unst[["fry"]][["c2"]][["3rd_coef"]] <- fry_msigdb_c2_3rd_coef_list_unst
+de_results_list_unst[["fry"]][["c6"]][["1st_coef"]] <- fry_msigdb_c6_1st_coef_list_unst
+de_results_list_unst[["fry"]][["c6"]][["2nd_coef"]] <- fry_msigdb_c6_2nd_coef_list_unst
+de_results_list_unst[["fry"]][["c6"]][["3rd_coef"]] <- fry_msigdb_c6_3rd_coef_list_unst
+de_results_list_unst[["fry"]][["H"]][["1st_coef"]] <- fry_msigdb_H_1st_coef_list_unst
+de_results_list_unst[["fry"]][["H"]][["2nd_coef"]] <- fry_msigdb_H_2nd_coef_list_unst
+de_results_list_unst[["fry"]][["H"]][["3rd_coef"]] <- fry_msigdb_H_3rd_coef_list_unst
+```
+
+```{r}
+de_results_list_unst[["design_list"]] <- design_list_unst_perm
+de_results_list_unst[["dge_list"]] <- dge_list_unst_perm
+de_results_list_unst[["fit_list"]] <- fit_list_unst_perm
+de_results_list_unst[["qlf_list"]] <- qlf_list_unst_perm
+de_results_list_unst[["qlf_1st_coef_list"]] <- qlf_1st_coef_list_unst
+de_results_list_unst[["qlf_2nd_coef_list"]] <- qlf_2nd_coef_list_unst
+de_results_list_unst[["qlf_3rd_coef_list"]] <- qlf_3rd_coef_list_unst
+de_results_list_unst[["sce_list_unst"]] <- sce_unst_list_filt
+```
+
+
+```{r}
+saveRDS(object = de_results_list_unst, 
+    file = file.path(data_dir, 
+    paste0(params$callset, ".de_results_unstimulated_cells.rds")))
+```
+
+```{r}
+pryr::object_size(de_results_list_unst)
+```
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+

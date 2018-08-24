@@ -1,0 +1,735 @@
+---
+title: "`r paste(params$title, params$donor)`"
+author: "`r params$author`"
+date: "`r Sys.Date()`"
+params:
+    rdata_file: "test.RData"
+    author: "Davis McCarthy"
+    title: "Assigning single cells to phylogenetic clones:"
+    donor: "MISSING"
+    to_working_dir: "./"
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        theme: journal
+        highlight: pygments
+        number_sections: true
+        code_folding: hide
+bibliography: /hps/nobackup/hipsci/scratch/singlecell_fibroblast/reports/clonality.bib
+csl: /hps/nobackup/hipsci/scratch/singlecell_fibroblast/reports/biomed-central.csl
+---
+
+
+This notebook gives an analysis of cell assignments to clones for the
+donor `r params$donor` with mixture models: two-component Bernoulli or
+binomial models. Here, the parameters are the mean success rate of both
+models. The estimation and the cell assignments are highly
+coupled. Therefore, we use two standard methods to infer this mixture
+model: EM algorithm and Gibbs sampling.
+
+The EM algorithm is much more efficient than Gibbs sampling, but the
+EM algorithm only gives a point estimate of these parameters. A single
+fixed parameter value may fail to capture the variability of these
+parameters for the distribution of reads supporting the alternative
+allele (alternate reads) across variants and cells. Therefore, the
+cell assignments may overfitted to a single parameter value.
+
+Alternatively, we could use Bayesian inference, which marginalizes
+these parameters when assigning cells to clones and may give more
+robust inference of the cell assignments.
+
+**See more**:
+[Details on methods](https://drive.google.com/a/ebi.ac.uk/file/d/1Aclmfk23v0wM4lxrtvHWmzpMIWDvLIoa/view),
+[R Code for EM algorithm](https://github.com/davismcc/cardelino/blob/master/R/cell_assign_EM.R), and
+[R Code for Gibbs sampling](https://github.com/davismcc/cardelino/blob/master/R/cell_assign_Gibbs.R)
+
+
+# Load data
+
+```{r load-libs, message=FALSE, warning=FALSE}
+devtools::install_github("davismcc/cardelino")
+library(cardelino)
+library(vcfR)
+library(scater)
+library(superheat)
+library(viridis)
+library(ggthemes)
+library(tidyverse)
+library(cowplot)
+library(ggpubr)
+library(ggdendro)
+library(ggtree)
+library(ggridges)
+library(apcluster)
+library(pheatmap)
+library(RColorBrewer)
+library(latex2exp)
+if (interactive()) {
+    rmote::rmote_on(server_dir="/hps/nobackup/hipsci/scratch/singlecell_fibroblast/figures/servr")
+    rmote::rmote_device(width = 900, height = 600)
+}
+source("../R/clone_id_tools.R")
+
+
+plotCloneBoots <- function(df, colour_by, nrow = 1, order_by = "q50") {
+    df <- dplyr::mutate(df, cell = factor(cell,
+                  levels = dplyr::filter(df,clone == "clone1")[["cell"]][
+                            order(dplyr::filter(df,
+                                                clone == "clone1")[[order_by]])]))
+    plot_out <- ggplot(df, aes_string(y = "cell", fill = colour_by)) +
+        geom_segment(aes_string(yend = "cell", x = "q25", xend = "q75"),
+                     colour = "gray60") +
+        geom_segment(aes_string(yend = "cell", x = "q75", xend = "whiskMax",
+                                colour = colour_by)) +
+        geom_segment(aes_string(yend = "cell", x = "q25", xend = "whiskMin",
+                                colour = colour_by)) +
+        geom_point(aes_string(x = "q50"), shape = 21) +
+        geom_vline(xintercept = 0.5, colour = "gray40", alpha = 0.5) +
+        facet_wrap(~clone, nrow = nrow) +
+        ylab("Cell") + xlab("Clone frequency across sampled trees") +
+        theme_classic() +
+        theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+              axis.line.y = element_blank())
+    plot_out
+}
+
+```
+
+
+```{r load-data}
+## load expression data
+sce <- readRDS(paste0("../../Data/processed/sces/sce_", params$donor, "_qc.rds"))
+## load genotype data
+system.time(
+    vcf <- read.vcfR("../../Data/processed/genotypes/cells_merged_clone_id.vcf.gz")
+)
+## load Canopy results
+canopy <- readRDS(paste0("../../Data/processed/canopy/canopy_results.",
+                         params$donor, ".rds"))
+
+
+## get read count data
+dp <- extract.gt(vcf, element = "DP", as.numeric = TRUE)
+ad <- extract.gt(vcf, element = "AD")
+ad <- masplit(ad, record = 2, sort = FALSE)
+rownames(ad) <- rownames(dp) <- paste0(vcf@fix[, 1], "_", vcf@fix[, 2])
+
+## Match exome-seq and scRNA-seq data
+## match variants
+C_row_names <- row.names(canopy$tree$Z)
+for (i in seq_len(length(C_row_names))){
+  temp_name <- strsplit(strsplit(C_row_names[i], split="_")[[1]][1], split=":")[[1]]
+  C_row_names[i] <- paste(paste("chr", temp_name[1], sep=""), temp_name[2], sep="_")
+}
+dp <- dp[rownames(dp) %in% C_row_names,]
+ad <- ad[rownames(ad) %in% C_row_names,]
+idx_match <- match(rownames(dp), C_row_names)
+idx_clone <- idx_match[!is.na(idx_match)]
+## match cells
+mm <- match(colnames(sce), colnames(dp))
+mm <- mm[!is.na(mm)]
+
+A <- ad[, mm]
+D <- dp[, mm]
+Config <- canopy$tree$Z[idx_clone,]
+Psi <- canopy$tree$P[, 1]
+```
+
+For `r params$donor`, `r length(canopy$tree$Z)` variants were used for
+clonal inference with Canopy, of which `r nrow(A)` were genotyped in
+at least one of the `r ncol(A)` cells passing expression QC.
+
+The highest-posterior-probability tree for this donor is as below:
+
+```{r}
+plot_tree(canopy$tree, title = paste(params$donor, "best posterior tree"))
+```
+
+Number of mutations expected to be present in each clone:
+
+```{r}
+colSums(canopy$df[, 1:ncol(Config)])
+```
+
+Plot the variant allele frequency (VAF) for variants present in each
+clone.
+
+```{r, message = FALSE}
+vaf_list <- list()
+for (i in 2:ncol(Config)) {
+    vaf_list[[(i - 1)]] <- dplyr::mutate(
+        dplyr::filter(canopy$df, canopy$df[, i] == 1),
+        clone = paste0("clone", i))
+}
+vaf_df <- do.call("bind_rows", vaf_list)
+
+
+vaf_df %>%
+    ggplot(aes(x = ccf, y = clone, fill = clone)) +
+    geom_density_ridges(colour = "gray60", alpha = 0.8) +
+    scale_fill_tableau() + theme_bw(20) +
+    coord_cartesian(xlim = c(-0.1, 1.1)) +
+    xlab("cell clone fraction") +
+    ggtitle(paste(params$donor, " cell clone fraction for mutations"))
+
+```
+
+Check number of clone ID variants genotyped (i.e. with read coverage)
+across the cells for `r params$donor`.
+
+```{r}
+nvars_genotyped <- colSums(!is.na(A))
+summary(nvars_genotyped)
+
+data_frame(nvars_genotyped = colSums(!is.na(A))) %>%
+    ggdensity(x = "nvars_genotyped",
+              add = "median", rug = TRUE,
+              color = "#00AFBB", fill = "#00AFBB")
+```	
+
+
+# EM algorithm for cell assignment
+
+## Bernoulli base model
+
+Here fitting the Bernoulli base model with a uniform prior.
+
+```{r}
+## Cell assignment with EM Algorithm
+Bern_EM <- cell_assign_EM(A, D, Config, Psi = rep(1 / ncol(Config), ncol(Config)),
+                          model = "Bernoulli")
+prob_Bern_EM <- Bern_EM$prob
+```
+
+Estimated false positive rate and (1 - false negative rate).
+
+```{r}
+Bern_EM$theta #false positive rate; 1-false negative rate
+Bern_EM$logLik
+```
+
+
+## Binomial base model
+
+Also using a flat prior for the binomial base model
+
+```{r}
+binom_EM <- cell_assign_EM(A, D, Config,
+                           Psi = rep(1 / ncol(Config), ncol(Config)),
+                           model = "binomial")
+prob_binom_EM <- binom_EM$prob
+```
+
+Estimated mean rate for alternative reads from technical error, and
+mean rate for alternative reads from true mutations.
+
+```{r}
+binom_EM$theta #mean alterate reads from tech error; mean alteration reads from true mutation
+binom_EM$logLik
+```
+
+
+# Gibbs sampling for cell assignment
+
+## Bernoulli base model
+
+Again using a flat prior on clone frequencies.
+
+```{r}
+Bern_Gibbs <- cell_assign_Gibbs(A, D, Config,
+                                Psi = rep(1 / ncol(Config), ncol(Config)),
+                                model = "Bernoulli")
+theta_all  <- Bern_Gibbs$theta[251:1000,]
+logLik_all <- Bern_Gibbs$logLik[251:1000]
+assign_all <- Bern_Gibbs$assign[251:1000,]
+prob_Bern_Gibbs <- prob_Bern_EM
+for (j in seq_len(dim(prob_Bern_Gibbs)[1])){
+  for(k in seq_len(dim(prob_Bern_Gibbs)[2])){
+    prob_Bern_Gibbs[j, k] <- mean(assign_all[, j] == k)
+  }
+}
+
+par(mfrow=c(1,2))
+hist(theta_all[,1], xlab=TeX("$\\theta_0$"), ylab="Frequency",
+     main=TeX("Bernoulli: $\\theta_0$=FPR"))
+abline(v = Bern_EM$theta[1], col = "red", lwd = 2)
+
+hist(theta_all[,2], xlab=TeX("$\\theta_1$"), ylab="Frequency",
+     main=TeX("Bernoulli: $\\theta_1$=1-FNR"))
+abline(v = Bern_EM$theta[2], col = "red", lwd = 2)
+# legend(x = "topright", "EM", col="red", lwd=2)
+
+```
+
+## Binomial base model
+
+Again using a flat prior on clone frequencies.
+
+```{r}
+binom_Gibbs <- cell_assign_Gibbs(A, D, Config,
+                                 Psi = rep(1 / ncol(Config), ncol(Config)),
+                                 model = "binomial")
+theta_all  <- binom_Gibbs$theta[251:1000,]
+logLik_all <- binom_Gibbs$logLik[251:1000]
+assign_all <- binom_Gibbs$assign[251:1000,]
+prob_binom_Gibbs <- prob_binom_EM
+for (j in seq_len(dim(prob_binom_Gibbs)[1])){
+    for(k in seq_len(dim(prob_binom_Gibbs)[2])){
+        prob_binom_Gibbs[j, k] <- mean(assign_all[, j] == k)
+    }
+}
+
+par(mfrow = c(1, 2))
+hist(theta_all[,1], xlab=TeX("$\\theta_0$"), ylab="Frequency",
+     main=TeX("Binomial: $\\theta_0$"))
+abline(v = binom_EM$theta[1], col = "red", lwd = 2)
+
+hist(theta_all[,2], xlab=TeX("$\\theta_1$"), ylab="Frequency",
+     main=TeX("Binomial: $\\theta_1$"))
+abline(v = binom_EM$theta[2], col = "red", lwd = 2)
+# legend(x = "topright", "EM", col="red", lwd=2)
+```
+
+# Comparison of the cell assignments
+
+```{r, message=FALSE, fig.height = 8, fig.width = 8}
+hc <- hclust(dist(prob_Bern_EM))
+coul <- colorRampPalette(brewer.pal(8, "Blues"))(25)
+
+## par(mfrow = c(2, 2))
+## pheatmap(prob_Bern_Gibbs[hc$order,], show_rownames = FALSE,
+##          cluster_rows = FALSE, cluster_cols = FALSE,
+##          col = coul, main = "Bernoulli Gibbs")
+## pheatmap(prob_binom_Gibbs[hc$order,], show_rownames = FALSE,
+##          cluster_rows = FALSE, cluster_cols = FALSE,
+##          col = coul, main = "Binomial Gibbs")
+## pheatmap(prob_Bern_EM[hc$order,], show_rownames = FALSE,
+##          cluster_rows = FALSE, cluster_cols = FALSE,
+##          col = coul, main = "Bernoulli EM")
+## pheatmap(prob_binom_EM[hc$order,], show_rownames = FALSE,
+##          cluster_rows = FALSE, cluster_cols = FALSE,
+##          col = coul, main = "Binomial EM")
+
+
+sh_bern_gibbs <- superheat(prob_Bern_Gibbs[hc$order,], left.label = "none",
+                           title = paste(params$donor, "Bernoulli Gibbs"),
+                           heat.pal = c("white", "firebrick4"),
+                           heat.pal.values = c(0, 1), heat.lim = c(0, 1))
+ggsave(sh_bern_gibbs$plot,
+       filename = paste0("../../figures/clonality/", params$donor,
+                         "_heatmap_prob_bern_gibbs.png"))
+sh_binom_gibbs <- superheat(prob_binom_Gibbs[hc$order,], left.label = "none",
+                            title = paste(params$donor, "binomial Gibbs"),
+                            heat.pal = c("white", "firebrick4"),
+                            heat.pal.values = c(0, 1), heat.lim = c(0, 1))
+ggsave(sh_bern_gibbs$plot,
+       filename = paste0("../../figures/clonality/", params$donor,
+                         "_heatmap_prob_binom_gibbs.png"))
+sh_bern_em <- superheat(prob_Bern_EM[hc$order,], left.label = "none",
+                           title = paste(params$donor, "Bernoulli EM"),
+                        heat.pal = c("white", "firebrick4"),
+                        heat.pal.values = c(0, 1), heat.lim = c(0, 1))
+ggsave(sh_bern_em$plot,
+       filename = paste0("../../figures/clonality/", params$donor,
+                         "_heatmap_prob_bern_em.png"))
+sh_binom_em <- superheat(prob_binom_EM[hc$order,], left.label = "none",
+                         title = paste(params$donor, "binomial EM"),
+                         heat.pal = c("white", "firebrick4"),
+                         heat.pal.values = c(0, 1), heat.lim = c(0, 1))
+ggsave(sh_binom_em$plot,
+       filename = paste0("../../figures/clonality/", params$donor,
+                         "_heatmap_prob_binom_em.png"))
+
+```
+
+# Define cell assignments and clone assignability
+
+Base cell-clone assignments on Bernoulli EM model posterior
+probabilities.
+
+We determine the "identifiability" of each clone for each cell. That
+is, given the set of variants with read coverage for a given cell, is
+each clone in principle distinguishable from the other clones. Where
+various clones are distinct from each other at a small number of
+tagging mutations, it may not be possible to distinguish between them
+when only a small proportion of mutations have read coverage in a
+given cell.
+
+
+```{r, fig.height = 7, fig.width = 11}
+
+vecMatch <- function(x, want) {
+    isTRUE(all.equal(x, want))
+}
+
+check_clone_identifiability <- function(x, Config) {
+    out <- rep(FALSE, ncol(Config))
+    Config_genotyped <- Config[!is.na(x),, drop = FALSE]
+    for (i in seq_len(ncol(Config))) {
+        if (sum(!is.na(x)) >= 1)
+            out[i] <- !any(
+                apply(Config_genotyped[, -i, drop = FALSE], 2, vecMatch,
+                      Config_genotyped[, i, drop = FALSE]))
+    }
+    out
+}
+
+
+assign_cells_to_clones <- function(p, Config, thresh = 0.25) {
+    max_clone <- max.col(p)
+    second_high <- highest_prob <- rep(NA, nrow(p))
+    n <- ncol(Config)
+    for (i in seq_len(nrow(p))) {
+        highest_prob[i] <- p[i, max_clone[i]]
+        second_high[i] <- sort(p[i,], partial = n - 1)[n - 1]
+    }
+    assignable <- (highest_prob > ((1 + thresh) * second_high))
+    highest_prob <- colnames(Config)[max_clone]
+    assigned <- rep("unassigned", nrow(p))
+    assigned[assignable] <- highest_prob[assignable]
+    data_frame(highest_prob, assignable, assigned)    
+}
+        
+df1 <- assign_cells_to_clones(prob_Bern_EM, Config)
+df1[["cell"]] <- colnames(A)
+
+prob <- as_data_frame(prob_Bern_EM) %>%
+    dplyr::mutate(cell = colnames(A))
+
+identifiable <- t(apply(A, 2, check_clone_identifiability, Config))
+colnames(identifiable) <- colnames(Config)
+colMeans(identifiable)
+```
+
+A first attempt at cell assignment just uses the posterior
+probabilities from the Bernoulli EM model. If the probability of the
+highest-probability clone is at least 25% higher than the probability
+of the second highest-probability clone, then we assign the cell to
+the highest probability clone. Otherwise, we leave the cell
+"unassigned". The weakness of this approach is that if two or more
+clones are unidentifiable and two or more clones have equal (or very
+similar) probability, then the cell will not be assigned.
+
+The table below shows the number of cells assigned to each clone with this approach.
+
+```{r}
+identifiable_mat <- identifiable
+identifiable <- as_data_frame(identifiable) %>%
+    dplyr::mutate(cell = colnames(A))
+
+df <- inner_join(df1,
+                 inner_join(prob, identifiable, by = "cell",
+                            suffix = c("_prob", "_identifiable")),
+                 by = "cell")
+                 
+table(df[["assigned"]])
+
+```
+
+
+
+# Clustering cells by affinity propagation
+
+To try to merge very similar clones for assignment, we apply affinity
+propagation (AP) clustering to the clone posterior probabilities from
+the Bernoulli EM model. 
+
+We can visualise AP clustering results with a dendrogram, and we then
+use results when cutting the dendrogram from the AP clustering to
+produce two and three clusters.
+
+```{r, fig.height = 7, fig.width = 12}
+
+## Affinity propagation
+simil <- negDistMat(x = prob_Bern_EM, r = 2)
+ap <- apcluster(simil)
+### for defined number of clusters K
+#ap_10 <- apclusterK(cell_simil_assign, K = 10)
+### hierarchy of clusters
+aggres <- aggExCluster(x = ap, s = simil)
+dd <- as.dendrogram(aggres)
+ggdendrogram(dd, rotate = FALSE, size = 2)
+ex2clust <- cutree(aggres, k = 2)
+ex3clust <- cutree(aggres, k = 3)
+### leveraged affinity propagation - use subsets of d
+
+                                        # apclusterL()
+
+get_ap_clusters <- function(ap) {
+    out <- rep(NA, ap@l)
+    for (i in seq_along(ap@clusters))
+        out[ap@clusters[[i]]] <- i
+    out
+}
+
+df <- dplyr::mutate(df,
+                    cluster_k2 = get_ap_clusters(ex2clust),
+                    cluster_k2_fact = as.factor(cluster_k2),
+                    cluster_k3 = get_ap_clusters(ex3clust),
+                    cluster_k3_fact = as.factor(cluster_k3))
+```
+
+MDS plot showing cells coloured by AP cluster (using two clusters).
+
+```{r, fig.height = 5, fig.width = 8}
+
+ap_results <- ggmds(dist(prob_Bern_EM), df,
+                         colour = "cluster_k2_fact")
+
+```
+
+
+Plot cells on an MDS plot, colouring by clone1 and clone4
+probabilities (or clone3 probabilities if fewer than four clones).
+
+```{r, fig.height = 6, fig.width = 12}
+
+p1 <- ggplot(ap_results, aes(x = MDS_1, y = MDS_2, colour = clone1_prob)) +
+    geom_point(size = 4, alpha = 0.6) + scale_color_viridis(option = "B")
+if (ncol(Config) >= 4) {
+    p2 <- ggplot(ap_results, aes(x = MDS_1, y = MDS_2, colour = clone4_prob)) +
+        geom_point(size = 4, alpha = 0.6) + scale_color_viridis(option = "B")
+} else {
+    p2 <- ggplot(ap_results, aes(x = MDS_1, y = MDS_2, colour = clone3_prob)) +
+        geom_point(size = 4, alpha = 0.6) + scale_color_viridis(option = "B")
+}
+plot_grid(p1, p2, labels = LETTERS)
+
+```
+
+Plot cells on an MDS plot, colouring by AP cluster (using two or three
+clusters).
+
+```{r, fig.height = 6, fig.width = 12, message=FALSE}
+
+p1 <- ggplot(ap_results, aes(x = MDS_1, y = MDS_2, colour = cluster_k2_fact)) +
+    geom_point(size = 4, alpha = 0.6) + scale_color_tableau()
+p2 <- ggplot(ap_results, aes(x = MDS_1, y = MDS_2, colour = cluster_k3_fact)) +
+    geom_point(size = 4, alpha = 0.6) + scale_color_tableau()
+plot_grid(p1, p2, labels = LETTERS)
+
+
+```
+
+
+Plot clone probability distributions for two clusters.
+
+```{r, fig.height = 7, fig.width = 11, message=FALSE}
+
+plist <- list()
+for (i in seq_len(ncol(Config))) {
+    plist[[i]] <- ggplot(
+        ap_results,
+        aes_string(x = paste0("clone", i, "_prob"),
+                   y = "cluster_k2_fact", fill = "cluster_k2_fact")) +
+    geom_density_ridges(alpha = 0.5) + scale_fill_tableau()
+}
+plot_grid(plotlist = plist, labels = LETTERS, nrow = 2)
+
+```
+
+Plot clone probability distributions for three clusters.
+
+
+```{r, fig.height = 7, fig.width = 11, message=FALSE}
+
+plist <- list()
+for (i in seq_len(ncol(Config))) {
+    plist[[i]] <- ggplot(
+        ap_results,
+        aes_string(x = paste0("clone", i, "_prob"),
+                   y = "cluster_k3_fact", fill = "cluster_k3_fact")) +
+    geom_density_ridges(alpha = 0.5) + scale_fill_tableau()
+}
+plot_grid(plotlist = plist, labels = LETTERS, nrow = 2)
+
+```
+
+Assign clones to AP clusters.
+
+```{r, fig.height = 7, fig.width = 11, message=FALSE}
+
+assign_clones_to_ap_clusters <- function(ap, Config, clust_var = "cluster_k2") {
+    clones <- colnames(Config)
+    clusters <- sort(unique(ap[[clust_var]]))
+    out <- vector("list", length(clusters))
+    names(out) <- paste0("clust_", clusters)
+    for (cl in clones) {
+        clust_score <- rep(NA, length(out))
+        for (k in seq_along(out)) {
+            clust_score[k] <- sum(ap[["highest_prob"]][
+                ap[[clust_var]] == clusters[k]] == cl, na.rm = TRUE)
+        }
+        vote <- which.max(clust_score)
+        out[[vote]] <- c(out[[vote]], cl)
+    }
+    out
+}
+
+```
+
+When we have fewer clusters than clones (generally the case), then our
+strategy is to identify which clones are combined in the AP clusters.
+
+Our strategy here is, for each clone, to use a simple voting method to
+determine which AP cluster contains more cells for which the clone is
+the highest probability clone. In this way we can assign clones to AP
+clusters, and then assign cells to these clone-associated clusters for
+downstream analysis. 
+
+A cell is deemed "unassigned" if the sum of its posterior
+probabilities for clones in its assigned cluster is less than 50% more
+than the maximum posterior probability for clones in the other
+clusters.
+
+The following table shows the cell assignment when using two AP
+clusters.
+
+```{r, fig.height = 7, fig.width = 11, message=FALSE}
+
+assign_ap_clones <- function(cells, ap_obj, identifiable, probs,
+                             clust_var = "cluster_k2", new_var = "clone_apk2") {
+    clone2clust <- assign_clones_to_ap_clusters(cells, probs, clust_var)
+    cells[[new_var]] <- NA
+    for (i in seq_len(nrow(cells))) {
+        cc <- clone2clust[[cells[[clust_var]][i]]]
+        prob_clust_clone <- sum(probs[i, cc])
+        max_prob_non_clust_clone <- max(probs[i, !(colnames(probs) %in% cc)])
+        if (prob_clust_clone < (1.5 * max_prob_non_clust_clone))
+            unassignable <- TRUE
+        else
+            unassignable <- FALSE
+        if (unassignable)
+            cells[[new_var]][i] <- "unassigned"
+        else
+            cells[[new_var]][i] <- paste0(cc, collapse = "|")
+    }
+    cells
+}
+
+## two clusters
+ap_results <- assign_ap_clones(ap_results, ex2clust, identifiable_mat, prob_Bern_EM,
+                        "cluster_k2", "clone_apk2")
+table(ap_results[["clone_apk2"]])
+```
+
+The following table shows the cell assignment when using 3 AP
+clusters, and the subsequent plot shows cells on an MDS plot coloured
+by clone assignment using two or three AP clusters.
+
+```{r, fig.height = 6, fig.width = 12}
+ap_results <- assign_ap_clones(ap_results, ex3clust, identifiable_mat, prob_Bern_EM,
+                        "cluster_k3", "clone_apk3")
+table(ap_results[["clone_apk3"]])
+ap_results[["nvars_cloneid"]] <- colSums(!is.na(A))
+
+p1 <- ggplot(ap_results, aes(x = MDS_1, y = MDS_2, colour = clone_apk2,
+                             size = nvars_cloneid)) +
+    geom_point(alpha = 0.6) + scale_color_tableau()
+p2 <- ggplot(ap_results, aes(x = MDS_1, y = MDS_2, colour = clone_apk3,
+                             size = nvars_cloneid)) +
+    geom_point(alpha = 0.6) + scale_color_tableau()
+plot_grid(p1, p2, labels = LETTERS)
+
+```
+
+
+```{r, fig.height = 6, fig.width = 13}
+
+p1 <- ggplot(ap_results,
+       aes(x = nvars_cloneid, y = clone_apk2, fill = clone_apk2)) +
+    geom_density_ridges(alpha = 0.7) +
+    scale_fill_tableau() + theme(legend.position = "bottom")
+p2 <- ggplot(ap_results,
+       aes(x = nvars_cloneid, y = clone_apk3, fill = clone_apk3)) +
+    geom_density_ridges(alpha = 0.7) +
+    scale_fill_tableau() + theme(legend.position = "bottom")
+plot_grid(p1, p2, labels = LETTERS)
+
+```
+
+
+
+# Bootstrap results for Bernoulli EM model
+
+To check the robustness of the results to the variants genotyped we
+compute results with the Bernoulli EM model on 500 bootstrap samples
+of the cell genotype matrix.
+
+```{r bootstram-bernoulli-em, results = 'hide', message = FALSE}
+nboot <- 500
+boot <- vector("list", length = nboot)
+boot_clone_probs <- array(dim = c(ncol(A), ncol(Config), nboot))
+
+for (b in seq_len(nboot)) {
+    ivars <- sample(nrow(A), size = nrow(A), replace = TRUE)
+    boot_Bern_EM <- cell_assign_EM(A[ivars,], D[ivars,], Config[ivars,],
+                                   Psi = rep(1 / ncol(Config), ncol(Config)),
+                                   model = "Bernoulli")
+    boot_clone_probs[,, b] <- boot_Bern_EM$prob
+    boot[[b]] <- boot_Bern_EM
+}
+
+clone_boot_list <- list()
+for (i in seq_len(ncol(Config))) {
+    box <- matrixStats::rowQuantiles(boot_clone_probs[,i,])
+    colnames(box) <- c("q0", "q25", "q50", "q75", "q100")
+    box_df <- as_data_frame(box)
+    interqr <- box[, 4] - box[, 2]
+    box_df[["whiskMin"]] <- pmax(box_df[["q0"]],
+                                      box_df[["q25"]] - 1.5 * interqr)
+    box_df[["whiskMax"]] <- pmin(box_df[["q100"]],
+                                      box_df[["q75"]] + 1.5 * interqr)
+    box_df[["cell"]] <- colnames(A)
+    box_df[["clone"]] <- paste0("clone", i)
+    box_df[["x"]] <- order(box_df[["q50"]])
+    box_df[["n_vars"]] <- colSums(!is.na(A))
+    clone_boot_list[[i]] <- box_df
+}
+
+clone_box_df <- do.call("bind_rows", clone_boot_list)
+
+```
+
+We plot the bootstrap results to obtain a sense of how robust clone
+assignment probabilities are to genoypted variants.
+
+```{r, fig.height = 8, fig.width = 12}
+
+plotCloneBoots(clone_box_df, "n_vars", order_by = "q50") +
+    ggtitle(paste(params$donor, "bootstrapped clone assignment frequencies")) +
+    scale_fill_viridis(option = "B") +
+    scale_color_viridis(option = "B") 
+
+```
+
+Overall, the bootstrap results support the approach of cell assignment
+using posterior clone probabilities from the Bernoulli EM model and AP
+clustering to collapse similar clones into clusters.
+
+
+# Add results to SCE object and save to file
+
+Save clone assignments from Bernoulli EM model and affinity
+propagation clustering.
+
+```{r}
+new_coldata <- cbind(as.data.frame(colData(sce)), as.data.frame(ap_results))
+colData(sce) <- DataFrame(new_coldata)
+
+saveRDS(sce, file = paste0("../../Data/processed/sces/sce_", params$donor,
+                           "_with_clone_assignments.rds"))
+
+```	
+
+
+
+# Session Info
+
+This analysis was run in the following environment.
+
+```{r}
+devtools::session_info()
+```
+
