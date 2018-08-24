@@ -1,0 +1,25 @@
+name: fibroblast-clonality
+channels:
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+  - conda-forge::openjdk=8.0.144  # Needed for FastQC docker - see bioconda/bioconda-recipes#5026
+  - fastqc=0.11.7
+  - multiqc=1.5
+  - picard=2.18.4
+  - bcftools=1.8
+  - vcftools=0.1.16
+  - perl-vcftools-vcf=0.1.16
+  - salmon=0.8.2
+  - star=2.6.0b
+  - bedops=2.4.30
+  - cutadapt=1.15
+  - trim-galore=0.4.5
+  - subread=1.6.0
+  - samtools=1.8
+  - tabix=0.2.5
+  - hisat2=2.1.0
+  - rseqc=2.6.4
+  - preseq=2.0.2
+  - gatk=3.8
