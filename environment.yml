@@ -9,6 +9,8 @@ dependencies:
   - multiqc=1.5
   - picard=2.18.4
   - bcftools=1.8
+  - vcftools=0.1.16
+  - perl-vcftools-vcf=0.1.16
   - salmon=0.8.2
   - star=2.6.0b
   - bedops=2.4.30
@@ -20,3 +22,4 @@ dependencies:
   - hisat2=2.1.0
   - rseqc=2.6.4
   - preseq=2.0.2
+  - gatk=3.8

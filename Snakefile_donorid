@@ -1,0 +1,180 @@
+"""
+Snakefile for cardelino donor ID for the single-cell fibroblast project 
+
+Author: Davis McCarthy
+Affiliation: EMBL-EBI
+
+Run from run directory
+Run: snakemake -s Snakefile_donorid --jobs 2000 --latency-wait 30 --cluster-config cluster.json --cluster 'bsub -J {cluster.name} -q {cluster.queue} -n {cluster.n} -R "rusage[mem={cluster.memory}]" -M {cluster.memory}  -o {cluster.output} -e {cluster.error}'
+
+Davis McCarthy, 31 May 2018
+"""
+
+import glob
+import os
+from subprocess import run
+import subprocess
+import pandas as pd
+import re
+
+HIPSCI_VCF = 'references/hipsci.wec.gtarray.HumanCoreExome.imputed_phased.20170327.genotypes.allchr.fibro_samples_v2_filt_vars_sorted_oa.vcf.gz'
+## read in input dirs and cell VCF files
+run_dirs = glob.glob('data/raw/22*')
+vcfs = glob.glob('data/raw/22*/cells_merged_donor_id.vcf.gz')
+cell_vcf_files = {}
+## define output files
+donorid_csvs = []
+sce_files = []
+for run in run_dirs:
+    donorid_csvs.append('{}/donor_id_all_cardelino_v2.csv'.format(run))
+    crams_all = glob.glob('{}/cram/*.cram'.format(run))
+    # SAMPLES = [os.path.basename(w).replace('.cram', '') for w in crams_all]
+    fastq_all = glob.glob('fastq/*_1.fastq')
+    SAMPLES = [os.path.basename(w).replace('_1.fastq', '') for w in fastq_all]
+    cell_vcf_files[os.path.basename(run)] = expand('{run}/vcf/{sample}/{sample}.filtered.vcf.gz', run = run, sample=SAMPLES)
+    sce_files.append('{}/sces/sce.salmon.GRCh37.preqc_gene.rds'.format(run))
+
+
+rule all:
+    input: 
+        donorid_csvs,
+        'data/raw/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds'
+
+
+rule merge_cell_vcfs:
+    input:
+        files=lambda wildcards: cell_vcf_files[wildcards.run]
+    output:
+        vcf='data/raw/{run}/cells_merged_donor_id.vcf.gz',
+        files=temp('data/raw/{run}/cell_merge_donor_id_filelist.txt')
+    params:
+        dir='data/raw/{run}/vcf'
+    conda:
+        "envs/myenv.yaml"
+    singularity:
+        "docker://davismcc/fibroblast-clonality"
+    shell:
+        """
+        set +euo pipefail
+        ls -1 {params.dir}/*/*.filtered.vcf.gz | grep -v clone_id > {output.files}
+        bcftools merge -O z -l {output.files} -o {output.vcf} 
+        set -euo pipefail
+        """
+
+
+rule index_cells_vcf:
+    input:
+        sc_vcf='data/raw/{run}/cells_merged_donor_id.vcf.gz'
+    output:
+        'data/raw/{run}/cells_merged_donor_id.vcf.gz.csi'
+    conda:
+        "envs/myenv.yaml"
+    singularity:
+        "docker://davismcc/fibroblast-clonality"
+    shell:
+        """
+        set +euo pipefail
+        bcftools index {input.sc_vcf}
+        set -euo pipefail
+        """
+
+
+rule filter_cells_vcf:
+    input:
+        sc_vcf='data/raw/{run}/cells_merged_donor_id.vcf.gz',
+        sc_idx='data/raw/{run}/cells_merged_donor_id.vcf.gz.csi'
+    output:
+        vcf='data/raw/{run}/cells_merged_donor_id_filt.vcf.gz',
+        idx='data/raw/{run}/cells_merged_donor_id_filt.vcf.gz.csi'
+    conda:
+        "envs/myenv.yaml"
+    singularity:
+        "docker://davismcc/fibroblast-clonality"
+    shell:
+        """
+        set +euo pipefail
+        bcftools filter -Oz -i'F_MISSING<0.97 && MAF>0.01 && QUAL>20' -o {output.vcf} {input.sc_vcf}
+        bcftools index {output.vcf}
+        set -euo pipefail
+        """
+
+
+rule filter_hipsci_overlap_variants:
+    input:
+        sc_vcf='data/raw/{run}/cells_merged_donor_id_filt.vcf.gz',
+        sc_vcf_idx='data/raw/{run}/cells_merged_donor_id_filt.vcf.gz.csi',
+        hipsci_vcf=HIPSCI_VCF
+    output:
+        lst=temp('data/raw/{run}/variant_list.txt'),
+        tmp=temp('data/raw/{run}/tmp.vcf.gz'),
+        vcf=temp('data/raw/{run}/filtered.hipsci.overlap.vcf.gz'),
+        csi=temp('data/raw/{run}/filtered.hipsci.overlap.vcf.gz.csi')
+    conda:
+        "envs/myenv.yaml"
+    singularity:
+        "docker://davismcc/fibroblast-clonality"
+    shell:
+        """
+        set +euo pipefail
+        echo -e "1\\t1\\tA\\tC" > {output.lst}
+        bcftools view -O v {input.sc_vcf} | grep -v ^# | awk \'{{sub(/chr/,""); print $1"\\t"$2"\\t"$4"\\t"$5}}\' >> {output.lst}
+        bcftools view -o {output.tmp} -O z -l 9 -R {output.lst} {input.hipsci_vcf}
+        vcf-sort {output.tmp} | bgzip -c > {output.vcf}
+        bcftools index {output.vcf}
+        set -euo pipefail
+        """
+
+
+rule identify_donor_multicell:
+    input:
+        sc_vcf='data/raw/{run}/cells_merged_donor_id_filt.vcf.gz',
+        sc_idx='data/raw/{run}/cells_merged_donor_id_filt.vcf.gz.csi',
+        hipsci_vcf='data/raw/{run}/filtered.hipsci.overlap.vcf.gz',
+        hipsci_vcf_idx='data/raw/{run}/filtered.hipsci.overlap.vcf.gz.csi'
+    output:
+        'data/raw/{run}/donor_id_all_cardelino_v2.csv'
+    params:
+        prefix='data/raw/{run}/donor_id_all_cardelino_v2'
+    singularity:
+        "docker://davismcc/docker://davismcc/r-singlecell-img"
+    shell:
+        'Rscript src/R/identify_donor_cardelino_multicell.R '
+        '--input_file "{input.sc_vcf}" '
+        '--donor_vcf {input.hipsci_vcf} '
+        '--output_prefix "{params.prefix}" '
+
+
+rule sce_merge_and_qc:
+    input:
+        donorid_files=donorid_csvs,
+        sces=sce_files,
+        meta1='metadata/cell_metadata.csv',
+        meta2='metadata/data_processing_metadata.tsv'
+    output:
+        'data/raw/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds',
+        'data/raw/sce_merged_donors_cardelino_donorid_all_qc_filt.rds',
+        'figures/qc/donor_id_all_nvars_vs_total_counts.png',
+        'data/raw/sce_merge_qc.html'
+    singularity:
+        "docker://davismcc/docker://davismcc/r-singlecell-img"
+    shell:
+        """
+        R -e "rmarkdown::render(input = 'src/Rmd/merge_lane_data_cardelino_donorid.Rmd', output_file = 'sce_merge_qc.html', output_dir = 'data/raw/', output_format = 'html_document')"
+        """
+
+
+rule get_donor_sce:
+    input:
+        'data/raw/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds'
+    output:
+        html = 'reports/donor_sces/sce.{donor}.html',
+        rds = 'data/sces/sce_{donor}_qc.rds',
+        cell_list='data/raw/donor-cell-lists/{donor}.qc-pass.cells.txt',
+        bam_list='data/raw/donor-cell-lists/{donor}.qc-pass.bams.txt'
+    shell:
+        '{rscript_cmd} '
+        'src/R/compile_report.R -i {input} -o {output.html} '
+        '--results_out {output.rds} '
+        '--template src/Rmd/sce_qc_per_donor.Rmd '
+        '--title "Save donor SCE object: {wildcards.donor}" '
+        '--donor {wildcards.donor} --to_working_dir ../../ '

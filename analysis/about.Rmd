@@ -32,8 +32,7 @@ cancer and healthy ageing.
 
 **Key findings:**
 
-* A novel approach for integrating DNA-seq and single-cell RNA-seq data to 
-reconstruct clonal substructure and single-cell transcriptomes.
+* A new approach for integrating DNA-seq and single-cell RNA-seq data to reconstruct clonal substructure and single-cell transcriptomes.
 * A new computational method to map single-cell RNA-seq profiles to clones.
 * Evidence for non-neutral evolution of clonal populations in human fibroblasts.
 * Proliferation and cell cycle pathways are commonly distorted in mutated clonal

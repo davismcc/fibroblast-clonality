@@ -785,6 +785,55 @@ ggplot(pca_unst, aes(x = PC3, y = PC4, fill = clone)) +
     theme_classic(14)
 ```
 
+Let us also look at PCA with cells coloured by the posterior probability of 
+assignment to the various clones.
+
+```{r pca-clone-prob, fig.height=11, fig.width=9.5}
+ppc1 <- ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone1_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone1\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc2 <- ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone2_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone2\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc3 <- ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone3_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone3\nposterior\nprobability") +
+  theme_classic(14)
+
+plot_grid(ppc1, ppc2, ppc3, labels = "auto", ncol = 1)
+
+ggsave("figures/donor_specific/joxm_pca_pc1_pc2_clone_probs.png", height = 11, width = 9.5)
+ggsave("figures/donor_specific/joxm_pca_pc1_pc2_clone_probs.pdf", height = 11, width = 9.5)
+ggsave("figures/donor_specific/joxm_pca_pc1_pc2_clone_probs.svg", height = 11, width = 9.5)
+
+ppc1 <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone1_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone1\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc2 <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone2_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone2\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc3 <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone3_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone3\nposterior\nprobability") +
+  theme_classic(14)
+
+plot_grid(ppc1, ppc2, ppc3, labels = "auto", ncol = 1)
+
+ggsave("figures/donor_specific/joxm_pca_pc2_pc3_clone_probs.png", height = 11, width = 9.5)
+ggsave("figures/donor_specific/joxm_pca_pc2_pc3_clone_probs.pdf", height = 11, width = 9.5)
+ggsave("figures/donor_specific/joxm_pca_pc2_pc3_clone_probs.svg", height = 11, width = 9.5)
+
+```
+
+
 We can also explore how inferred cell cycle phase information relates to the
 PCA components.
 
@@ -1059,6 +1108,8 @@ p_volcano <- ggplot(de_joxm_cl2_vs_cl1, aes(x = logFC, y = -log10(PValue),
   scale_fill_manual(values = c("gray60", "firebrick"), 
                     label = c("N.S.", "FDR < 10%"), name = "") +
   scale_size_manual(values = c(1, 3), guide = FALSE) +
+  ylab(expression(-"log"[10](P))) +
+  xlab(expression("log"[2](FC))) +
   guides(alpha = FALSE,
          fill = guide_legend(override.aes = list(size = 5))) +
   theme_classic(20) + theme(legend.position = "right")
@@ -1107,6 +1158,7 @@ p_genesets <- cam_H_pw %>%
   guides(alpha = FALSE,
          colour = guide_legend(override.aes = list(size = 5))) +
   xlab("Gene set enrichment direction") +
+  ylab(expression(-"log"[10](P))) +
   theme_classic(20) + theme(legend.position = "right")
 
 

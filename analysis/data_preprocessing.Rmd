@@ -1,0 +1,336 @@
+---
+title: "Data pre-processing"
+author: "Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+## Introduction
+
+The data pre-processing for this project is reasonably complicated. To prepare
+raw data for the analyses shown in this repository, we need to carry out the 
+following major pre-processing steps:
+
+1. Somatic variant calling from whole-exome sequencing (WES) data;
+
+1. Expression quantification and quality control for single-cell RNA-seq (scRNA-seq) data;
+
+1. Donor identification for single cells from scRNA-seq reads;
+
+1. Extraction of somatic variant information from scRNA-seq reads;
+
+1. Inference of clonal trees from WES data;
+
+1. Assignment of single cells to clones in clonal trees; and
+
+1. Differential expression analyses.
+
+Due to the structure of the dataset, computational demands and pragmatism, the
+steps above are implemented in distinct Snakemake workflows.
+
+1. `Snakefile_lane`: low-level pre-processing of scRNA-seq data to be run per sequencing lane;
+
+1. `Snakefile_donorid`: donor ID for single cells;
+
+1. `Snakefile_genotype_sites`: extract somatic variant information from scRNA-seq data;
+
+1. `Snakefile_clonal_analysis`: clonal tree inference, cell-clone assignment and differential expression.
+
+The somatic variant calling from WES data was carried out by Petr Danecek and is
+not currently integrated with the rest of the data pre-processing workflows.
+
+
+## Data
+
+The Snakemake workflows assume a certain directory structure. Specifically,
+the head directory for the project should contain a `data` directory, which
+itself contains a `raw` for the raw sequence data (and subsequent pre-processed
+data).
+
+The raw single-cell RNA-seq data can be obtained from the 
+[ArrayExpress](www.ebi.ac.uk/arrayexpress) database at EMBL-EBI under accession 
+number [E-MTAB-7167](https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-7167). 
+We then expect the raw FASTQ files to be organised by sequencing lane in a 
+`fastq` subdirectory within each run. That is, raw FASTQ files for cells from 
+the same lane of sequencing should be in
+
+```
+data/raw/{run}/fastq
+```
+
+where the `{run}` directory has the pattern `22[0-9]+_[1-8]`, reflecting the 
+`{seq_run}_{lane}` (sequencing run, lane on flowcell) naming convention used
+by the Wellcome Sanger Institute's DNA Pipelines group who conducted the 
+sequencing for this project.
+
+Due to the computational requirements and limitations of running more than tens
+of thousands of jobs with Snakemake (in our experience, Snakemake slows down 
+markedly as the number of jobs to run rises above about ten thousand), we run
+the `Snakefile_lane` workflow independently for each sequencing lane separately.
+Details about this workflow and how to run it are provided below.
+
+The `Snakefile_genotype_sites` workflow is run from the `data/raw` directory, 
+while the `Snakefile_donor_id` and `Snakefile_clonal_analysis` workflows are run
+from the head directory for the project (i.e. head directory of this 
+repository).
+
+
+## Reference files
+
+To process the raw sequence data, we also need a substantial number of reference
+files. These are expected to be found in the `references` subdirectory of this
+repository. 
+
+The necessary reference files include:
+
+* HipSci donor genotypes: a VCF file with genotypes for each of the fibroblast cell lines used in this project (with index);
+* Human transcriptome FASTA file with ERCC sequences ("transcripts") included (Ensembl v75);
+* Human reference genome FASTA file (GRCh37.p13);
+* a VCF with dbSNP bialleleic SNPs overlapping HipSci variants with MAF > 0.01 HWE P < 0.0001 and in genic regions for the top 1000 most-expressed genes in HipSci iPS cell lines (assessed from bulk RNA-seq data);
+* intervals defining known indels;
+* VCF files with Mills and 1000 Genomes gold standard indels;
+* GENCODE v19 annotation GTF file;
+
+
+## Software and availability
+
+We use the following bioinformatics software packages in the Snakemake workflows
+mentioned above:
+
+- fastqc version 0.11.7
+- multiqc version 1.5
+- picard version 2.18.4
+- bcftools version 1.8
+- vcftools version 0.1.16
+- salmon version 0.8.2
+- star version 2.6.0b
+- bedops version 2.4.30
+- cutadapt version 1.15
+- trim-galore version 0.4.5
+- subread version 1.6.0
+- samtools version 1.8
+- tabix version 0.2.5
+- hisat2 version 2.1.0
+- rseqc version 2.6.4
+- preseq version 2.0.2
+- gatk version 3.8
+- Python version 3.6
+
+All of these packages can be installed with [`conda`](https://conda.io/docs/). 
+To install these packages into your own local environment, we recommend using 
+the supplied `environment.yml` file in this repository. 
+
+We have made a Docker image containing these software packages available on 
+[DockerHub](hub.docker.com/r/davismcc/fibroblast-clonality/). Software 
+installed with the image can be run with Docker or Singularity (more suitable 
+for many scientific computing environments). Singularity is tightly 
+[integrated with Snakemake](https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html)
+enabling easy use of containerised software in the Snakemake workflows. 
+
+Note: the `Snakefile_lane` workflow uses some tools from 
+[GATK](https://software.broadinstitute.org/gatk/) version 3.8, which we were 
+unable to distribute in the Docker container above and cannot be completely 
+installed with conda. Thus, to run the `Snakefile_lane` in its entirety you 
+would need to install GATK 3.8 or run it from a 
+[Docker image](https://hub.docker.com/r/broadinstitute/gatk3) distributed by the
+Broad Institute.
+
+For many analyses, including cell-donor identification, clonal tree inference,
+cell-clone assignment and further downstream analyses, we use R packages and 
+code. We have a separate Docker image on 
+[DockerHub](hub.docker.com/r/davismcc/r-singlecell-img/) with R 3.5.1 and all
+necessary packages installed. We bootstrap the RStudio 
+[rocker/verse](https://hub.docker.com/r/rocker/verse/) Docker image, and add
+many Bioconductor packages to form the 
+[r-tidybioc-img](https://hub.docker.com/r/davismcc/r-tidybioc-img/) image, which
+we then bootstrap the 
+[r-singlecell-img](hub.docker.com/r/davismcc/r-singlecell-img/) container that 
+we use in the Snakemake wokflows. The image contains installations of the 
+following key packages:
+
+- tidyverse
+- Canopy
+- cowplot
+- destiny
+- edgeR
+- ggdendro
+- ggtree
+- irlba
+- limma
+- MultiAssayExperiment
+- org.Hs.eg.db
+- org.Mm.eg.db
+- pcaMethods
+- RCurl
+- Rtsne
+- scater
+- scran
+- slalom
+- VariantAnnotation
+- vcfR
+
+and many more than can be listed here, but can be seen in the documentation and
+source code for the Docker images.
+
+As mentioned above, Snakemake has tight integration with both conda and 
+Singularity (which can run both Singularity and Docker containers). We are not 
+able to (easily) install GATK and the latest version of R and all of the 
+required packages through conda, so if you want to run the pre-processing 
+workflows in their entirety then you should use the Singularity option.
+
+
+## `Snakefile_lane`
+
+The first step of data pre-processing is to run the `Snakefile_lane` workflow
+for the data from each sequencing lane separately.
+
+### What does this workflow do?
+
+Briefly, for expression quantification, raw scRNA-seq data 
+in CRAM format is converted to FASTQ format with samtools, before reads are 
+adapter- and quality-trimmed with TrimGalore!. We quantify transcript-level 
+expression using Ensembl v75 transcripts by supplying trimmed reads to Salmon 
+and using the “--seqBias”, “--gcBias” and “VBOpt” options. Transcript-level 
+expression values were summarised at gene level (estimated counts). Salmon 
+transcript-level expression values are summarised at gene level, genes are 
+annotated with metadata from Ensembl and QC metrics are computed, all with the
+scater package. A short automated QC report is generated as an html file.
+
+For donor ID and clonal analyses, we also need scRNA-seq reads to be mapped to 
+the genome, so we apply the following steps to the per-lane raw data files as 
+well. Trimmed FASTQ reads are aligned to the GRCh37 p13 genome with ERCC 
+spike-in sequences with STAR in basic two-pass mode using the GENCODE v19 
+annotation with ERCC spike-in sequences. We further use picard and GATK version 
+3.8 to mark duplicate reads (MarkDuplicates), split cigar reads 
+(SplitNCigarReads), realign indels (IndelRealigner), and recalibrate base scores
+(BaseRecalibrator). 
+
+For cell-donor assignment we use the GATK HaplotypeCaller to "call variants" 
+(we actually just use read count information rather than GATK variant calls; 
+many other approaches could be used to get this information) from 
+the processed single-cell BAM files at 304,405 biallelic SNP sites from dbSNP 
+build 138 that are genotyped on the Illumina HumanCoreExome-12 chip, have 
+MAF > 0.01, Hardy-Weinberg equilibrium P < 1e-03 and overlap protein-coding 
+regions of the 1,000 most highly expressed genes in HipSci iPS cells (as 
+determined from HipSci bulk RNA-seq data). 
+
+### How do I run it?
+
+This workflow should be run from within each `run` directory containing the raw
+data for each sequencing lane, i.e.:
+
+```
+data/raw/{run}
+```
+
+From within that directory, then we run Snakemake as so:
+
+```
+snakemake -s ../../../Snakefile_lane --use-singularity --jobs 400
+```
+
+This Snakemake command uses Singularity to run software from the containers we
+have defined (`--use-singularity`), and will run up to 400 jobs simultaneously
+(`--jobs 400`). 
+
+This workflow is computationally demanding, so is best run on an HPC cluster or
+cloud platform. To help with this, we provide a `cluster.json` file in this 
+repository that defines parameters for running this workflow in an HPC cluster 
+environment. It defines parameters for each rule such as memory limits, job 
+names and the cluster queue on which to run jobs. We have set this up to suit 
+our needs running the workflow with LSF job submission on the EMBL-EBI cluster, 
+so it likely needs some tweaking for your own setup.
+
+```
+snakemake -s ../../../Snakefile_lane --use-singularity --jobs 400 --latency-wait 30 --cluster-config ../../../cluster.json --cluster 'bsub -J {cluster.name} -q {cluster.queue} -n {cluster.n} -R "select[singularity] rusage[mem={cluster.memory}]" -M {cluster.memory}  -o {cluster.output} -e {cluster.error}'
+```
+
+For more details, explanation and finer control on running Snakemake, please
+consult the excellent [Snakemake documentation](https://snakemake.readthedocs.io).
+
+
+## `Snakefile_donorid`
+
+The second step of data pre-processing is to run the `Snakefile_donorid` 
+workflow from the head directory.
+
+### What does this workflow do?
+
+This Snakemake workflow runs cell-donor ID and QC on scRNA-seq expression data.
+
+We merge the per-cell VCF output from GATK HaplotypeCaller across all cells 
+using bcftools and filter variants to retain those with MAF > 0.01, quality 
+score > 20 and read coverage in at least 3% of cells. We further filter the 
+variants to retain only those that feature in the set of variants in the 
+high-quality, imputed, phased HipSci genotypes and filter the HipSci donor 
+genotype file to include the same set of variants. We then run the donor ID 
+method in the cardelino package to obtain the most-likely donor for each cell. 
+
+We merge SingleCellExperient objects with gene expression data for each 
+sequencing lane into a single object and conduct quality control of the 
+scRNA-seq data with the scater package. Cells are retained for downstream 
+analyses if they have at least 50,000 counts from endogenous genes, at least 
+5,000 genes with non-zero expression, less than 90% of counts from the 100 
+most-expressed genes in the cell, less than 20% of counts from ERCC spike-in 
+sequences and a Salmon mapping rate of at least 40%. We assign cells to donors 
+(for which there is a sufficiently high-confidence donor for the cell). We save
+a tidy, QC'd SCE object with cells assigned to donors for downstream analysis.
+
+### How do I run it?
+
+From the head directory, we can run this workflow as so:
+
+```
+snakemake -s Snakefile_donorid --use-singularity --jobs 100 
+```
+
+See the example above for how to extend this command to run the workflow in an 
+HPC cluster environment.
+
+
+## `Snakefile_genotype_sites`
+
+Once the `Snakefile_lane` and `Snakefile_donorid` worklows have been completed,
+we can run the `Snakefile_genotype_sites` workflow to "genotype" somatic 
+variants in single cells (or, more specifically, extract reference and 
+alternative allele counts at somatic variant sites across cells). This worklow 
+is run from the head directory.
+
+**Input files:**
+
+* File defining somatic variants: `data/exome-point-mutations/high-vs-low-exomes.v62.regions_to_call.tsv`
+* Cell-Line list files: `data/donor-cell-lists/*.qc-pass.cells.txt`
+* Genome reference files as above
+
+**Output files:**
+
+* A merged BAM with reads for each cell per lines;
+* A VCF for each line with alternative allele count and read coverage information for each cell assigned to the line
+
+
+### What does this workflow do?
+
+For cell-clone assignment we require read the read counts supporting reference 
+and alternative alleles at somatic variant sites. We use bcftools _mpileup_ and 
+_call_ methods to call variants at somatic variant sites derived from bulk 
+whole-exome data, as described above, for all confidently assigned cells for 
+each given line. Variant sites are filtered to retain variants with more than 
+three reads observed across all cells for the line and quality greater than 20. 
+The workflow produces a VCF file for each line and a merged BAM file with all 
+reads from all assigned cells for each line.
+
+### How do I run it?
+
+From the head directory, we can run this workflow as so:
+
+```
+snakemake -s Snakefile_genotype_sites --use-singularity --jobs 100 
+```
+
+See the example above for how to extend this command to run the workflow in an 
+HPC cluster environment.
+
+
+## `Snakefile_clonal_analysis`
+
+
+

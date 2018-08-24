@@ -614,13 +614,14 @@ repeated_sig_H_genesets_vec <- unique(repeated_sig_H_genesets[["geneset"]])
 repeated_sig_H_genesets_vec <- gsub("_", " ", gsub("HALLMARK_", "", 
                                                    repeated_sig_H_genesets_vec))
      
-df_camera_sig_unst %>% 
-    dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
-    dplyr::mutate(geneset = 
-                      factor(geneset, levels = repeated_sig_H_genesets_vec)) %>%
-    dplyr::filter(geneset %in% repeated_sig_H_genesets_vec) %>%
-    dplyr::mutate(id = paste0(donor, ": ", contrast)) ->
-    df_4_heatmap
+df_4_heatmap <- df_camera_sig_unst %>% 
+  dplyr::filter(collection == "H", stat == "logFC") %>%
+  dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+  dplyr::mutate(geneset = 
+                  factor(geneset, levels = repeated_sig_H_genesets_vec)) %>%
+  dplyr::filter(geneset %in% repeated_sig_H_genesets_vec) %>%
+  dplyr::mutate(id = paste0(donor, ": ", contrast))
+  
 
 div_lines <- gsub(": c.*", "",
      sort(unique(paste0(df_4_heatmap[["donor"]], ": ", 
@@ -676,7 +677,7 @@ ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_all_con
 ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts.svg", height = 9, width = 20)
 ```
 
-Finally, we can add a panel to this figure showing the number of donors in which
+We can also add a panel to this figure showing the number of donors in which
 each of these gene sets is significantly enriched.
 
 ```{r top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors, fig.height=9, fig.width=20}
@@ -708,6 +709,71 @@ plot_grid(prow, lgnd, rel_widths = c(3, .3))
 ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors.png", height = 9, width = 20)
 ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors.pdf", height = 9, width = 20)
 ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors.svg", height = 9, width = 20)
+```
+
+However, the plot above is very complicated, so we may want to focus just on the 
+lines for which there are multiple clones that show differing behaviour amongst
+each other. To simplify, let us just look at 12 donors that have significant 
+geneset enrichment for at least 2 contrasts and just look at the 9 gene sets 
+that are significant in at least three lines.
+
+```{r top_genesets_H_direction_heatmap_all_contrasts, fig.height=9, fig.width=18}
+repeated_sig_H_genesets3 <- df_camera_sig_unst %>% 
+    dplyr::filter(collection == "H", stat == "logFC") %>% 
+    group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    summarise(n_donors = n()) %>% dplyr::arrange(n_donors) %>% 
+    dplyr::filter(n_donors > 2.5) 
+repeated_sig_H_genesets_vec3 <- unique(repeated_sig_H_genesets3[["geneset"]])
+repeated_sig_H_genesets_vec3 <- gsub("_", " ", gsub("HALLMARK_", "", 
+                                                   repeated_sig_H_genesets_vec3))
+
+selected_donors <- c("fawm", "fikt", "hipn", "ieki", "laey", "lexy", "qayj", 
+                     "qonc", "rozh", "ualf", "wahn", "zoxy")
+
+df_4_heatmap_filt <- df_camera_all_unst %>% 
+  dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+  dplyr::mutate(geneset = 
+                  factor(geneset, levels = repeated_sig_H_genesets_vec3)) %>%
+  dplyr::filter(geneset %in% repeated_sig_H_genesets_vec3,
+                donor %in% selected_donors) %>%
+  dplyr::mutate(id = paste0(donor, ": ", contrast))
+
+df_4_heatmap_filt_sig <- df_camera_sig_unst %>% 
+  dplyr::filter(collection == "H", stat == "logFC") %>%
+  dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+  dplyr::mutate(geneset = 
+                  factor(geneset, levels = repeated_sig_H_genesets_vec3)) %>%
+  dplyr::filter(geneset %in% repeated_sig_H_genesets_vec3,
+                donor %in% selected_donors) %>%
+  dplyr::mutate(id = paste0(donor, ": ", contrast))
+
+df_4_heatmap_filt <- dplyr::mutate(
+    df_4_heatmap_filt,
+    minlog10P = cut(-log10(PValue), breaks = c(0, 1, 2, 3, 4, 5, 30)))
+
+div_lines_filt <- gsub(": c.*", "",
+                       sort(unique(paste0(df_4_heatmap_filt[["donor"]], ": ", 
+                                          df_4_heatmap_filt[["contrast"]])))) %>% 
+  table %>% cumsum + 0.5
+
+pp_filt <- df_4_heatmap_filt %>%
+    ggplot(aes(x = id, y = geneset, fill = Direction, alpha = minlog10P)) +
+    geom_tile() +
+    geom_point(alpha = 1, data = df_4_heatmap_filt_sig, pch = 19, size = 0.5, 
+               show.legend = FALSE) +
+    geom_vline(xintercept = div_lines_filt, colour = "gray70") +
+    scale_fill_manual(values = c("lightgoldenrod1", "sienna1")) +
+    scale_alpha_discrete(name = "-log10(P)") +
+    ylab("Gene set") +
+    xlab("Line and clone comparison") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1),
+          legend.position = "right")
+pp_filt    
+
+ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.png", plot = pp_filt, height = 5, width = 12)
+ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.pdf", plot = pp_filt, height = 5, width = 12)
+ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.svg", plot = pp_filt, height = 5, width = 12)
 ```
 
 
@@ -774,7 +840,7 @@ ggsave("figures/differential_expression/top_genesets_H_corrplots.svg", height = 
 Plot gene set correlation with the number of donors in which each gene set is 
 significant.
 
-```{r, fig.height=9, fig.width=11}
+```{r, fig.height=7, fig.width=12}
 pp_nsig <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
     dplyr::filter(stat == "logFC") %>%
     group_by(geneset) %>% 
@@ -800,12 +866,12 @@ ggdraw() +
   draw_plot(corrplot1 + theme(legend.position = "top"), 
             x = 0,  y = 0, width = 0.8, scale = 1) +
   draw_plot(pp_nsig, 
-            x = 0.785,  y = 0.213, width = 0.2, height = 0.685)
+            x = 0.685,  y = 0.25, width = 0.25, height = 0.6445)
 
 ggsave("figures/differential_expression/top_genesets_H_corrplot_with_nsig_donor.png", 
-       height = 9, width = 11)
+       height = 7, width = 12)
 ggsave("figures/differential_expression/top_genesets_H_corrplot_with_nsig_donor.pdf", 
-       height = 9, width = 11)
+       height = 7, width = 12)
 
 ```
 

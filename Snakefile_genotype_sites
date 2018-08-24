@@ -1,0 +1,136 @@
+"""
+Snakefile for genotyping somatic variants for single-cell fibroblast project (Raghd Rostom)
+
+Author: Davis McCarthy
+Affiliation: EMBL-EBI
+
+Run: snakemake -s Snakefile_genotype_sites --jobs 400 --latency-wait 30 --cluster-config ../../cluster.json --cluster 'bsub -J {cluster.name} -q {cluster.queue} -n {cluster.n} -R "select[singularity] rusage[mem={cluster.memory}]" -M {cluster.memory}  -o {cluster.output} -e {cluster.error}'
+
+Davis McCarthy, 03 November 2017
+"""
+
+import glob
+import os
+from subprocess import run
+import subprocess
+import pandas as pd
+import re
+import h5py
+
+shell.prefix("set -euo pipefail;") 
+
+## reference files
+human_gx_fasta = 'references/GRCh37.p13.genome.ERCC92.fa'
+fasta_unzipped = human_gx_fasta
+fasta_dict = fasta_unzipped.replace('fa', 'dict')
+fasta_idx = fasta_unzipped + '.fai'
+somatic_vars_file = 'data/exome-point-mutations/high-vs-low-exomes.v62.regions_to_call.tsv'
+
+## parameter objects and samples
+donors_short_id = donors_lenient_all = ['euts', 'fawm', 'feec', 'fikt', \
+    'garx', 'gesg', 'heja', 'hipn', 'ieki', 'joxm', 'kuco', 'laey', 'lexy', 'melw', \
+    'naju', 'nusw', 'oaaz', 'oilg', 'pipw', 'puie', 'qayj', 'qolg', 'qonc', 'rozh', \
+    'sehl', 'sohd', 'ualf', 'vass', 'vils', 'vuna', 'wahn', 'wetu', 'xugn', 'zoxy'] 
+donor_cell_map_dict = {}
+donor_run_map_dict = {}
+for donor in donors_short_id:
+    with open(os.path.join('data/donor-cell-lists', donor + '.qc-pass.cells.txt')) as f:
+        tmp = f.readlines()
+        donor_cell_map_dict[donor] = [str.strip() for str in tmp]
+        donor_run_map_dict[donor] = [re.sub('#.*', '', str) for str in donor_cell_map_dict[donor]]
+
+## read in crams from SS2 run
+run_dirs = glob.glob('data/raw/22*')
+crams_all = glob.glob('data/raw/22*/cram/*.cram')
+fastq_all = glob.glob('data/raw/22*/fastq/*_1.fastq')
+
+## define sample names
+RUN_SAMPLES = {}
+for run in run_dirs:
+    # crams = glob.glob(os.path.join(run, 'cram/*.cram'))
+    fastqs = glob.glob(os.path.join(run, 'fastq/*_1.fastq'))
+    # RUN_SAMPLES[run] = [os.path.basename(w).replace('.cram', '') for w in crams]
+    RUN_SAMPLES[run] = [os.path.basename(w).replace('_1.fastq', '') for w in fastqs]
+# SAMPLES = [os.path.basename(w).replace('.cram', '') for w in crams_all]
+SAMPLES = [os.path.basename(w).replace('_1.fastq', '') for w in fastq_all]
+
+donor_star_bams = {}
+donor_vcf_files_mpileup = []
+donor_bams = []
+for donor in donors_short_id:
+    donor_star_bams[donor] = ['data/raw/{}/star/{}/{}.2pass.Aligned.sortedByCoord.split.realigned.bqsr.bam'.format(i[0], i[1], i[2]) for i in zip(donor_run_map_dict[donor], donor_cell_map_dict[donor], donor_cell_map_dict[donor])]
+    donor_vcf_files_mpileup.append('data/raw/mpileup/{}.mpileup.vcf.gz'.format(donor))
+    donor_vcf_files_mpileup.append('data/raw/mpileup/{}.mpileup.vcf.gz.csi'.format(donor))
+    donor_bams.append('data/raw/bams_cells_by_donor/{}.qc_cells.bam'.format(donor))
+
+
+rule all:
+    input:
+        donor_vcf_files_mpileup,
+        donor_bams
+
+
+rule make_mpileup_input_list:
+    input:
+        bams=lambda wildcards: donor_star_bams[wildcards.donor]
+    output:
+        txt='data/raw/mpileup/{donor}.bam.filenames.txt'
+    conda:
+        "envs/myenv.yaml"
+    singularity:
+        "docker://davismcc/fibroblast-clonality"
+    run:
+        with open(output.txt, 'w') as f:
+            for item in input.bams:
+                f.write('{}\n'.format(item))
+
+
+rule call_variants_mpileup_fthicov:
+    input:
+        fasta=fasta_unzipped,
+        fai=fasta_idx,
+        fa_dict=fasta_dict,
+        bams='data/raw/mpileup/{donor}.bam.filenames.txt',
+        snps=somatic_vars_file
+    output:
+        mpi=temp('data/raw/mpileup/{donor}.filtered.bcf.gz'),
+        midx=temp('data/raw/mpileup/{donor}.filtered.bcf.gz.csi'),
+        vcf='data/raw/mpileup/{donor}.mpileup.vcf.gz',
+        csi='data/raw/mpileup/{donor}.mpileup.vcf.gz.csi'
+    conda:
+        "envs/myenv.yaml"
+    singularity:
+        "docker://davismcc/fibroblast-clonality"
+    shell:
+        """
+        mkdir tmp/tmp-{wildcards.donor}
+        bcftools mpileup -E -Ob --skip-indels -R {input.snps} \
+        -f {input.fasta} --annotate AD,DP,SP,INFO/AD -o {output.mpi} -b {input.bams}
+        bcftools index {output.mpi}
+        bcftools call -R {input.snps} -m -Ou {output.mpi} | \
+        bcftools filter -Ou -i'DP>3 && QUAL>20' | \
+        bcftools sort -T tmp/tmp-{wildcards.donor} --max-mem 2G -Oz -o {output.vcf}
+        bcftools index {output.vcf}
+        """     
+
+
+rule merge_bams_by_donor:
+    input:
+        fasta=fasta_unzipped,
+        fai=fasta_idx,
+        fa_dict=fasta_dict,
+        bams='data/raw/mpileup/{donor}.bam.filenames.txt'
+    output:
+        bam='data/raw/bams_cells_by_donor/{donor}.qc_cells.bam',
+        bai='data/raw/bams_cells_by_donor/{donor}.qc_cells.bam.bai'
+    conda:
+        "envs/myenv.yaml"
+    singularity:
+        "docker://davismcc/fibroblast-clonality"
+    shell:
+        """
+        samtools merge -r -b {input.bams} {output.bam}
+        samtools index {output.bam} {output.bai}
+        """
+
+

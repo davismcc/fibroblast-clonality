@@ -1,0 +1,393 @@
+{
+    "__default__" : 
+    {
+        "memory" : "8000",
+        "n" : 1,
+        "queue" : "research",
+        "name" : "FIBRO.{rule}.{wildcards}",
+        "output" : "logs/{rule}.out",
+        "error" : "logs/{rule}.err"
+    },
+    "seq_metadata_collect" :
+    {
+        "memory" : "2000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "cram2fastq" :
+    {
+        "memory" : "12000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "merge_cram_2_lanes":
+    {
+        "memory" : "4000",
+        "n" : 2,
+        "queue" : "research"
+    },
+    "trim_fastq_SS2" :
+    {
+        "memory" : "4000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "identify_donor_runs" :
+    {
+        "memory" : "12000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "identify_donor_collect" :
+    {
+        "memory" : "4000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "merge_cell_vcfs" :
+    {
+        "memory" : "4000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "fastqc_reports" :
+    {
+        "memory" : "8000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "salmon_quant" :
+    {
+        "memory" : "12000",
+        "n" : 4,
+        "queue" : "research"
+    },
+    "salmon_quant_GRCh38" :
+    {
+        "memory" : "12000",
+        "n" : 4,
+        "queue" : "research"
+    },
+    "salmon_to_sceset" :
+    {
+        "memory" : "64000",
+        "n" : 2,
+        "queue" : "research"
+    },
+    "kallisto_quant" :
+    {
+        "memory" : "16000",
+        "n" : 2,
+        "queue" : "research"
+    },
+    "kallisto_to_sceset" :
+    {
+        "memory" : "64000",
+        "n" : 2,
+        "queue" : "research"
+    },
+    "align_with_star_2pass_SS2" :
+    {
+        "memory" : "36000",
+        "n" : 8,
+        "queue" : "research"
+    },
+    "sort_alignment" :
+    {
+        "memory" : "14000",
+        "n" : 4,
+        "queue" : "research"
+    },
+    "align_with_star_2pass_10X" :
+    {
+        "memory" : "50000",
+        "n" : 8,
+        "queue" : "research"
+    },
+    "build_star_genome_indexes" :
+    {
+        "memory" : "64000",
+        "n" : 8,
+        "queue" : "research"
+    },
+    "build_indiv_star_genome_indexes" :
+    {
+        "memory" : "64000",
+        "n" : 8,
+        "queue" : "research"
+    },
+    "split_n_trim_gatk" :
+    {
+        "memory" : "24000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "call_variants_gatk" :
+    {
+        "memory" : "20000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "call_variants_gatk_clone_id" :
+    {
+        "memory" : "20000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "generate_gvcf_per_sample_chr_gatk" :
+    {
+        "memory" : "50000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "generate_gvcf_per_run_chr_gatk" :
+    {
+        "memory" : "50000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "indel_realignment_gatk" :
+    {
+        "memory" : "20000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "recalibrated_writer_gatk" :
+    {
+        "memory" : "24000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "base_recalibrator_gatk" :
+    {
+        "memory" : "24000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "picard_read_groups" :
+    {
+        "memory" : "2000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "picard_mark_dups" :
+    {
+        "memory" : "20000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "picard_qc_metrics" :
+    {
+        "memory" : "14000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "trim_fastq" :
+    {
+        "memory" : "4000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "filter_variants_gatk" :
+    {
+        "memory" : "4000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "bgzip_vcf" :
+    {
+        "memory" : "1000",
+        "n" : 1,
+        "queue" : "research"  
+    },
+    "index_bgzip_vcf" :
+    {
+        "memory" : "4000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "singlecell_variant_list" :
+    {
+        "memory" : "4000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "filter_hipsci_overlap_variants" :
+    {
+        "memory" : "500",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "index_hipsci_overlap_vcf" :
+    {
+        "memory" : "4000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "filter_somatic_variants_strict" :
+    {
+        "memory" : "6000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "filter_somatic_variants_lenient" :
+    {
+        "memory" : "6000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "filter_somatic_variants_per_donor_strict" :
+    {
+        "memory" : "6000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "filter_somatic_variants_per_donor_lenient" :
+    {
+        "memory" : "6000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "run_canopy" :
+    {
+        "memory" : "2000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "run_canopy_donor_specific_coverage" :
+    {
+        "memory" : "2000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "run_cell_assignment" :
+    {
+        "memory" : "8000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "run_canopy2plink" :
+    {
+        "memory" : "500",
+        "n" : 1,
+        "queue" : "highpri"
+    },
+    "plink_2_vcf" :
+    {
+        "memory" : "500",
+        "n" : 1,
+        "queue" : "highpri"
+    },
+    "call_variants_gatk_mutect" :
+    {
+        "memory" : "20000",
+        "n" : 1,
+        "queue" : "research",
+        "output" : "logs_mutect/{rule}.out",
+        "error" : "logs_mutect/{rule}.err"
+    },
+    "filter_variants_gatk_mutect" :
+    {
+        "memory" : "3000",
+        "n" : 1,
+        "queue" : "research",
+        "output" : "logs_mutect/{rule}.out",
+        "error" : "logs_mutect/{rule}.err"
+    },
+    "bgzip_vcf_mutect" :
+    {
+        "memory" : "500",
+        "n" : 1,
+        "queue" : "research",
+        "output" : "logs_mutect/{rule}.out",
+        "error" : "logs_mutect/{rule}.err"
+    },
+    "merge_cell_vcfs_mutect" :
+    {
+        "memory" : "4000",
+        "n" : 1,
+        "queue" : "research",
+        "output" : "logs_mutect/{rule}.out",
+        "error" : "logs_mutect/{rule}.err"
+    },
+    "make_monovar_input_list" :
+    {
+        "memory" : "1000",
+        "n" : 1,
+        "queue" : "research",
+        "output" : "logs_monovar/{rule}.out",
+        "error" : "logs_monovar/{rule}.err"
+    },
+    "call_variants_monovar" :
+    {
+        "memory" : "40000",
+        "n" : 1,
+        "queue" : "research",
+        "output" : "logs_monovar/{rule}.out",
+        "error" : "logs_monovar/{rule}.err"
+    },
+    "bgzip_vcf_monovar" :
+    {
+        "memory" : "500",
+        "n" : 1,
+        "queue" : "research",
+        "output" : "logs_monovar/{rule}.out",
+        "error" : "logs_monovar/{rule}.err"
+    },
+    "make_mpileup_input_list" :
+    {
+        "memory" : "1000",
+        "n" : 1,
+        "queue" : "research",
+        "output" : "logs_mpileup/{rule}.out",
+        "error" : "logs_mpileup/{rule}.err"
+    },
+    "call_variants_mpileup_fthicov" :
+    {
+        "memory" : "16000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "get_donor_sce" :
+    {
+        "memory" : "8000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "run_de_pathway_analysis_all_cells" :
+    {
+        "memory" : "32000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "run_de_pathway_analysis_unst_cells" :
+    {
+        "memory" : "32000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "run_de_pathway_analysis_unst_cells_cellcycle" :
+    {
+        "memory" : "32000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "run_de_pathway_analysis_unst_cells_permutation" :
+    {
+        "memory" : "64000",
+        "n" : 1,
+        "queue" : "research"
+    },
+    "filter_cells_vcf" :
+    {
+        "memory" : "200"
+    },
+    "identify_donor_multicell" :
+    {
+        "memory" : "12000"
+    },
+    "sce_merge_and_qc" :
+    {
+        "memory" : "64000"
+    }
+}
