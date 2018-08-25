@@ -1,0 +1,97 @@
+run_lane	plate	condition	donor1	donor2	donor3	deep_exome_line	scgcf_qc_flag	experiment_id	run_lane	person_processing_stage1	stage1_complete	person_processing_stage2	stage2_complete	notes
+22226_3	1496	pIC_6h	vuna	miaj	wahn			2	22226_3	raghd	y	raghd	y	
+22226_4	1493	IFN_2h	vuna	miaj	wahn			2	22226_4	raghd	y	raghd	y	
+22259_1	1494	pIC_2h	vuna	miaj	wahn			2	22259_1	raghd	y	raghd	y	
+22259_2	1536	pIC_2h	ciwj	gesg	joxm			6	22259_2	raghd	y	raghd	y	
+22259_3	1532	pIC_2h	melw	deyz	kuco			5	22259_3	raghd	y	raghd	y	
+22259_4	1533	IFN_6h	melw	deyz	kuco			5	22259_4	raghd	y	raghd	y	
+22259_5	1531	IFN_2h	melw	deyz	kuco			5	22259_5	raghd	y	raghd	y	
+22259_6	1537	IFN_6h	ciwj	gesg	joxm			6	22259_6	raghd	y	raghd	y	
+22259_7	1534	pIC_6h	melw	deyz	kuco			5	22259_7	raghd	y	raghd	y	
+22303_3	1678	pIC_2h	pelm	diku	toss	pelm		14	22303_3	raghd	y	raghd	y	pelm unlikely to have enough variants for clonal inference
+22303_4	1677	IFN_2h	pelm	diku	toss	pelm		14	22303_4	raghd	y	raghd	y	pelm unlikely to have enough variants for clonal inference
+22303_5	1679	IFN_6h	pelm	diku	toss	pelm		14	22303_5	raghd	y	raghd	y	pelm unlikely to have enough variants for clonal inference
+22303_6	1670	pIC_2h	pamv	nusw	euts			12	22303_6	raghd	y	raghd	y	
+22303_7	1646	IFN_6h	lexy	sebz	oaaz	lexy,sebz,oaaz		11	22303_7	davis	y	davis	y	
+22334_5	1680	pIC_6h	pelm	diku	toss	pelm		14	22334_5	raghd	y	raghd	y	pelm unlikely to have enough variants for clonal inference
+22334_6	1680	pIC_6h	pelm	diku	toss	pelm		14	22334_6	raghd	y	raghd	y	pelm unlikely to have enough variants for clonal inference
+22334_7	1669	IFN_2h	pamv	nusw	euts			12	22334_7	raghd	y	raghd	y	
+22334_8	1495	IFN_6h	vuna	miaj	wahn			2	22334_8	raghd	y	raghd	y	
+22365_4	1671	IFN_6h	pamv	nusw	euts			12	22365_4	raghd	y	raghd	y	
+22365_5	1672	pIC_6h	pamv	nusw	euts			12	22365_5	raghd	y	raghd	y	
+22379_1	1675	IFN_6h	fiaj	qonc	fikt	qonc		13	22379_1	davis	y	davis	y	
+22379_2	1647	pIC_6h	lexy	sebz	oaaz	lexy,sebz,oaaz		11	22379_2	davis	y	davis	y	
+22380_1	1644	IFN_2h	lexy	sebz	oaaz	lexy,sebz,oaaz		11	22380_1	davis	y	davis	y	
+22380_2	1508	pIC_6h	oicx	jogf	tixi			3	22380_2	raghd	y	raghd	y	removed sample 235
+22380_3	1775	pIC_6h	eipl	bubh	wigw			16	22380_3	raghd	y	raghd	y	removed samples 265 & 266
+22380_4	1774	IFN_6h	eipl	bubh	wigw			16	22380_4	raghd	y	raghd	y	
+22380_5	1773	pIC_2h	eipl	bubh	wigw			16	22380_5	raghd	y	raghd	y	
+22380_6	1507	IFN_6h	oicx	jogf	tixi			3	22380_6	raghd	y	raghd	y	
+22380_7	1674	pIC_2h	fiaj	qonc	fikt	qonc		13	22380_7	davis	y	davis	y	
+22380_8	1770	IFN_6h	cuhk	ceik	wopl			15	22380_8	davis	y	davis	y	
+22388_2	1538	pIC_6h	ciwj	gesg	joxm			6	22388_2	raghd	y	raghd	y	
+22388_3	1509	IFN_2h	oaqd	gifk	pipw			4	22388_3	raghd	y	raghd	y	
+22388_4	1510	pIC_2h	oaqd	gifk	pipw			4	22388_4	raghd	y	raghd	y	
+22388_5	1512	pIC_6h	oaqd	gifk	pipw			4	22388_5	raghd	y	raghd	y	
+22388_6	1676	pIC_6h	fiaj	qonc	fikt	qonc		13	22388_6	davis	y	davis	y	
+22453_1	1768	IFN_2h	cuhk	ceik	wopl			15	22453_1	raghd	y	raghd	y	
+22453_2	1768	IFN_2h	cuhk	ceik	wopl			15	22453_2	raghd	y	raghd	y	
+22453_3	1491	IFN_6h	puie	naju	rutc			1	22453_3	raghd	y	raghd	y	
+22453_4	1511	IFN_6h	oaqd	gifk	pipw			4	22453_4	raghd	y	raghd	y	
+22453_5	1769	pIC_2h	cuhk	ceik	wopl			15	22453_5	raghd	y	raghd	y	
+22453_6	1492	pIC_6h	puie	naju	rutc			1	22453_6	raghd	y	raghd	y	
+22453_7	1625	IFN_2h	sehl	sohd	qolg	qolg		7	22453_7	davis	y	davis	y	
+22453_8	1628	pIC_6h	sehl	sohd	qolg	qolg		7	22453_8	davis	y	davis	y	
+22467_4	1627	IFN_6h	sehl	sohd	qolg	qolg		7	22467_4	davis	y	davis	y	
+22467_5	1506	pIC_2h	oicx	jogf	tixi			3	22467_5	raghd	y	davis	y	
+22540_1	1674	pIC_2h	fiaj	qonc	fikt	qonc		13	22540_1	davis	y	davis	y	
+22540_6	1631	IFN_6h	eika	eofe	dons			8	22540_6	raghd	y	davis	y	
+22666_1	1772	IFN_2h	eipl	bubh	wigw			16	22666_1	raghd	y	davis	y	
+22666_2	1535	IFN_2h	ciwj	gesg	joxm			6	22666_2	raghd	y	davis	y	
+22666_3	1629	IFN_2h	eika	eofe	dons			8	22666_3	raghd	y	davis	y	
+22666_4	1792	IFN_2h	rozh	oilg	zihe	rozh		18	22666_4	davis	y	davis	y	
+22666_5	1794	IFN_6h	rozh	oilg	zihe	rozh		18	22666_5	davis	y	davis	y	
+22666_6	1777	pIC_2h	tuju	lise	tolg	lise		17	22666_6	davis	y	davis	y	
+22666_7	1778	IFN_6h	tuju	lise	tolg	lise		17	22666_7	davis	y	davis	y	very low read counts - double check CRAM conversion
+22666_8	1795	pIC_6h	rozh	oilg	zihe	rozh		18	22666_8	davis	y	davis	y	
+22710_1	1505	IFN_2h	oicx	jogf	tixi			3	22710_1	raghd	y	yuanhua	y	error in creating donor_id_all.csv
+22721_1	1803	pIC_6h	kajh	feec	bima			20	22721_1	raghd	y	yuanhua	y	
+22721_2	1802	IFN_6h	kajh	feec	bima			20	22721_2	raghd	y	yuanhua	y	
+22721_3	1797	pIC_2h	hehd	ualf	qayj	hehd		19	22721_3	raghd	y	yuanhua	y	
+22721_4	1796	IFN_2h	hehd	ualf	qayj	hehd		19	22721_4	raghd	y	yuanhua	y	
+22727_1	1799	pIC_6h	hehd	ualf	qayj	hehd		19	22727_1	raghd	y	yuanhua	y	
+22727_2	1798	IFN_6h	hehd	ualf	qayj	hehd		19	22727_2	raghd	y	yuanhua	y	
+22727_3	1798	IFN_6h	hehd	ualf	qayj	hehd		19	22727_3	raghd	y	yuanhua	y	
+22727_4	1835	pIC_2h	pahc	laey	xugn	xugn		22	22727_4	davis	y	davis	y	
+22727_5	1837	pIC_6h	pahc	laey	xugn	xugn		22	22727_5	davis	y	davis	y	
+22727_6	1840	IFN_6h	puie	naju	rutc			23	22727_6	raghd	y	davis	y	
+22727_7	1841	pIC_6h	puie	naju	rutc			23	22727_7	raghd	y	davis	y	
+22727_8	1848	IFN_2h	xuja	vabj	vass	xuja,vabj,vass		24	22727_8	davis	y	davis	y	
+22728_6	1850	IFN_6h	xuja	vabj	vass	xuja,vabj,vass		24	22728_6	davis	y	davis	y	
+22728_7	1832	IFN_6h	hipn	ieki	fawm			21	22728_7	raghd	y	yuanhua	y	
+22728_8	1632	pIC_6h	eika	eofe	dons			8	22728_8	raghd	y	yuanhua	y	
+22773_1	1833	pIC_6h	hipn	ieki	fawm			21	22773_1	raghd	y	yuanhua	y	
+22773_2	1800	IFN_2h	kajh	feec	bima			20	22773_2	raghd	y	yuanhua	y	
+22773_3	1852	IFN_2h	garx	vils	heja			25	22773_3	raghd	y	yuanhua	y	
+22773_4	1853	pIC_2h	garx	vils	heja			25	22773_4	raghd	y	yuanhua	y	
+22773_5	1831	pIC_2h	hipn	ieki	fawm			21	22773_5	raghd	y	yuanhua	y	
+22773_6	1801	pIC_2h	kajh	feec	bima			20	22773_6	raghd	y	yuanhua	y	
+22773_7	1830	IFN_2h	hipn	ieki	fawm			21	22773_7	raghd	y	yuanhua	y	
+22773_8	1851	pIC_6h	xuja	vabj	vass	xuja,vabj,vass		24	22773_8	davis	y	davis	y	
+22774_1	1630	pIC_2h	eika	eofe	dons			8	22774_1	raghd	y	davis	y	removed sample 119
+22774_2	1855	pIC_6h	garx	vils	heja			25	22774_2	raghd	y	davis	y	
+22774_3	1857	pIC_2h	zoxy	wetu	wuye	zoxy,wetu,wuye		26	22774_3	davis	y	davis	y	
+22774_4	1858	IFN_6h	zoxy	wetu	wuye	zoxy,wetu,wuye		26	22774_4	davis	y	davis	y	removed sample 283
+22774_5	1776	IFN_2h	tuju	lise	tolg	lise		17	22774_5	davis	y	davis	y	
+22774_6	1856	IFN_2h	zoxy	wetu	wuye	zoxy,wetu,wuye		26	22774_6	davis	y	davis	y	
+22774_7	1859	pIC_6h	zoxy	wetu	wuye	zoxy,wetu,wuye		26	22774_7	davis	y	davis	y	
+22774_8	1489	IFN_2h	puie	naju	rutc		y	1	22774_8	raghd	y	davis	y	
+22782_5	1834	IFN_2h	pahc	laey	xugn	xugn		22	22782_5	davis	y	davis	y	
+22782_6	1834	IFN_2h	pahc	laey	xugn	xugn		22	22782_6	davis	y	davis	y	
+22782_7	1771	pIC_6h	cuhk	ceik	wopl		y	15	22782_7	raghd	y	davis	y	
+22829_2	1836	IFN_6h	pahc	laey	xugn	xugn		22	22829_2	davis	y	davis	y	
+22940_7	1834	IFN_2h	pahc	laey	xugn	xugn		22	22940_7	davis	y	davis	y	
+22940_8	1771	pIC_6h	cuhk	ceik	wopl		y	15	22940_8	raghd	y	davis	y	
+22943_2	1834	IFN_2h	pahc	laey	xugn	xugn		22	22943_2	davis	y	davis	y	
+22943_5	1490	pIC_2h	puie	naju	rutc		y	1	22943_5	raghd	y	davis	y	
+22951_1	1793	pIC_2h	rozh	oilg	zihe	rozh		18	22951_1	davis	y	davis	y	

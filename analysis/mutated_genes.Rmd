@@ -26,6 +26,7 @@ relevant line. Assignment of cells to clones was done with [cardelino](https://g
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+dir.create("figures/mutated_genes", showWarnings = FALSE, recursive = TRUE)
 library(tidyverse)
 library(scater)
 library(ggridges)
@@ -47,7 +48,7 @@ library(cowplot)
 Load VEP consequence information.
 
 ```{r load-csq-data}
-vep_best <- read_tsv("data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
+vep_best <- read_tsv("data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
 colnames(vep_best)[1] <- "Uploaded_variation"
 ## deduplicate dataframe
 vep_best <- vep_best[!duplicated(vep_best[["Uploaded_variation"]]),]
@@ -60,34 +61,11 @@ check the number that fall into the different VEP annotation categories.
 table(vep_best[["Consequence"]])
 ```
 
-```{r, echo=FALSE, include=FALSE}
-#Load bcftools/csq variant annotations.
-csq_annos <- read_tsv("data/fdr10.annot.txt.gz", comment = "#", 
-                      col_types = "cccciiiiidcccccc", col_names = FALSE)
-colnames(csq_annos) <- c(
-  "FisherTest", "Sample", "Control", "Chrom", "Pos", "smpl.nREF", "smpl.nALT", 
-  "ctrl.nREF", "ctrl.nALT", "PValue", "REF", "ALT", "AF_EXAC", "AF_1KG", 
-  "CLNSIG", "BCSQ")
-csq_annos
-tmp <- strsplit(csq_annos$BCSQ, split = "\\|")
-csq_annos <- dplyr::mutate(csq_annos,
-                           csq = sapply(tmp, function(x) x[1]),
-                           gene = sapply(tmp, function(x) x[2]),
-                           biotype = sapply(tmp, function(x) tail(x, n = 1))
-)
-rm(tmp)
-csq_annos <- dplyr::mutate(csq_annos,
-                           var_id = paste0("chr", Chrom, ":", Pos, "_", REF, 
-                                           "_", ALT)
-)
-```
-
-
 Load exome sites, that is, the somatic SNVs identified with Petr Danecek's 
 somatic variant calling approach.
 
 ```{r load-exome-sites-data}
-exome_sites <- read_tsv("data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz",
+exome_sites <- read_tsv("data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz",
     col_types = "ciccdcciiiiccccccccddcdcll", comment = "#",
     col_names = TRUE)
 exome_sites <- dplyr::select(exome_sites,

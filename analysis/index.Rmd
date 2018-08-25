@@ -25,14 +25,6 @@ populations, with implications for cancer and ageing.
 
 For a richer overview, see the [About](about.html) page.
 
-## Data availability
-
-Single-cell RNA-seq data have been deposited in the 
-[ArrayExpress](www.ebi.ac.uk/arrayexpress) database at EMBL-EBI under accession 
-number [E-MTAB-7167](https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-7167).
-Whole-exome sequencing data is available through the 
-[HipSci portal](www.hipsci.org). Processed data and large results files are 
-available at ...
 
 ## Data pre-processing
 
@@ -72,6 +64,85 @@ The results presented in the paper were produced with these analyses.
 1. [Differential expression analysis.](differential_expression.html)
 
 1. [Analysis of effects of somatic variants on cis gene expression.](mutated_genes.html)
+
+
+## Data availability
+
+This is a complicated project, and reproducing all of the results presented, especially from raw data is highly non-trivial. Nevertheless, we have made all data available so that everything is entirely reproducible.
+
+Single-cell RNA-seq data have been deposited in the 
+[ArrayExpress](www.ebi.ac.uk/arrayexpress) database at EMBL-EBI under accession 
+number [E-MTAB-7167](https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-7167).
+Whole-exome sequencing data is available through the 
+[HipSci portal](www.hipsci.org). Processed data and large results files are 
+available from Zenodo at ...
+
+To set up the project to reproduce our analyses, first clone the [source code repository](https://github.com/davismcc/fibroblast-clonality) from GitHub. Next, download all of the reference, metadata and results files and add them to the (cloned) project folder with the following structure:
+
+```
+.
+├── data
+│   ├── canopy
+│   │   ├── canopy_results.*.rds
+│   ├── cell_assignment
+│   │   ├── cardelino_results.*.rds
+│   ├── de_analysis_FTv62
+│   │   ├── cellcycle_analyses
+│   │   │   ├── filt_lenient.all_filt_sites.de_results_unstimulated_cells.cc.rds
+│   │   │   ├── filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.cc.rds
+│   │   │   ├── filt_strict.all_filt_sites.de_results_unstimulated_cells.cc.rds
+│   │   │   └── filt_strict.cell_coverage_sites.de_results_unstimulated_cells.cc.rds
+│   │   ├── filt_lenient.all_filt_sites.de_results_unstimulated_cells.rds
+│   │   ├── filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds
+│   │   ├── filt_strict.all_filt_sites.de_results_unstimulated_cells.rds
+│   │   └── filt_strict.cell_coverage_sites.de_results_unstimulated_cells.rds
+│   ├── donor_info_070818.txt
+│   ├── donor_info_core.csv
+│   ├── donor_neutrality.tsv
+│   ├── exome-point-mutations
+│   │   ├── high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
+│   │   └── high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz
+│   ├── human_H_v5p2.rdata
+│   ├── human_c2_v5p2.rdata
+│   ├── human_c6_v5p2.rdata
+│   ├── neg-bin-rsquared-petr.csv
+│   ├── neutralitytestr-petr.tsv
+|   ├── sces
+│   │   ├── sce_*.rds
+│   ├── simulations
+│   │   ├── *.filt_lenient.cell_coverage_sites.mult.rds
+│   │   ├── *.simulate.rds
+│   └── variance_components
+│       ├── covar_all.csv
+│       ├── donorVar
+│       │   ├── *.var_part.var1.csv
+│       ├── fit_all_gene_highVar.csv
+│       ├── fit_per_gene_highVar.csv
+│       ├── gene_info_all.csv
+│       └── logcnt_all.csv
+├── metadata
+│   ├── cell_metadata.csv
+│   └── data_processing_metadata.tsv
+├── references
+│   ├── 1000G_phase1.indels.hg19.sites.vcf.gz
+│   ├── GRCh37.p13.genome.ERCC92.fa
+│   ├── Homo_sapiens.GRCh37.rel75.cdna.all.ERCC92.fa.gz
+│   ├── Mills_and_1000G_gold_standard.indels.hg19.sites.vcf.gz
+│   ├── dbsnp_138.hg19.biallelicSNPs.HumanCoreExome12.Top1000ExpressedIpsGenes.Maf0.01.HWE0.0001.HipSci.vcf.gz
+│   ├── dbsnp_138.hg19.vcf.gz
+│   ├── gencode.v19.annotation_ERCC.gtf
+│   ├── hipsci.wec.gtarray.HumanCoreExome.imputed_phased.20170327.genotypes.allchr.fibro_samples_v2_filt_vars_sorted_oa.vcf.gz
+│   ├── hipsci.wec.gtarray.HumanCoreExome.imputed_phased.20170327.genotypes.allchr.fibro_samples_v2_filt_vars_sorted_oa.vcf.gz.csi
+│   └── knownIndels.intervals
+```
+
+For simplicity, we ignore all the directories and files present in the source code repository (that you should have clones) to focus just on where you should _add_ the files downloaded from Zenodo.
+
+There is a large number of `canopy_results.*.rds` files: these should be stored in the `data/canopy` directory. Similarly, all of the `cardelino_results.*.rds` files should be stored in `data/cell_assignment`. All of the SingleCellExperiment object files (`sce_*.rds`) should be stored in `data/sces`. Simulation results files (`*.mult.rds`; `*.simulate.rds`) should be stored in `data/simulations`. Variance components results should be stored in `data/variance_components` as shown above.
+
+Differential expression results belong in `data/de_analysis_FTv62`.
+
+Metadata files belong in `metadata`. Reference files belong in `references`.
 
 
 -------

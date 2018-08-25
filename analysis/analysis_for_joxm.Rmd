@@ -10,6 +10,7 @@ site: workflowr::wflow_site
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
                       fig.height = 10, fig.width = 14)
+dir.create("figures/donor_specific", showWarnings = FALSE, recursive = TRUE)
 library(tidyverse)
 library(scater)
 library(ggridges)
@@ -41,7 +42,7 @@ load("data/human_c2_v5p2.rdata")
 Load VEP consequence information.
 
 ```{r load-csq-data}
-vep_best <- read_tsv("data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
+vep_best <- read_tsv("data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
 colnames(vep_best)[1] <- "Uploaded_variation"
 ## deduplicate dataframe
 vep_best <- vep_best[!duplicated(vep_best[["Uploaded_variation"]]),]
@@ -50,7 +51,7 @@ vep_best <- vep_best[!duplicated(vep_best[["Uploaded_variation"]]),]
 Load somatic variant sites from whole-exome sequencing data.
 
 ```{r load-exome-sites-data}
-exome_sites <- read_tsv("data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz",
+exome_sites <- read_tsv("data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz",
     col_types = "ciccdcciiiiccccccccddcdcll", comment = "#",
     col_names = TRUE)
 exome_sites <- dplyr::mutate(

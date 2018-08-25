@@ -11,6 +11,7 @@ distinct donor, so we use the terms "line" and "donor" interchangeably.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+dir.create("figures/overview_lines", showWarnings = FALSE, recursive = TRUE)
 ```
 
 ## Load libraries and data
@@ -60,7 +61,7 @@ for (i in 1:nrow(donor_info)) {
 Load exome variant sites.
 
 ```{r load-exome-sites-data}
-exome_sites <- read_tsv("data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz",
+exome_sites <- read_tsv("data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz",
                         col_types = "ciccdcciiiiccccccccddcdcll", comment = "#",
                         col_names = TRUE)
 exome_sites <- dplyr::mutate(
@@ -84,7 +85,7 @@ Load VEP annotations and show table with number of variants assigned to each
 functional annotation category.
 
 ```{r load-csq-data}
-vep_best <- read_tsv("data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
+vep_best <- read_tsv("data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
 colnames(vep_best)[1] <- "Uploaded_variation"
 ## deduplicate dataframe
 vep_best <- as.data.frame(vep_best[!duplicated(vep_best[["Uploaded_variation"]]),])
@@ -231,7 +232,7 @@ exposures), using a function from the `deconstructSigs` package.
 data("cosmic_signatures", package = "sigfit")
 
 ##new input 
-mutation_list <- read.table("data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz", header = TRUE)
+mutation_list <- read.table("data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz", header = TRUE)
 mutation_list$chr_pos <- paste0("chr", mutation_list$chr, "_", mutation_list$pos)
 
 mutation_donors <- unique(mutation_list$donor_short_id)

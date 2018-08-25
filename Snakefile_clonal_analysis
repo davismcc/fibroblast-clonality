@@ -130,7 +130,7 @@ rule run_de_pathway_analysis_unst_cells_cellcycle:
         sce=lambda wildcards: sce_list[wildcards.strictness][wildcards.sites]
     output:
         html='reports/de_pathway/de_pathway.unst_cells.cellcycle_analyses.{strictness}.{sites}.html',
-        unst_rds='data/de_analysis_FTv62/cellcycle_analyses/{strictness}.{sites}.de_results_unstimulated_cells.rds'
+        unst_rds='data/de_analysis_FTv62/cellcycle_analyses/{strictness}.{sites}.de_results_unstimulated_cells.cc.rds'
     singularity:
         "docker://davismcc/r-singlecell-img"
     shell:

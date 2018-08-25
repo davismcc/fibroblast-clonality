@@ -8,6 +8,7 @@ site: workflowr::wflow_site
 
 ```{r setup, include=TRUE, results='hide', message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+dir.create("figures/clone_prevalences", showWarnings = FALSE, recursive = TRUE)
 library(tidyverse)
 library(viridis)
 library(cowplot)

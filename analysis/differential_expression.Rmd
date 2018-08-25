@@ -29,6 +29,8 @@ library(IHW)
 library(cowplot)
 library(broom)
 options(stringsAsFactors = FALSE)
+dir.create("figures/differential_expression", showWarnings = FALSE, 
+           recursive = TRUE)
 ```
 
 Load the genewise differential expression results produced with the edgeR 

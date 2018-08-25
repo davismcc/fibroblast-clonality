@@ -13,6 +13,8 @@ library(ggpubr)
 library(ggrepel)
 library(cowplot)
 library(reshape2)
+dir.create("figures/variance_components", showWarnings = FALSE, 
+           recursive = TRUE)
 ```
 
 ## Results aggregated across all lines
