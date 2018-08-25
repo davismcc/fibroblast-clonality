@@ -499,7 +499,7 @@ plotBCV(de_res$dge_list$joxm)
 Likewise, a plot of the quasi-likelihood parameter against average gene 
 expression looks smooth and sensible.
 
-```{r -lot-qld}
+```{r plot-qld}
 plotQLDisp(de_res$qlf_list$joxm)
 ```
 
@@ -918,7 +918,7 @@ clone factor here). As one might expect, there is a large number of DE genes
 for cell cycle.
 
 ```{r de-cc}
-de_res_cc <- readRDS("data/de_analysis_FTv62/cellcycle_analyses/filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds")
+de_res_cc <- readRDS("data/de_analysis_FTv62/cellcycle_analyses/filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.cc.rds")
 de_joxm_cellcycle_only <- de_res_cc$cellcycle_only$qlf_list$joxm
 topTags(de_res_cc$cellcycle_only$qlf_list$joxm)
 summary(decideTests(de_res_cc$cellcycle_only$qlf_list$joxm, p.value = 0.1))
