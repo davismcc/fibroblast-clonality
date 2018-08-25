@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-24</p>
+<p><strong>Last updated:</strong> 2018-08-25</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,13 +391,15 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/b1cf8d0eef10df2c1e6788afd6b656eca881e7f9" target="_blank">b1cf8d0</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/a865fa3f06836e7b7286fb690f67be077244bf26" target="_blank">a865fa3</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    .vscode/
+    Ignored:    code/.DS_Store
     Ignored:    data/raw/
     Ignored:    src/.DS_Store
     Ignored:    src/.ipynb_checkpoints/
@@ -407,6 +409,7 @@ Untracked files:
     Untracked:  Snakefile_clonality
     Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/selection/
     Untracked:  code/yuanhua/
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
@@ -414,9 +417,8 @@ Untracked files:
     Untracked:  data/donor_info_070818.txt
     Untracked:  data/donor_info_core.csv
     Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/exome-point-mutations/
     Untracked:  data/fdr10.annot.txt.gz
-    Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
-    Untracked:  data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz
     Untracked:  data/human_H_v5p2.rdata
     Untracked:  data/human_c2_v5p2.rdata
     Untracked:  data/human_c6_v5p2.rdata
@@ -426,11 +428,11 @@ Untracked files:
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
+    Untracked:  data/selection/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/overview_lines.Rmd/
+    Untracked:  docs/figure/selection_models.Rmd/
     Untracked:  figures/
-    Untracked:  metadata/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
     Untracked:  output/line_info.tsv
@@ -438,6 +440,7 @@ Untracked files:
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
     Untracked:  references/
+    Untracked:  tree.txt
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -466,6 +469,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d618fe52b90fd1d6e4f9613c8d7bbe3a3afde245/analysis/simulations.Rmd" target="_blank">d618fe5</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-25
+</td>
+<td style="text-align:left;">
+Updating analyses
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/090c1b94750a83d2101ffaaa654dab8150e6284b/docs/simulations.html" target="_blank">090c1b9</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -524,7 +561,8 @@ Adding data pre-processing workflow and updating analyses.
 <hr />
 <div id="load-libraries-and-simulation-results" class="section level2">
 <h2>Load libraries and simulation results</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggpubr)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dir.create</span>(<span class="st">&quot;figures/simulations&quot;</span>, <span class="dt">showWarnings =</span> <span class="ot">FALSE</span>, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)
+<span class="kw">library</span>(ggpubr)
 <span class="kw">library</span>(tidyverse)
 <span class="kw">library</span>(cardelino)
 <span class="kw">library</span>(viridis)
@@ -703,7 +741,7 @@ davismcc
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-24                  </code></pre>
+ date     2018-08-25                  </code></pre>
 <pre><code>Packages -----------------------------------------------------------------</code></pre>
 <pre><code> package              * version   date       source        
  AnnotationDbi          1.42.1    2018-05-08 Bioconductor  
@@ -735,7 +773,7 @@ davismcc
  DBI                    1.0.0     2018-05-02 CRAN (R 3.5.0)
  DelayedArray           0.6.5     2018-08-15 Bioconductor  
  devtools               1.13.6    2018-06-27 CRAN (R 3.5.0)
- digest                 0.6.15    2018-01-28 CRAN (R 3.5.0)
+ digest                 0.6.16    2018-08-22 CRAN (R 3.5.0)
  dplyr                * 0.7.6     2018-06-29 CRAN (R 3.5.1)
  evaluate               0.11      2018-07-17 CRAN (R 3.5.0)
  forcats              * 0.3.0     2018-02-19 CRAN (R 3.5.0)
@@ -758,7 +796,7 @@ davismcc
  hms                    0.4.2     2018-03-10 CRAN (R 3.5.0)
  htmltools              0.3.6     2017-04-28 CRAN (R 3.5.0)
  httr                   1.3.1     2017-08-20 CRAN (R 3.5.0)
- IRanges                2.14.10   2018-05-16 Bioconductor  
+ IRanges                2.14.11   2018-08-24 Bioconductor  
  jsonlite               1.5       2017-06-01 CRAN (R 3.5.0)
  knitr                  1.20      2018-02-20 CRAN (R 3.5.0)
  labeling               0.3       2014-08-23 CRAN (R 3.5.0)
@@ -793,10 +831,10 @@ davismcc
  rlang                  0.2.2     2018-08-16 CRAN (R 3.5.0)
  rmarkdown              1.10      2018-06-11 CRAN (R 3.5.0)
  rprojroot              1.3-2     2018-01-03 CRAN (R 3.5.0)
- Rsamtools              1.32.2    2018-07-03 Bioconductor  
+ Rsamtools              1.32.3    2018-08-22 Bioconductor  
  RSQLite                2.1.1     2018-05-06 CRAN (R 3.5.0)
  rstudioapi             0.7       2017-09-07 CRAN (R 3.5.0)
- rtracklayer            1.40.4    2018-08-10 Bioconductor  
+ rtracklayer            1.40.5    2018-08-20 Bioconductor  
  rvcheck                0.1.0     2018-05-23 CRAN (R 3.5.0)
  rvest                  0.3.2     2016-06-17 CRAN (R 3.5.0)
  S4Vectors              0.18.3    2018-06-08 Bioconductor  

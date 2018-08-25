@@ -375,7 +375,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-24</p>
+<p><strong>Last updated:</strong> 2018-08-25</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -399,13 +399,15 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/b1cf8d0eef10df2c1e6788afd6b656eca881e7f9" target="_blank">b1cf8d0</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/a865fa3f06836e7b7286fb690f67be077244bf26" target="_blank">a865fa3</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    .vscode/
+    Ignored:    code/.DS_Store
     Ignored:    data/raw/
     Ignored:    src/.DS_Store
     Ignored:    src/.ipynb_checkpoints/
@@ -415,6 +417,7 @@ Untracked files:
     Untracked:  Snakefile_clonality
     Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/selection/
     Untracked:  code/yuanhua/
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
@@ -422,9 +425,8 @@ Untracked files:
     Untracked:  data/donor_info_070818.txt
     Untracked:  data/donor_info_core.csv
     Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/exome-point-mutations/
     Untracked:  data/fdr10.annot.txt.gz
-    Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
-    Untracked:  data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz
     Untracked:  data/human_H_v5p2.rdata
     Untracked:  data/human_c2_v5p2.rdata
     Untracked:  data/human_c6_v5p2.rdata
@@ -434,11 +436,11 @@ Untracked files:
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
+    Untracked:  data/selection/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/overview_lines.Rmd/
+    Untracked:  docs/figure/selection_models.Rmd/
     Untracked:  figures/
-    Untracked:  metadata/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
     Untracked:  output/line_info.tsv
@@ -446,6 +448,7 @@ Untracked files:
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
     Untracked:  references/
+    Untracked:  tree.txt
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -474,6 +477,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d618fe52b90fd1d6e4f9613c8d7bbe3a3afde245/analysis/mutated_genes.Rmd" target="_blank">d618fe5</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-25
+</td>
+<td style="text-align:left;">
+Updating analyses
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/090c1b94750a83d2101ffaaa654dab8150e6284b/docs/mutated_genes.html" target="_blank">090c1b9</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -640,7 +677,7 @@ Adding analysis for DE between mutated and unmutated clones
 <div id="load-libraries-and-data" class="section level2">
 <h2>Load libraries and data</h2>
 <p>Load VEP consequence information.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">vep_best &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt&quot;</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">vep_best &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt&quot;</span>)
 <span class="kw">colnames</span>(vep_best)[<span class="dv">1</span>] &lt;-<span class="st"> &quot;Uploaded_variation&quot;</span>
 ## deduplicate dataframe
 vep_best &lt;-<span class="st"> </span>vep_best[<span class="op">!</span><span class="kw">duplicated</span>(vep_best[[<span class="st">&quot;Uploaded_variation&quot;</span>]]),]</code></pre></div>
@@ -666,7 +703,7 @@ vep_best &lt;-<span class="st"> </span>vep_best[<span class="op">!</span><span c
                 synonymous_variant              upstream_gene_variant 
                               1923                                 34 </code></pre>
 <p>Load exome sites, that is, the somatic SNVs identified with Petr Danecek’s somatic variant calling approach.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exome_sites &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz&quot;</span>,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exome_sites &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz&quot;</span>,
     <span class="dt">col_types =</span> <span class="st">&quot;ciccdcciiiiccccccccddcdcll&quot;</span>, <span class="dt">comment =</span> <span class="st">&quot;#&quot;</span>,
     <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
 exome_sites &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">select</span>(exome_sites,
@@ -1009,37 +1046,7 @@ non_coding_transcript_exon                   nonsense
 <span class="st">    </span><span class="kw">theme_classic</span>(<span class="dv">16</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>),
           <span class="dt">legend.position =</span> <span class="kw">c</span>(<span class="fl">0.9</span>, <span class="fl">0.1</span>))</code></pre></div>
-<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-8-1.png" width="1536" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-8-1.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-8-1.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-7-1.png" width="1536" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/mutated_genes/alllines_mutgenes_volcano_by_vep_anno_allcells.png&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">16</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/mutated_genes/alllines_mutgenes_volcano_by_vep_anno_allcells.pdf&quot;</span>, 
@@ -1063,8 +1070,8 @@ davismcc
 <span class="st">    </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>),
           <span class="dt">strip.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">13</span>),
           <span class="dt">legend.position =</span> <span class="kw">c</span>(<span class="fl">0.8</span>, <span class="fl">0.15</span>))</code></pre></div>
-<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-9-1.png" width="1008" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-9-1.png:</em></summary>
+<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-8-1.png" width="1008" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-8-1.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
 <thead>
 <tr>
@@ -1082,7 +1089,7 @@ Date
 <tbody>
 <tr>
 <td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-9-1.png" target="_blank">d2e8b31</a>
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-8-1.png" target="_blank">d2e8b31</a>
 </td>
 <td style="text-align:left;">
 davismcc
@@ -1147,8 +1154,8 @@ simple_cons_vec &lt;-<span class="st"> </span><span class="kw">c</span>(<span cl
         <span class="dt">colour =</span> <span class="st">&quot;firebrick4&quot;</span>, <span class="dt">outlier.size =</span> <span class="dv">0</span>, <span class="dt">outlier.alpha =</span> <span class="dv">0</span>)
 }
 cowplot<span class="op">::</span><span class="kw">plot_grid</span>(<span class="dt">plotlist =</span> plist, <span class="dt">nrow =</span> <span class="dv">2</span>)</code></pre></div>
-<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-10-1.png" width="1728" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-10-1.png:</em></summary>
+<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-9-1.png" width="1728" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-9-1.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
 <thead>
 <tr>
@@ -1166,7 +1173,7 @@ Date
 <tbody>
 <tr>
 <td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-10-1.png" target="_blank">d2e8b31</a>
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-9-1.png" target="_blank">d2e8b31</a>
 </td>
 <td style="text-align:left;">
 davismcc
@@ -1205,8 +1212,8 @@ mut_genes_df_allcells <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="ot">FALSE</span>, <span class="dt">color =</span> <span class="ot">FALSE</span>, <span class="dt">point_color =</span> <span class="ot">FALSE</span>)</code></pre></div>
-<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-11-1.png" width="960" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-11-1.png:</em></summary>
+<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-10-1.png" width="960" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-10-1.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
 <thead>
 <tr>
@@ -1224,7 +1231,7 @@ Date
 <tbody>
 <tr>
 <td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-11-1.png" target="_blank">d2e8b31</a>
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-10-1.png" target="_blank">d2e8b31</a>
 </td>
 <td style="text-align:left;">
 davismcc
@@ -1279,8 +1286,8 @@ tmp3</code></pre></div>
 <span class="st">    </span><span class="kw">coord_flip</span>() <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="ot">FALSE</span>, <span class="dt">color =</span> <span class="ot">FALSE</span>, <span class="dt">point_color =</span> <span class="ot">FALSE</span>)</code></pre></div>
-<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-12-1.png" width="960" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-12-1.png:</em></summary>
+<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-11-1.png" width="960" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-11-1.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
 <thead>
 <tr>
@@ -1298,7 +1305,7 @@ Date
 <tbody>
 <tr>
 <td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-12-1.png" target="_blank">d2e8b31</a>
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-11-1.png" target="_blank">d2e8b31</a>
 </td>
 <td style="text-align:left;">
 davismcc
@@ -1806,8 +1813,8 @@ davismcc
 <span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Clone tagging variants by consequence class: all lines&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;number of variants&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;consequence&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_bw</span>(<span class="dv">16</span>)</code></pre></div>
-<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-13-1.png" width="1344" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-13-1.png:</em></summary>
+<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-12-1.png" width="1344" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-12-1.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
 <thead>
 <tr>
@@ -1825,7 +1832,7 @@ Date
 <tbody>
 <tr>
 <td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-13-1.png" target="_blank">d2e8b31</a>
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-12-1.png" target="_blank">d2e8b31</a>
 </td>
 <td style="text-align:left;">
 davismcc
@@ -1851,8 +1858,8 @@ davismcc
 <span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Clone tagging variants by consequence class: all lines&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;number of variants&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;consequence&quot;</span>) <span class="op">+</span>
 <span class="st">    </span><span class="kw">theme_bw</span>(<span class="dv">16</span>)</code></pre></div>
-<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-14-1.png" width="1536" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-14-1.png:</em></summary>
+<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-13-1.png" width="1536" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-13-1.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
 <thead>
 <tr>
@@ -1870,7 +1877,7 @@ Date
 <tbody>
 <tr>
 <td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-14-1.png" target="_blank">d2e8b31</a>
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-13-1.png" target="_blank">d2e8b31</a>
 </td>
 <td style="text-align:left;">
 davismcc
@@ -1949,37 +1956,7 @@ df_cc_vars[<span class="kw">is.na</span>(df_cc_vars)] &lt;-<span class="st"> </s
 <span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">&quot;Variants in proliferation genes: all lines&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;number of variants&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;consequence&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme_bw</span>(<span class="dv">16</span>)</code></pre></div>
-<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-18-1.png" width="1536" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-18-1.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-18-1.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-17-1.png" width="1536" style="display: block; margin: auto;" /></p>
 </div>
 <div id="mutations-in-proliferation-genes" class="section level3">
 <h3>Mutations in proliferation genes</h3>
@@ -2015,37 +1992,7 @@ df_prolif_vars[<span class="kw">is.na</span>(df_prolif_vars)] &lt;-<span class="
 <span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">&quot;Variants in cell cycle genes: all lines&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;number of variants&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;consequence&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme_bw</span>(<span class="dv">16</span>)</code></pre></div>
-<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-20-1.png" width="1536" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-20-1.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/mutated_genes.Rmd/unnamed-chunk-20-1.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/mutated_genes.Rmd/unnamed-chunk-19-1.png" width="1536" style="display: block; margin: auto;" /></p>
 <p>Finally, create a data.frame that contains the counts of variants annotated to different classes of genes and VEP classes, and save to file for use in other analyses.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">colnames</span>(df_cc_vars) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;line&quot;</span>, <span class="st">&quot;consequence&quot;</span>, <span class="st">&quot;n_vars_cellcycle_genes&quot;</span>)
 <span class="kw">colnames</span>(df_prolif_vars) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;line&quot;</span>, <span class="st">&quot;consequence&quot;</span>, <span class="st">&quot;n_vars_proliferation_genes&quot;</span>)
@@ -2123,7 +2070,7 @@ df_nvars <span class="op">%&gt;%</span><span class="st"> </span>
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-24                  
+ date     2018-08-25                  
 
  package              * version   date       source                
  AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
@@ -2154,7 +2101,7 @@ df_nvars <span class="op">%&gt;%</span><span class="st"> </span>
  DelayedArray         * 0.6.5     2018-08-15 Bioconductor          
  DelayedMatrixStats     1.2.0     2018-05-01 Bioconductor          
  devtools               1.13.6    2018-06-27 CRAN (R 3.5.0)        
- digest                 0.6.15    2018-01-28 CRAN (R 3.5.0)        
+ digest                 0.6.16    2018-08-22 CRAN (R 3.5.0)        
  dplyr                * 0.7.6     2018-06-29 CRAN (R 3.5.1)        
  DT                     0.4       2018-01-30 CRAN (R 3.5.0)        
  edgeR                * 3.22.3    2018-06-21 Bioconductor          
@@ -2186,7 +2133,7 @@ df_nvars <span class="op">%&gt;%</span><span class="st"> </span>
  httpuv                 1.4.5     2018-07-19 CRAN (R 3.5.0)        
  httr                   1.3.1     2017-08-20 CRAN (R 3.5.0)        
  IHW                  * 1.8.0     2018-05-01 Bioconductor          
- IRanges              * 2.14.10   2018-05-16 Bioconductor          
+ IRanges              * 2.14.11   2018-08-24 Bioconductor          
  jsonlite               1.5       2017-06-01 CRAN (R 3.5.0)        
  knitr                  1.20      2018-02-20 CRAN (R 3.5.0)        
  labeling               0.3       2014-08-23 CRAN (R 3.5.0)        

@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-24</p>
+<p><strong>Last updated:</strong> 2018-08-25</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,13 +391,15 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/b1cf8d0eef10df2c1e6788afd6b656eca881e7f9" target="_blank">b1cf8d0</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/a865fa3f06836e7b7286fb690f67be077244bf26" target="_blank">a865fa3</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    .vscode/
+    Ignored:    code/.DS_Store
     Ignored:    data/raw/
     Ignored:    src/.DS_Store
     Ignored:    src/.ipynb_checkpoints/
@@ -407,6 +409,7 @@ Untracked files:
     Untracked:  Snakefile_clonality
     Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/selection/
     Untracked:  code/yuanhua/
     Untracked:  data/canopy/
     Untracked:  data/cell_assignment/
@@ -414,9 +417,8 @@ Untracked files:
     Untracked:  data/donor_info_070818.txt
     Untracked:  data/donor_info_core.csv
     Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/exome-point-mutations/
     Untracked:  data/fdr10.annot.txt.gz
-    Untracked:  data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt
-    Untracked:  data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz
     Untracked:  data/human_H_v5p2.rdata
     Untracked:  data/human_c2_v5p2.rdata
     Untracked:  data/human_c6_v5p2.rdata
@@ -426,11 +428,11 @@ Untracked files:
     Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
     Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
     Untracked:  data/sces/
+    Untracked:  data/selection/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/overview_lines.Rmd/
+    Untracked:  docs/figure/selection_models.Rmd/
     Untracked:  figures/
-    Untracked:  metadata/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
     Untracked:  output/line_info.tsv
@@ -438,6 +440,7 @@ Untracked files:
     Untracked:  output/nvars_by_category_by_line.tsv
     Untracked:  output/variance_components/
     Untracked:  references/
+    Untracked:  tree.txt
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -466,6 +469,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a865fa3f06836e7b7286fb690f67be077244bf26/analysis/analysis_for_joxm.Rmd" target="_blank">a865fa3</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-25
+</td>
+<td style="text-align:left;">
+Small bug fix
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/d618fe52b90fd1d6e4f9613c8d7bbe3a3afde245/analysis/analysis_for_joxm.Rmd" target="_blank">d618fe5</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-25
+</td>
+<td style="text-align:left;">
+Updating analyses
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/090c1b94750a83d2101ffaaa654dab8150e6284b/docs/analysis_for_joxm.html" target="_blank">090c1b9</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-24
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -594,6 +648,7 @@ Adding analysis for joxm
 <h2>Load libraries and data</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>, <span class="dt">warning =</span> <span class="ot">FALSE</span>, <span class="dt">message =</span> <span class="ot">FALSE</span>,
                       <span class="dt">fig.height =</span> <span class="dv">10</span>, <span class="dt">fig.width =</span> <span class="dv">14</span>)
+<span class="kw">dir.create</span>(<span class="st">&quot;figures/donor_specific&quot;</span>, <span class="dt">showWarnings =</span> <span class="ot">FALSE</span>, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)
 <span class="kw">library</span>(tidyverse)
 <span class="kw">library</span>(scater)
 <span class="kw">library</span>(ggridges)
@@ -617,12 +672,12 @@ Adding analysis for joxm
 <span class="kw">load</span>(<span class="st">&quot;data/human_H_v5p2.rdata&quot;</span>)
 <span class="kw">load</span>(<span class="st">&quot;data/human_c2_v5p2.rdata&quot;</span>)</code></pre></div>
 <p>Load VEP consequence information.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">vep_best &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt&quot;</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">vep_best &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt&quot;</span>)
 <span class="kw">colnames</span>(vep_best)[<span class="dv">1</span>] &lt;-<span class="st"> &quot;Uploaded_variation&quot;</span>
 ## deduplicate dataframe
 vep_best &lt;-<span class="st"> </span>vep_best[<span class="op">!</span><span class="kw">duplicated</span>(vep_best[[<span class="st">&quot;Uploaded_variation&quot;</span>]]),]</code></pre></div>
 <p>Load somatic variant sites from whole-exome sequencing data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exome_sites &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz&quot;</span>,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exome_sites &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz&quot;</span>,
     <span class="dt">col_types =</span> <span class="st">&quot;ciccdcciiiiccccccccddcdcll&quot;</span>, <span class="dt">comment =</span> <span class="st">&quot;#&quot;</span>,
     <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
 exome_sites &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(
@@ -1296,37 +1351,7 @@ davismcc
 <p></details></p>
 <p>Likewise, a plot of the quasi-likelihood parameter against average gene expression looks smooth and sensible.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotQLDisp</span>(de_res<span class="op">$</span>qlf_list<span class="op">$</span>joxm)</code></pre></div>
-<p><img src="figure/analysis_for_joxm.Rmd/-lot-qld-1.png" width="768" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of -lot-qld-1.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/87e9b0b15fb7846944b715aac782224ae1bbd97b/docs/figure/analysis_for_joxm.Rmd/-lot-qld-1.png" target="_blank">87e9b0b</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/analysis_for_joxm.Rmd/plot-qld-1.png" width="768" style="display: block; margin: auto;" /></p>
 <div id="pairwise-comparisons-of-clones" class="section level3">
 <h3>Pairwise comparisons of clones</h3>
 <p>As well as looking for <em>any</em> difference in expression across clones, we can also inspect specific pairwise contrasts of clones for differential expression.</p>
@@ -2665,7 +2690,7 @@ davismcc
 <h2>DE accounting for cell cycle in model</h2>
 <p>Load DE results when accounting for/testing for cell cycle state. We fit GLMs for differential expression as shown above, but including cell cycle scores inferred using the <em>cyclone</em> function in the <code>scran</code> package.</p>
 <p>First, we look at genes that are DE when comparing a model with technical factors and cell cycle scores to a null model with just technical factors (no clone factor here). As one might expect, there is a large number of DE genes for cell cycle.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">de_res_cc &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">&quot;data/de_analysis_FTv62/cellcycle_analyses/filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds&quot;</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">de_res_cc &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">&quot;data/de_analysis_FTv62/cellcycle_analyses/filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.cc.rds&quot;</span>)
 de_joxm_cellcycle_only &lt;-<span class="st"> </span>de_res_cc<span class="op">$</span>cellcycle_only<span class="op">$</span>qlf_list<span class="op">$</span>joxm
 <span class="kw">topTags</span>(de_res_cc<span class="op">$</span>cellcycle_only<span class="op">$</span>qlf_list<span class="op">$</span>joxm)</code></pre></div>
 <pre><code>Coefficient:  G1 S G2M 
@@ -3071,7 +3096,7 @@ davismcc
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-24                  
+ date     2018-08-25                  
 
  package              * version   date       source                
  AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
@@ -3106,7 +3131,7 @@ davismcc
  DelayedArray         * 0.6.5     2018-08-15 Bioconductor          
  DelayedMatrixStats     1.2.0     2018-05-01 Bioconductor          
  devtools               1.13.6    2018-06-27 CRAN (R 3.5.0)        
- digest                 0.6.15    2018-01-28 CRAN (R 3.5.0)        
+ digest                 0.6.16    2018-08-22 CRAN (R 3.5.0)        
  dplyr                * 0.7.6     2018-06-29 CRAN (R 3.5.1)        
  edgeR                * 3.22.3    2018-06-21 Bioconductor          
  evaluate               0.11      2018-07-17 CRAN (R 3.5.0)        
@@ -3124,7 +3149,7 @@ davismcc
  ggplot2              * 3.0.0     2018-07-03 CRAN (R 3.5.0)        
  ggrepel              * 0.8.0     2018-05-09 CRAN (R 3.5.0)        
  ggridges             * 0.5.0     2018-04-05 CRAN (R 3.5.0)        
- ggthemes             * 4.0.0     2018-07-19 CRAN (R 3.5.0)        
+ ggthemes             * 4.0.1     2018-08-24 CRAN (R 3.5.1)        
  ggtree                 1.12.7    2018-08-07 Bioconductor          
  git2r                  0.23.0    2018-07-17 CRAN (R 3.5.0)        
  glue                   1.3.0     2018-07-17 CRAN (R 3.5.0)        
@@ -3138,7 +3163,7 @@ davismcc
  htmltools              0.3.6     2017-04-28 CRAN (R 3.5.0)        
  httr                   1.3.1     2017-08-20 CRAN (R 3.5.0)        
  IHW                  * 1.8.0     2018-05-01 Bioconductor          
- IRanges              * 2.14.10   2018-05-16 Bioconductor          
+ IRanges              * 2.14.11   2018-08-24 Bioconductor          
  jsonlite               1.5       2017-06-01 CRAN (R 3.5.0)        
  knitr                  1.20      2018-02-20 CRAN (R 3.5.0)        
  labeling               0.3       2014-08-23 CRAN (R 3.5.0)        
@@ -3182,10 +3207,10 @@ davismcc
  rlang                * 0.2.2     2018-08-16 CRAN (R 3.5.0)        
  rmarkdown              1.10      2018-06-11 CRAN (R 3.5.0)        
  rprojroot              1.3-2     2018-01-03 CRAN (R 3.5.0)        
- Rsamtools              1.32.2    2018-07-03 Bioconductor          
+ Rsamtools              1.32.3    2018-08-22 Bioconductor          
  RSQLite                2.1.1     2018-05-06 CRAN (R 3.5.0)        
  rstudioapi             0.7       2017-09-07 CRAN (R 3.5.0)        
- rtracklayer            1.40.4    2018-08-10 Bioconductor          
+ rtracklayer            1.40.5    2018-08-20 Bioconductor          
  rvcheck                0.1.0     2018-05-23 CRAN (R 3.5.0)        
  rvest                  0.3.2     2016-06-17 CRAN (R 3.5.0)        
  S4Vectors            * 0.18.3    2018-06-08 Bioconductor          
