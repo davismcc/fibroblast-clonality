@@ -55,6 +55,8 @@ The results presented in the paper were produced with these analyses.
 
 1. [Overview of lines](overview_lines.html)
 
+1. [Selection models](selection_models.Rmd)
+
 1. [Analysis of clonal prevalences.](clone_prevalences.html)
 
 1. [Analysis for the example cell line *joxm*.](analysis_for_joxm.html)
@@ -75,7 +77,7 @@ Single-cell RNA-seq data have been deposited in the
 number [E-MTAB-7167](https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-7167).
 Whole-exome sequencing data is available through the 
 [HipSci portal](www.hipsci.org). Processed data and large results files are 
-available from Zenodo at ...
+available from [Zenodo](http://doi.org/10.5281/zenodo.1403510) with DOI 10.5281/zenodo.1403510. 
 
 To set up the project to reproduce our analyses, first clone the [source code repository](https://github.com/davismcc/fibroblast-clonality) from GitHub. Next, download all of the reference, metadata and results files and add them to the (cloned) project folder with the following structure:
 
@@ -109,6 +111,9 @@ To set up the project to reproduce our analyses, first clone the [source code re
 │   ├── neutralitytestr-petr.tsv
 |   ├── sces
 │   │   ├── sce_*.rds
+│   ├── selection
+│   │   ├── neg-bin-params-fit.csv
+│   │   ├── neg-bin-rsquared-fit.csv
 │   ├── simulations
 │   │   ├── *.filt_lenient.cell_coverage_sites.mult.rds
 │   │   ├── *.simulate.rds
@@ -136,13 +141,15 @@ To set up the project to reproduce our analyses, first clone the [source code re
 │   └── knownIndels.intervals
 ```
 
-For simplicity, we ignore all the directories and files present in the source code repository (that you should have clones) to focus just on where you should _add_ the files downloaded from Zenodo.
+For simplicity, we ignore all the directories and files present in the source code repository (that you should have clones) to focus just on where you should _add_ the files downloaded from Zenodo. Yes, it's still complicated, but such is life.
 
 There is a large number of `canopy_results.*.rds` files: these should be stored in the `data/canopy` directory. Similarly, all of the `cardelino_results.*.rds` files should be stored in `data/cell_assignment`. All of the SingleCellExperiment object files (`sce_*.rds`) should be stored in `data/sces`. Simulation results files (`*.mult.rds`; `*.simulate.rds`) should be stored in `data/simulations`. Variance components results should be stored in `data/variance_components` as shown above.
 
 Differential expression results belong in `data/de_analysis_FTv62`.
 
 Metadata files belong in `metadata`. Reference files belong in `references`.
+
+With the data downloaded and organised as above, you will be able to reproduce the analyses presented in the RMarkdown files linked to above and, if desired, even run the whole analysis pipeline from raw reads to results following [these instructions](data_preprocessing.html).
 
 
 -------
