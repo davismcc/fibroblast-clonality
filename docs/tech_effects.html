@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Yuanhua Huang &amp; Davis J. McCarthy" />
+
+
+<title>Technical effecs on clonal assignment</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/font-awesome-5.0.13/css/fa-svg-with-js.css" rel="stylesheet" />
+<script src="site_libs/font-awesome-5.0.13/js/fontawesome-all.min.js"></script>
+<script src="site_libs/font-awesome-5.0.13/js/fa-v4-shims.min.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+div.sourceCode {
+  overflow-x: visible;
+}
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">fibroblast-clonality</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/davismcc/fibroblast-clonality">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Technical effecs on clonal assignment</h1>
+<h4 class="author"><em>Yuanhua Huang &amp; Davis J. McCarthy</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-08-26</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180807)</code> </summary></p>
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/957a8d2bff180f9394098c7889d5419ff50c6318" target="_blank">957a8d2</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    .vscode/
+    Ignored:    code/.DS_Store
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/.ipynb_checkpoints/
+    Ignored:    src/Rmd/.Rhistory
+
+Untracked files:
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
+    Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/selection/
+    Untracked:  code/yuanhua/
+    Untracked:  data/canopy/
+    Untracked:  data/cell_assignment/
+    Untracked:  data/de_analysis_FTv62/
+    Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
+    Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/exome-point-mutations/
+    Untracked:  data/fdr10.annot.txt.gz
+    Untracked:  data/human_H_v5p2.rdata
+    Untracked:  data/human_c2_v5p2.rdata
+    Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
+    Untracked:  data/sces/
+    Untracked:  data/selection/
+    Untracked:  data/simulations/
+    Untracked:  data/variance_components/
+    Untracked:  docs/figure/selection_models.Rmd/
+    Untracked:  figures/
+    Untracked:  output/differential_expression/
+    Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
+    Untracked:  output/nvars_by_category_by_donor.tsv
+    Untracked:  output/nvars_by_category_by_line.tsv
+    Untracked:  output/variance_components/
+    Untracked:  references/
+    Untracked:  tree.txt
+
+Unstaged changes:
+    Modified:   analysis/index.Rmd
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/957a8d2bff180f9394098c7889d5419ff50c6318/analysis/tech_effects.Rmd" target="_blank">957a8d2</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+<td style="text-align:left;">
+Adding technical effects analysis Rmd
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<div id="load-libraries-and-data" class="section level2">
+<h2>Load libraries and data</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tidyverse)
+<span class="kw">library</span>(viridis)
+<span class="kw">library</span>(ggpubr)
+<span class="kw">library</span>(SingleCellExperiment)
+knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>, <span class="dt">warning =</span> <span class="ot">FALSE</span>, <span class="dt">message =</span> <span class="ot">FALSE</span>)
+<span class="kw">options</span>(<span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
+<span class="kw">dir.create</span>(<span class="st">&quot;figures/tech_effects&quot;</span>, <span class="dt">showWarnings =</span> <span class="ot">FALSE</span>, 
+           <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">params &lt;-<span class="st"> </span><span class="kw">list</span>()
+params<span class="op">$</span>callset &lt;-<span class="st"> &quot;filt_lenient.cell_coverage_sites&quot;</span> 
+fls &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&quot;data/sces&quot;</span>)
+fls &lt;-<span class="st"> </span>fls[<span class="kw">grepl</span>(params<span class="op">$</span>callset, fls)]
+donors &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;.*ce_([a-z]+)_.*&quot;</span>, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">1&quot;</span>, fls)
+
+sce_unst_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+    sce_unst_list[[don]] &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">file.path</span>(<span class="st">&quot;data/sces&quot;</span>, 
+        <span class="kw">paste0</span>(<span class="st">&quot;sce_&quot;</span>, don, <span class="st">&quot;_with_clone_assignments.&quot;</span>, params<span class="op">$</span>callset, <span class="st">&quot;.rds&quot;</span>)))
+    <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">&quot;reading&quot;</span>, don, <span class="st">&quot;:   &quot;</span>, <span class="kw">ncol</span>(sce_unst_list[[don]]), <span class="st">&quot;cells.</span><span class="ch">\n</span><span class="st">&quot;</span>))
+}</code></pre></div>
+<pre><code>reading euts :    79 cells.
+reading fawm :    53 cells.
+reading feec :    75 cells.
+reading fikt :    39 cells.
+reading garx :    70 cells.
+reading gesg :    105 cells.
+reading heja :    50 cells.
+reading hipn :    62 cells.
+reading ieki :    58 cells.
+reading joxm :    79 cells.
+reading kuco :    48 cells.
+reading laey :    55 cells.
+reading lexy :    63 cells.
+reading naju :    44 cells.
+reading nusw :    60 cells.
+reading oaaz :    38 cells.
+reading oilg :    90 cells.
+reading pipw :    107 cells.
+reading puie :    41 cells.
+reading qayj :    97 cells.
+reading qolg :    36 cells.
+reading qonc :    58 cells.
+reading rozh :    91 cells.
+reading sehl :    30 cells.
+reading ualf :    89 cells.
+reading vass :    37 cells.
+reading vils :    37 cells.
+reading vuna :    71 cells.
+reading wahn :    82 cells.
+reading wetu :    77 cells.
+reading xugn :    35 cells.
+reading zoxy :    88 cells.</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">idx &lt;-<span class="st"> </span><span class="kw">c</span>()
+cdln_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (don <span class="cf">in</span> donors) {
+    cdln_list[[don]] &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">file.path</span>(<span class="st">&quot;data/cell_assignment&quot;</span>, 
+        <span class="kw">paste0</span>(<span class="st">&quot;cardelino_results.&quot;</span>, don, <span class="st">&quot;.&quot;</span>, params<span class="op">$</span>callset, <span class="st">&quot;.rds&quot;</span>)))
+    <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">&quot;reading&quot;</span>, don, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>))
+}</code></pre></div>
+<pre><code>reading euts 
+reading fawm 
+reading feec 
+reading fikt 
+reading garx 
+reading gesg 
+reading heja 
+reading hipn 
+reading ieki 
+reading joxm 
+reading kuco 
+reading laey 
+reading lexy 
+reading naju 
+reading nusw 
+reading oaaz 
+reading oilg 
+reading pipw 
+reading puie 
+reading qayj 
+reading qolg 
+reading qonc 
+reading rozh 
+reading sehl 
+reading ualf 
+reading vass 
+reading vils 
+reading vuna 
+reading wahn 
+reading wetu 
+reading xugn 
+reading zoxy </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
+    don &lt;-<span class="st"> </span>donors[i]
+    D &lt;-<span class="st"> </span>cdln_list[[don]]<span class="op">$</span>D[, sce_unst_list[[don]]<span class="op">$</span>cell]
+    D[<span class="kw">which</span>(<span class="kw">is.na</span>(D))] &lt;-<span class="st"> </span><span class="dv">0</span>
+    <span class="cf">if</span> (<span class="kw">sum</span>(sce_unst_list[[don]]<span class="op">$</span>assignable) <span class="op">&gt;=</span><span class="st"> </span><span class="dv">60</span>) {idx &lt;-<span class="st"> </span><span class="kw">c</span>(idx, i)}
+}
+<span class="kw">t</span>(idx)</code></pre></div>
+<pre><code>     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12]
+[1,]    1    3    5    6   10   13   18   25   28    29    30    32</code></pre>
+</div>
+<div id="total-genes" class="section level2">
+<h2>Total genes</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;clone1&quot;</span> =<span class="st"> &quot;#F8766D&quot;</span>, <span class="st">&quot;clone2&quot;</span> =<span class="st"> &quot;#7CAE00&quot;</span>, <span class="st">&quot;clone3&quot;</span> =<span class="st"> &quot;#00BFC4&quot;</span>,
+          <span class="st">&quot;clone4&quot;</span> =<span class="st"> &quot;#C77CFF&quot;</span>, <span class="st">&quot;unassigned&quot;</span> =<span class="st"> &quot;gray&quot;</span>)
+
+fig_box_all &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
+  don &lt;-<span class="st"> </span>donors[i]
+  df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">total_gene =</span> sce_unst_list[[don]]<span class="op">$</span>total_features_endogenous,
+                   <span class="dt">Clone =</span> sce_unst_list[[don]]<span class="op">$</span>assigned)
+  fig_box &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(<span class="dt">x =</span> Clone, <span class="dt">y =</span> total_gene, <span class="dt">fill =</span> Clone)) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">geom_boxplot</span>(<span class="dt">outlier.size =</span> <span class="fl">0.8</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="fl">0.8</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ggtitle</span>(don) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">ylim</span>(<span class="dv">7000</span>, <span class="dv">15000</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> cols) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">theme_classic</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.1</span>, <span class="dt">colour =</span> <span class="st">&quot;#d3d3d3&quot;</span>))
+  fig_box_all[[i]] &lt;-<span class="st"> </span>fig_box
+}
+
+fig_dir &lt;-<span class="st"> &quot;figures/tech_effects&quot;</span>
+
+fig_box_dp &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(
+  fig_box_all[[idx[<span class="dv">1</span>]]], fig_box_all[[idx[<span class="dv">2</span>]]], fig_box_all[[idx[<span class="dv">3</span>]]], 
+  fig_box_all[[idx[<span class="dv">4</span>]]], fig_box_all[[idx[<span class="dv">5</span>]]], fig_box_all[[idx[<span class="dv">6</span>]]], 
+  fig_box_all[[idx[<span class="dv">7</span>]]], fig_box_all[[idx[<span class="dv">8</span>]]], fig_box_all[[idx[<span class="dv">9</span>]]], 
+  fig_box_all[[idx[<span class="dv">10</span>]]], fig_box_all[[idx[<span class="dv">11</span>]]], fig_box_all[[idx[<span class="dv">12</span>]]], 
+  <span class="dt">common.legend =</span> <span class="ot">TRUE</span>, <span class="dt">legend =</span> <span class="st">&quot;bottom&quot;</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">align =</span> <span class="st">&quot;hv&quot;</span>)
+
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_nGene.png&quot;</span>), 
+       fig_box_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_nGene.pdf&quot;</span>), 
+       fig_box_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+
+fig_box_dp</code></pre></div>
+<p><img src="figure/tech_effects.Rmd/total-genes-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="total-reads" class="section level2">
+<h2>Total reads</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;clone1&quot;</span> =<span class="st"> &quot;#F8766D&quot;</span>, <span class="st">&quot;clone2&quot;</span> =<span class="st"> &quot;#7CAE00&quot;</span>, <span class="st">&quot;clone3&quot;</span> =<span class="st"> &quot;#00BFC4&quot;</span>,
+          <span class="st">&quot;clone4&quot;</span> =<span class="st"> &quot;#C77CFF&quot;</span>, <span class="st">&quot;unassigned&quot;</span> =<span class="st"> &quot;gray&quot;</span>)
+
+fig_box_all &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
+  don &lt;-<span class="st"> </span>donors[i]
+  df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">total_reads =</span> sce_unst_list[[don]]<span class="op">$</span>total_counts_endogenous,
+                   <span class="dt">Clone =</span> sce_unst_list[[don]]<span class="op">$</span>assigned)
+  fig_box &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(<span class="dt">x =</span> Clone, <span class="dt">y =</span> total_reads, <span class="dt">fill =</span> Clone)) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">geom_boxplot</span>(<span class="dt">outlier.size =</span> <span class="fl">0.8</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="fl">0.8</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ggtitle</span>(don) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> cols) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">scale_y_log10</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">theme_classic</span>() <span class="op">+</span><span class="st">  </span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.1</span>, <span class="dt">colour =</span> <span class="st">&quot;#d3d3d3&quot;</span>))
+  fig_box_all[[i]] &lt;-<span class="st"> </span>fig_box
+}
+
+fig_dir &lt;-<span class="st"> &quot;figures/tech_effects&quot;</span>
+
+fig_box_dp2 &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(
+  fig_box_all[[idx[<span class="dv">1</span>]]], fig_box_all[[idx[<span class="dv">2</span>]]], fig_box_all[[idx[<span class="dv">3</span>]]], 
+  fig_box_all[[idx[<span class="dv">4</span>]]], fig_box_all[[idx[<span class="dv">5</span>]]], fig_box_all[[idx[<span class="dv">6</span>]]], 
+  fig_box_all[[idx[<span class="dv">7</span>]]], fig_box_all[[idx[<span class="dv">8</span>]]], fig_box_all[[idx[<span class="dv">9</span>]]], 
+  fig_box_all[[idx[<span class="dv">10</span>]]], fig_box_all[[idx[<span class="dv">11</span>]]], fig_box_all[[idx[<span class="dv">12</span>]]], 
+  <span class="dt">common.legend =</span> <span class="ot">TRUE</span>, <span class="dt">legend =</span> <span class="st">&quot;bottom&quot;</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">align =</span> <span class="st">&quot;hv&quot;</span>)
+
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_nReads.png&quot;</span>), 
+       fig_box_dp2, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_nReads.pdf&quot;</span>), 
+       fig_box_dp2, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+
+fig_box_dp2</code></pre></div>
+<p><img src="figure/tech_effects.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="total-number-of-somatic-variants-with-read-coverage" class="section level2">
+<h2>Total number of somatic variants with read coverage</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;clone1&quot;</span> =<span class="st"> &quot;#F8766D&quot;</span>, <span class="st">&quot;clone2&quot;</span> =<span class="st"> &quot;#7CAE00&quot;</span>, <span class="st">&quot;clone3&quot;</span> =<span class="st"> &quot;#00BFC4&quot;</span>,
+          <span class="st">&quot;clone4&quot;</span> =<span class="st"> &quot;#C77CFF&quot;</span>, <span class="st">&quot;unassigned&quot;</span> =<span class="st"> &quot;gray&quot;</span>)
+
+fig_box_all &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
+    don &lt;-<span class="st"> </span>donors[i]
+    df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(
+      <span class="dt">covered_variants =</span> <span class="kw">colSums</span>(cdln_list[[don]]<span class="op">$</span>D <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>),
+      <span class="dt">Clone =</span> sce_unst_list[[don]]<span class="op">$</span>assigned)
+    fig_box &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(<span class="dt">x =</span> Clone, <span class="dt">y =</span> covered_variants, <span class="dt">fill =</span> Clone)) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">geom_boxplot</span>(<span class="dt">outlier.size =</span> <span class="fl">0.8</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="fl">0.8</span>)<span class="op">+</span>
+<span class="st">      </span><span class="kw">ggtitle</span>(don) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> cols) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">theme_classic</span>() <span class="op">+</span><span class="st">  </span>
+<span class="st">      </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.1</span>, <span class="dt">colour =</span> <span class="st">&quot;#d3d3d3&quot;</span>))
+    fig_box_all[[i]] &lt;-<span class="st"> </span>fig_box
+}
+
+fig_dir &lt;-<span class="st"> &quot;figures/tech_effects&quot;</span>
+
+fig_box_dp2 &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(
+  fig_box_all[[idx[<span class="dv">1</span>]]], fig_box_all[[idx[<span class="dv">2</span>]]], fig_box_all[[idx[<span class="dv">3</span>]]], 
+  fig_box_all[[idx[<span class="dv">4</span>]]], fig_box_all[[idx[<span class="dv">5</span>]]], fig_box_all[[idx[<span class="dv">6</span>]]], 
+  fig_box_all[[idx[<span class="dv">7</span>]]], fig_box_all[[idx[<span class="dv">8</span>]]], fig_box_all[[idx[<span class="dv">9</span>]]], 
+  fig_box_all[[idx[<span class="dv">10</span>]]], fig_box_all[[idx[<span class="dv">11</span>]]], fig_box_all[[idx[<span class="dv">12</span>]]], 
+  <span class="dt">common.legend =</span> <span class="ot">TRUE</span>, <span class="dt">legend =</span> <span class="st">&quot;bottom&quot;</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">align =</span> <span class="st">&quot;hv&quot;</span>)
+
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_nVariants.png&quot;</span>), 
+       fig_box_dp2, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_nVariants.pdf&quot;</span>), 
+       fig_box_dp2, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+
+fig_box_dp2</code></pre></div>
+<p><img src="figure/tech_effects.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="pca-on-read-coverage-of-somatic-variants" class="section level2">
+<h2>PCA on read coverage of somatic variants</h2>
+<div id="points-coloured-by-clone-assignment" class="section level3">
+<h3>Points coloured by clone assignment</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;clone1&quot;</span> =<span class="st"> &quot;#F8766D&quot;</span>, <span class="st">&quot;clone2&quot;</span> =<span class="st"> &quot;#7CAE00&quot;</span>, <span class="st">&quot;clone3&quot;</span> =<span class="st"> &quot;#00BFC4&quot;</span>,
+          <span class="st">&quot;clone4&quot;</span> =<span class="st"> &quot;#C77CFF&quot;</span>, <span class="st">&quot;unassigned&quot;</span> =<span class="st"> &quot;gray&quot;</span>)
+
+fig_pca_all &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
+    don &lt;-<span class="st"> </span>donors[i]
+    D &lt;-<span class="st"> </span>cdln_list[[don]]<span class="op">$</span>D[, sce_unst_list[[don]]<span class="op">$</span>cell]
+    D[<span class="kw">which</span>(<span class="kw">is.na</span>(D))] &lt;-<span class="st"> </span><span class="dv">0</span>
+    ## plot PCA
+    ir.pca &lt;-<span class="st"> </span><span class="kw">prcomp</span>(<span class="kw">t</span>(D))
+    var_frac &lt;-<span class="st"> </span>ir.pca<span class="op">$</span>sdev <span class="op">**</span><span class="st"> </span><span class="dv">2</span> <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(ir.pca<span class="op">$</span>sdev <span class="op">**</span><span class="st"> </span><span class="dv">2</span>)
+    df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">PC1 =</span> ir.pca<span class="op">$</span>x[,<span class="dv">1</span>], <span class="dt">PC2 =</span> ir.pca<span class="op">$</span>x[,<span class="dv">2</span>], 
+                     <span class="dt">Clone =</span> sce_unst_list[[don]]<span class="op">$</span>assigned,
+                     <span class="dt">clone1_prob =</span> sce_unst_list[[don]]<span class="op">$</span>clone1_prob,
+                     <span class="dt">clone2_prob =</span> sce_unst_list[[don]]<span class="op">$</span>clone2_prob)
+    fig_pca &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">color =</span> Clone)) <span class="op">+</span>
+<span class="st">      </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">2</span>) <span class="op">+</span>
+<span class="st">      </span><span class="kw">xlab</span>(<span class="kw">paste0</span>(<span class="st">&quot;PC 1: &quot;</span>, <span class="kw">round</span>(var_frac[<span class="dv">1</span>] <span class="op">*</span><span class="st"> </span><span class="dv">100</span>, <span class="dt">digits =</span> <span class="dv">1</span>), <span class="st">&quot;% var&quot;</span>)) <span class="op">+</span>
+<span class="st">      </span><span class="kw">ylab</span>(<span class="kw">paste0</span>(<span class="st">&quot;PC 2: &quot;</span>, <span class="kw">round</span>(var_frac[<span class="dv">2</span>] <span class="op">*</span><span class="st"> </span><span class="dv">100</span>, <span class="dt">digits =</span> <span class="dv">1</span>), <span class="st">&quot;% var&quot;</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">ggtitle</span>(don) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">scale_colour_manual</span>(<span class="dt">values =</span> cols) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">theme_classic</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.1</span>, <span class="dt">colour =</span> <span class="st">&quot;#d3d3d3&quot;</span>))
+    fig_pca_all[[i]] &lt;-<span class="st"> </span>fig_pca
+}</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_pca_dp &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(
+  fig_pca_all[[idx[<span class="dv">1</span>]]], fig_pca_all[[idx[<span class="dv">2</span>]]], fig_pca_all[[idx[<span class="dv">3</span>]]], 
+  fig_pca_all[[idx[<span class="dv">4</span>]]], fig_pca_all[[idx[<span class="dv">5</span>]]], fig_pca_all[[idx[<span class="dv">6</span>]]], 
+  fig_pca_all[[idx[<span class="dv">7</span>]]], fig_pca_all[[idx[<span class="dv">8</span>]]], fig_pca_all[[idx[<span class="dv">9</span>]]], 
+  fig_pca_all[[idx[<span class="dv">10</span>]]], fig_pca_all[[idx[<span class="dv">11</span>]]], fig_pca_all[[idx[<span class="dv">12</span>]]], 
+  <span class="dt">common.legend =</span> <span class="ot">TRUE</span>, <span class="dt">legend =</span> <span class="st">&quot;bottom&quot;</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">align =</span> <span class="st">&quot;hv&quot;</span>)
+
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_PCA.png&quot;</span>),
+       fig_pca_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_PCA.pdf&quot;</span>),
+       fig_pca_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+
+fig_pca_dp</code></pre></div>
+<p><img src="figure/tech_effects.Rmd/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="points-coloured-by-clone1-probability" class="section level3">
+<h3>Points coloured by clone1 probability</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;clone1&quot;</span> =<span class="st"> &quot;#F8766D&quot;</span>, <span class="st">&quot;clone2&quot;</span> =<span class="st"> &quot;#7CAE00&quot;</span>, <span class="st">&quot;clone3&quot;</span> =<span class="st"> &quot;#00BFC4&quot;</span>,
+          <span class="st">&quot;clone4&quot;</span> =<span class="st"> &quot;#C77CFF&quot;</span>, <span class="st">&quot;unassigned&quot;</span> =<span class="st"> &quot;gray&quot;</span>)
+
+fig_pca_all &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
+    don &lt;-<span class="st"> </span>donors[i]
+    D &lt;-<span class="st"> </span>cdln_list[[don]]<span class="op">$</span>D[, sce_unst_list[[don]]<span class="op">$</span>cell]
+    D[<span class="kw">which</span>(<span class="kw">is.na</span>(D))] &lt;-<span class="st"> </span><span class="dv">0</span>
+    ## plot PCA
+    ir.pca &lt;-<span class="st"> </span><span class="kw">prcomp</span>(<span class="kw">t</span>(D))
+    var_frac &lt;-<span class="st"> </span>ir.pca<span class="op">$</span>sdev <span class="op">**</span><span class="st"> </span><span class="dv">2</span> <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(ir.pca<span class="op">$</span>sdev <span class="op">**</span><span class="st"> </span><span class="dv">2</span>)
+    df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">PC1 =</span> ir.pca<span class="op">$</span>x[,<span class="dv">1</span>], <span class="dt">PC2 =</span> ir.pca<span class="op">$</span>x[,<span class="dv">2</span>], 
+                     <span class="dt">Clone =</span> sce_unst_list[[don]]<span class="op">$</span>assigned,
+                     <span class="dt">clone1_prob =</span> sce_unst_list[[don]]<span class="op">$</span>clone1_prob,
+                     <span class="dt">clone2_prob =</span> sce_unst_list[[don]]<span class="op">$</span>clone2_prob)
+    fig_pca &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">color =</span> clone1_prob)) <span class="op">+</span>
+<span class="st">      </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">2</span>) <span class="op">+</span>
+<span class="st">      </span><span class="kw">xlab</span>(<span class="kw">paste0</span>(<span class="st">&quot;PC 1: &quot;</span>, <span class="kw">round</span>(var_frac[<span class="dv">1</span>] <span class="op">*</span><span class="st"> </span><span class="dv">100</span>, <span class="dt">digits =</span> <span class="dv">1</span>), <span class="st">&quot;% var&quot;</span>)) <span class="op">+</span>
+<span class="st">      </span><span class="kw">ylab</span>(<span class="kw">paste0</span>(<span class="st">&quot;PC 2: &quot;</span>, <span class="kw">round</span>(var_frac[<span class="dv">2</span>] <span class="op">*</span><span class="st"> </span><span class="dv">100</span>, <span class="dt">digits =</span> <span class="dv">1</span>), <span class="st">&quot;% var&quot;</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">ggtitle</span>(don) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">scale_color_viridis</span>() <span class="op">+</span>
+<span class="st">      </span><span class="kw">theme_classic</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.1</span>, <span class="dt">colour =</span> <span class="st">&quot;#d3d3d3&quot;</span>))
+    fig_pca_all[[i]] &lt;-<span class="st"> </span>fig_pca
+}</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_pca_dp &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(
+  fig_pca_all[[idx[<span class="dv">1</span>]]], fig_pca_all[[idx[<span class="dv">2</span>]]], fig_pca_all[[idx[<span class="dv">3</span>]]], 
+  fig_pca_all[[idx[<span class="dv">4</span>]]], fig_pca_all[[idx[<span class="dv">5</span>]]], fig_pca_all[[idx[<span class="dv">6</span>]]], 
+  fig_pca_all[[idx[<span class="dv">7</span>]]], fig_pca_all[[idx[<span class="dv">8</span>]]], fig_pca_all[[idx[<span class="dv">9</span>]]], 
+  fig_pca_all[[idx[<span class="dv">10</span>]]], fig_pca_all[[idx[<span class="dv">11</span>]]], fig_pca_all[[idx[<span class="dv">12</span>]]], 
+  <span class="dt">common.legend =</span> <span class="ot">TRUE</span>, <span class="dt">legend =</span> <span class="st">&quot;bottom&quot;</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">align =</span> <span class="st">&quot;hv&quot;</span>)
+
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_PCA_clone1.png&quot;</span>), 
+       fig_pca_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_PCA_clone1.pdf&quot;</span>), 
+       fig_pca_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+fig_pca_dp</code></pre></div>
+<p><img src="figure/tech_effects.Rmd/unnamed-chunk-9-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="points-coloured-by-clone1-probability-1" class="section level3">
+<h3>Points coloured by clone1 probability</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_pca_all &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
+    don &lt;-<span class="st"> </span>donors[i]
+    D &lt;-<span class="st"> </span>cdln_list[[don]]<span class="op">$</span>D[, sce_unst_list[[don]]<span class="op">$</span>cell]
+    D[<span class="kw">which</span>(<span class="kw">is.na</span>(D))] &lt;-<span class="st"> </span><span class="dv">0</span>
+    ## plot PCA
+    ir.pca &lt;-<span class="st"> </span><span class="kw">prcomp</span>(<span class="kw">t</span>(D))
+    var_frac &lt;-<span class="st"> </span>ir.pca<span class="op">$</span>sdev <span class="op">**</span><span class="st"> </span><span class="dv">2</span> <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(ir.pca<span class="op">$</span>sdev <span class="op">**</span><span class="st"> </span><span class="dv">2</span>)
+    df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">PC1 =</span> ir.pca<span class="op">$</span>x[,<span class="dv">1</span>], <span class="dt">PC2 =</span> ir.pca<span class="op">$</span>x[,<span class="dv">2</span>], 
+                     <span class="dt">Clone =</span> sce_unst_list[[don]]<span class="op">$</span>assigned,
+                     <span class="dt">clone1_prob =</span> sce_unst_list[[don]]<span class="op">$</span>clone1_prob,
+                     <span class="dt">clone2_prob =</span> sce_unst_list[[don]]<span class="op">$</span>clone2_prob)
+    fig_pca &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df, <span class="kw">aes</span>(<span class="dt">x =</span> PC1, <span class="dt">y =</span> PC2, <span class="dt">color =</span> clone2_prob)) <span class="op">+</span>
+<span class="st">      </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">2</span>) <span class="op">+</span>
+<span class="st">      </span><span class="kw">xlab</span>(<span class="kw">paste0</span>(<span class="st">&quot;PC 1: &quot;</span>, <span class="kw">round</span>(var_frac[<span class="dv">1</span>] <span class="op">*</span><span class="st"> </span><span class="dv">100</span>, <span class="dt">digits =</span> <span class="dv">1</span>), <span class="st">&quot;% var&quot;</span>)) <span class="op">+</span>
+<span class="st">      </span><span class="kw">ylab</span>(<span class="kw">paste0</span>(<span class="st">&quot;PC 2: &quot;</span>, <span class="kw">round</span>(var_frac[<span class="dv">2</span>] <span class="op">*</span><span class="st"> </span><span class="dv">100</span>, <span class="dt">digits =</span> <span class="dv">1</span>), <span class="st">&quot;% var&quot;</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">ggtitle</span>(don) <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">scale_color_viridis</span>() <span class="op">+</span>
+<span class="st">      </span><span class="kw">theme_classic</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">      </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">size =</span> <span class="fl">0.1</span>, <span class="dt">colour =</span> <span class="st">&quot;#d3d3d3&quot;</span>))
+    fig_pca_all[[i]] &lt;-<span class="st"> </span>fig_pca
+}</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_pca_dp &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(
+  fig_pca_all[[idx[<span class="dv">1</span>]]], fig_pca_all[[idx[<span class="dv">2</span>]]], fig_pca_all[[idx[<span class="dv">3</span>]]], 
+  fig_pca_all[[idx[<span class="dv">4</span>]]], fig_pca_all[[idx[<span class="dv">5</span>]]], fig_pca_all[[idx[<span class="dv">6</span>]]], 
+  fig_pca_all[[idx[<span class="dv">7</span>]]], fig_pca_all[[idx[<span class="dv">8</span>]]], fig_pca_all[[idx[<span class="dv">9</span>]]], 
+  fig_pca_all[[idx[<span class="dv">10</span>]]], fig_pca_all[[idx[<span class="dv">11</span>]]], fig_pca_all[[idx[<span class="dv">12</span>]]], 
+  <span class="dt">common.legend =</span> <span class="ot">TRUE</span>, <span class="dt">legend =</span> <span class="st">&quot;bottom&quot;</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">align =</span> <span class="st">&quot;hv&quot;</span>)
+
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_PCA_clone2.png&quot;</span>), 
+       fig_pca_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig_dp_PCA_clone2.pdf&quot;</span>), 
+       fig_pca_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+fig_pca_dp</code></pre></div>
+<p><img src="figure/tech_effects.Rmd/unnamed-chunk-11-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">session_info</span>()</code></pre></div>
+<pre><code> setting  value                       
+ version  R version 3.5.1 (2018-07-02)
+ system   x86_64, darwin15.6.0        
+ ui       X11                         
+ language (EN)                        
+ collate  en_GB.UTF-8                 
+ tz       Europe/London               
+ date     2018-08-26                  
+
+ package              * version   date       source        
+ assertthat             0.2.0     2017-04-11 CRAN (R 3.5.0)
+ backports              1.1.2     2017-12-13 CRAN (R 3.5.0)
+ base                 * 3.5.1     2018-07-05 local         
+ bindr                  0.1.1     2018-03-13 CRAN (R 3.5.0)
+ bindrcpp               0.2.2     2018-03-29 CRAN (R 3.5.0)
+ Biobase              * 2.40.0    2018-05-01 Bioconductor  
+ BiocGenerics         * 0.26.0    2018-05-01 Bioconductor  
+ BiocParallel         * 1.14.2    2018-07-08 Bioconductor  
+ bitops                 1.0-6     2013-08-17 CRAN (R 3.5.0)
+ broom                  0.5.0     2018-07-17 CRAN (R 3.5.0)
+ cellranger             1.1.0     2016-07-27 CRAN (R 3.5.0)
+ cli                    1.0.0     2017-11-05 CRAN (R 3.5.0)
+ colorspace             1.3-2     2016-12-14 CRAN (R 3.5.0)
+ compiler               3.5.1     2018-07-05 local         
+ cowplot                0.9.3     2018-07-15 CRAN (R 3.5.0)
+ crayon                 1.3.4     2017-09-16 CRAN (R 3.5.0)
+ datasets             * 3.5.1     2018-07-05 local         
+ DelayedArray         * 0.6.5     2018-08-15 Bioconductor  
+ devtools               1.13.6    2018-06-27 CRAN (R 3.5.0)
+ digest                 0.6.16    2018-08-22 CRAN (R 3.5.0)
+ dplyr                * 0.7.6     2018-06-29 CRAN (R 3.5.1)
+ evaluate               0.11      2018-07-17 CRAN (R 3.5.0)
+ forcats              * 0.3.0     2018-02-19 CRAN (R 3.5.0)
+ GenomeInfoDb         * 1.16.0    2018-05-01 Bioconductor  
+ GenomeInfoDbData       1.1.0     2018-04-25 Bioconductor  
+ GenomicRanges        * 1.32.6    2018-07-20 Bioconductor  
+ ggplot2              * 3.0.0     2018-07-03 CRAN (R 3.5.0)
+ ggpubr               * 0.1.7     2018-06-23 CRAN (R 3.5.0)
+ git2r                  0.23.0    2018-07-17 CRAN (R 3.5.0)
+ glue                   1.3.0     2018-07-17 CRAN (R 3.5.0)
+ graphics             * 3.5.1     2018-07-05 local         
+ grDevices            * 3.5.1     2018-07-05 local         
+ grid                   3.5.1     2018-07-05 local         
+ gridExtra              2.3       2017-09-09 CRAN (R 3.5.0)
+ gtable                 0.2.0     2016-02-26 CRAN (R 3.5.0)
+ haven                  1.1.2     2018-06-27 CRAN (R 3.5.0)
+ hms                    0.4.2     2018-03-10 CRAN (R 3.5.0)
+ htmltools              0.3.6     2017-04-28 CRAN (R 3.5.0)
+ httr                   1.3.1     2017-08-20 CRAN (R 3.5.0)
+ IRanges              * 2.14.11   2018-08-24 Bioconductor  
+ jsonlite               1.5       2017-06-01 CRAN (R 3.5.0)
+ knitr                  1.20      2018-02-20 CRAN (R 3.5.0)
+ labeling               0.3       2014-08-23 CRAN (R 3.5.0)
+ lattice                0.20-35   2017-03-25 CRAN (R 3.5.1)
+ lazyeval               0.2.1     2017-10-29 CRAN (R 3.5.0)
+ lubridate              1.7.4     2018-04-11 CRAN (R 3.5.0)
+ magrittr             * 1.5       2014-11-22 CRAN (R 3.5.0)
+ Matrix                 1.2-14    2018-04-13 CRAN (R 3.5.1)
+ matrixStats          * 0.54.0    2018-07-23 CRAN (R 3.5.0)
+ memoise                1.1.0     2017-04-21 CRAN (R 3.5.0)
+ methods              * 3.5.1     2018-07-05 local         
+ modelr                 0.1.2     2018-05-11 CRAN (R 3.5.0)
+ munsell                0.5.0     2018-06-12 CRAN (R 3.5.0)
+ nlme                   3.1-137   2018-04-07 CRAN (R 3.5.1)
+ parallel             * 3.5.1     2018-07-05 local         
+ pillar                 1.3.0     2018-07-14 CRAN (R 3.5.0)
+ pkgconfig              2.0.2     2018-08-16 CRAN (R 3.5.0)
+ plyr                   1.8.4     2016-06-08 CRAN (R 3.5.0)
+ purrr                * 0.2.5     2018-05-29 CRAN (R 3.5.0)
+ R.methodsS3            1.7.1     2016-02-16 CRAN (R 3.5.0)
+ R.oo                   1.22.0    2018-04-22 CRAN (R 3.5.0)
+ R.utils                2.6.0     2017-11-05 CRAN (R 3.5.0)
+ R6                     2.2.2     2017-06-17 CRAN (R 3.5.0)
+ Rcpp                   0.12.18   2018-07-23 CRAN (R 3.5.0)
+ RCurl                  1.95-4.11 2018-07-15 CRAN (R 3.5.0)
+ readr                * 1.1.1     2017-05-16 CRAN (R 3.5.0)
+ readxl                 1.1.0     2018-04-20 CRAN (R 3.5.0)
+ rlang                  0.2.2     2018-08-16 CRAN (R 3.5.0)
+ rmarkdown              1.10      2018-06-11 CRAN (R 3.5.0)
+ rprojroot              1.3-2     2018-01-03 CRAN (R 3.5.0)
+ rstudioapi             0.7       2017-09-07 CRAN (R 3.5.0)
+ rvest                  0.3.2     2016-06-17 CRAN (R 3.5.0)
+ S4Vectors            * 0.18.3    2018-06-08 Bioconductor  
+ scales                 1.0.0     2018-08-09 CRAN (R 3.5.0)
+ SingleCellExperiment * 1.2.0     2018-05-01 Bioconductor  
+ stats                * 3.5.1     2018-07-05 local         
+ stats4               * 3.5.1     2018-07-05 local         
+ stringi                1.2.4     2018-07-20 CRAN (R 3.5.0)
+ stringr              * 1.3.1     2018-05-10 CRAN (R 3.5.0)
+ SummarizedExperiment * 1.10.1    2018-05-11 Bioconductor  
+ tibble               * 1.4.2     2018-01-22 CRAN (R 3.5.0)
+ tidyr                * 0.8.1     2018-05-18 CRAN (R 3.5.0)
+ tidyselect             0.2.4     2018-02-26 CRAN (R 3.5.0)
+ tidyverse            * 1.2.1     2017-11-14 CRAN (R 3.5.0)
+ tools                  3.5.1     2018-07-05 local         
+ utils                * 3.5.1     2018-07-05 local         
+ viridis              * 0.5.1     2018-03-29 CRAN (R 3.5.0)
+ viridisLite          * 0.3.0     2018-02-01 CRAN (R 3.5.0)
+ whisker                0.3-2     2013-04-28 CRAN (R 3.5.0)
+ withr                  2.1.2     2018-03-15 CRAN (R 3.5.0)
+ workflowr              1.1.1     2018-07-06 CRAN (R 3.5.0)
+ xml2                   1.2.0     2018-01-24 CRAN (R 3.5.0)
+ XVector                0.20.0    2018-05-01 Bioconductor  
+ yaml                   2.2.0     2018-07-25 CRAN (R 3.5.1)
+ zlibbioc               1.26.0    2018-05-01 Bioconductor  </code></pre>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

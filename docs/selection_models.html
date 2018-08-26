@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Daniel J. Kunz &amp; Davis J. McCarthy" />
+
+
+<title>Selection Models</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/font-awesome-5.0.13/css/fa-svg-with-js.css" rel="stylesheet" />
+<script src="site_libs/font-awesome-5.0.13/js/fontawesome-all.min.js"></script>
+<script src="site_libs/font-awesome-5.0.13/js/fa-v4-shims.min.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+div.sourceCode {
+  overflow-x: visible;
+}
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">fibroblast-clonality</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/davismcc/fibroblast-clonality">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Selection Models</h1>
+<h4 class="author"><em>Daniel J. Kunz &amp; Davis J. McCarthy</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-08-25</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180807)</code> </summary></p>
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/05905410345dadce493341fa0f5a917eba86d0c1" target="_blank">0590541</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    .vscode/
+    Ignored:    code/.DS_Store
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/.ipynb_checkpoints/
+    Ignored:    src/Rmd/.Rhistory
+
+Untracked files:
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
+    Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/selection/
+    Untracked:  code/yuanhua/
+    Untracked:  data/canopy/
+    Untracked:  data/cell_assignment/
+    Untracked:  data/de_analysis_FTv62/
+    Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
+    Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/exome-point-mutations/
+    Untracked:  data/fdr10.annot.txt.gz
+    Untracked:  data/human_H_v5p2.rdata
+    Untracked:  data/human_c2_v5p2.rdata
+    Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
+    Untracked:  data/sces/
+    Untracked:  data/selection/
+    Untracked:  data/simulations/
+    Untracked:  data/variance_components/
+    Untracked:  figures/
+    Untracked:  metadata/
+    Untracked:  output/differential_expression/
+    Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
+    Untracked:  output/nvars_by_category_by_donor.tsv
+    Untracked:  output/nvars_by_category_by_line.tsv
+    Untracked:  output/variance_components/
+    Untracked:  references/
+    Untracked:  tree.txt
+
+Unstaged changes:
+    Modified:   Snakefile_clonal_analysis
+    Modified:   analysis/analysis_for_joxm.Rmd
+    Modified:   analysis/clone_prevalences.Rmd
+    Modified:   analysis/differential_expression.Rmd
+    Modified:   analysis/index.Rmd
+    Modified:   analysis/mutated_genes.Rmd
+    Modified:   analysis/overview_lines.Rmd
+    Modified:   analysis/simulations.Rmd
+    Modified:   analysis/variance_components.Rmd
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/05905410345dadce493341fa0f5a917eba86d0c1/analysis/selection_models.Rmd" target="_blank">0590541</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-25
+</td>
+<td style="text-align:left;">
+Adding selection models analysis from Daniel Kunz
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<div id="load-libraries-and-data" class="section level2">
+<h2>Load libraries and data</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>)
+<span class="kw">library</span>(ggplot2)
+<span class="kw">library</span>(viridis)
+<span class="kw">library</span>(ggrepel)
+<span class="kw">library</span>(neutralitytestr)
+<span class="kw">library</span>(cowplot)
+<span class="kw">library</span>(plyr)
+<span class="kw">dir.create</span>(<span class="st">&quot;figures/selection&quot;</span>, <span class="dt">showWarnings =</span> <span class="ot">FALSE</span>, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<p>Load the call set and extract the allele frequencies which used for the fits of the selection models.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">filteredAF =<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz&quot;</span>, 
+                        <span class="dt">header =</span> <span class="ot">TRUE</span>, <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
+
+mut_list =<span class="st"> </span><span class="kw">data.frame</span>(<span class="st">&quot;sampleID&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>donor_short_id,
+                      <span class="st">&quot;af_fibro&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>nALT_fibro<span class="op">/</span>(filteredAF<span class="op">$</span>nREF_fibro <span class="op">+</span><span class="st"> </span>filteredAF<span class="op">$</span>nALT_fibro),
+                      <span class="st">&quot;af_ips&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>nALT_ips<span class="op">/</span>(filteredAF<span class="op">$</span>nREF_ips <span class="op">+</span><span class="st"> </span>filteredAF<span class="op">$</span>nALT_ips),
+                      <span class="st">&quot;chr&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>chrom,
+                      <span class="st">&quot;pos&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>pos,
+                      <span class="st">&quot;ref&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>ref,
+                      <span class="st">&quot;mut&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>alt,
+                      <span class="st">&quot;mutID&quot;</span> =<span class="st"> </span><span class="kw">paste</span>(filteredAF<span class="op">$</span>chrom, filteredAF<span class="op">$</span>pos, filteredAF<span class="op">$</span>ref, filteredAF<span class="op">$</span>alt, <span class="dt">sep =</span> <span class="st">&quot;_&quot;</span>))
+
+mut_list =<span class="st"> </span>mut_list[<span class="kw">order</span>(mut_list<span class="op">$</span>sampleID),]
+<span class="kw">write.table</span>(mut_list, <span class="st">&quot;data/selection/ips-fibro-AF.tsv&quot;</span>, 
+            <span class="dt">row.names =</span> <span class="ot">FALSE</span>, <span class="dt">quote =</span> <span class="ot">FALSE</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>)
+
+mut_list =<span class="st"> </span><span class="kw">data.frame</span>(<span class="st">&quot;sampleID&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>donor_short_id,
+                      <span class="st">&quot;af&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>nALT_fibro<span class="op">/</span>(filteredAF<span class="op">$</span>nREF_fibro <span class="op">+</span><span class="st"> </span>filteredAF<span class="op">$</span>nALT_fibro),
+                      <span class="st">&quot;chr&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>chrom,
+                      <span class="st">&quot;pos&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>pos,
+                      <span class="st">&quot;ref&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>ref,
+                      <span class="st">&quot;mut&quot;</span> =<span class="st"> </span>filteredAF<span class="op">$</span>alt)
+mut_list =<span class="st"> </span>mut_list[<span class="kw">order</span>(mut_list<span class="op">$</span>sampleID),]
+
+<span class="kw">write.table</span>(mut_list, <span class="st">&quot;data/selection/full-AF.tsv&quot;</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>, 
+            <span class="dt">quote =</span> <span class="ot">FALSE</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>)
+
+<span class="kw">dir.create</span>(<span class="st">&quot;data/selection/AF&quot;</span>, <span class="dt">showWarnings =</span> <span class="ot">FALSE</span>)
+
+<span class="cf">for</span> (sampleID <span class="cf">in</span> <span class="kw">unique</span>(mut_list<span class="op">$</span>sampleID)) {
+  sub_mut_list =<span class="st"> </span>mut_list[mut_list<span class="op">$</span>sampleID <span class="op">==</span><span class="st"> </span>sampleID,]
+  sub_mut_list =<span class="st"> </span>sub_mut_list[sub_mut_list<span class="op">$</span>af <span class="op">&gt;=</span><span class="st"> </span><span class="fl">0.03</span>,]
+  <span class="kw">write.table</span>(sub_mut_list, <span class="kw">paste0</span>(<span class="st">&quot;data/selection/AF/AF-&quot;</span>, sampleID, <span class="st">&quot;.tsv&quot;</span>),
+              <span class="dt">row.names =</span> <span class="ot">FALSE</span>, <span class="dt">quote =</span> <span class="ot">FALSE</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>)
+}</code></pre></div>
+</div>
+<div id="fit-selection-models" class="section level2">
+<h2>Fit selection models</h2>
+<p>Please open the Mathematica notebook (<code>code/selection/fit-dist.nb</code>) and run it by hand (the outputs generated are used in subsequent cells). The notebook fits the negative binomial model for neutral evolution.</p>
+<p>In case you do not have access to Mathematica to run the notebook, we provide its output files in <code>data/selection/neg-bin-params-fit.csv</code> and <code>data/selection/neg-bin-rsquared-fit.csv</code>.</p>
+<p>The code below runs the neutralitytestr model.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fmin =<span class="st"> </span><span class="fl">0.05</span>
+fmax =<span class="st"> </span><span class="fl">0.45</span>
+
+petrAF =<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;data/selection/full-AF.tsv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>, <span class="dt">header =</span> T)
+donors =<span class="st"> </span><span class="kw">unique</span>(<span class="kw">as.vector</span>(petrAF<span class="op">$</span>sampleID))
+
+getSampleNtrtest &lt;-<span class="st"> </span><span class="cf">function</span>(afDF, sampleID, fmin, fmax){
+  <span class="co"># run neutralitytestr on a single sample</span>
+  VAFsample =<span class="st"> </span>afDF[afDF<span class="op">$</span>sampleID <span class="op">==</span><span class="st"> </span>sampleID, <span class="st">&quot;af&quot;</span>]
+  out =<span class="st"> </span><span class="kw">neutralitytest</span>(VAFsample, <span class="dt">fmin =</span> fmin, <span class="dt">fmax =</span> fmax)
+  results =<span class="st"> </span><span class="kw">c</span>(sampleID,
+              out<span class="op">$</span>area<span class="op">$</span>metric, out<span class="op">$</span>area<span class="op">$</span>pval,
+              out<span class="op">$</span>Dk<span class="op">$</span>metric, out<span class="op">$</span>Dk<span class="op">$</span>pval,
+              out<span class="op">$</span>meanDist<span class="op">$</span>metric, out<span class="op">$</span>meanDist<span class="op">$</span>pval,
+              out<span class="op">$</span>rsq<span class="op">$</span>metric, out<span class="op">$</span>rsq<span class="op">$</span>pval,
+              out<span class="op">$</span>mutation.rate)
+  <span class="kw">names</span>(results) =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;sampleID&quot;</span>,
+                     <span class="st">&quot;area&quot;</span>, <span class="st">&quot;pval_area&quot;</span>,
+                     <span class="st">&quot;Dk&quot;</span>, <span class="st">&quot;pval_Dk&quot;</span>,
+                     <span class="st">&quot;meanDist&quot;</span>, <span class="st">&quot;pval_meanDist&quot;</span>,
+                     <span class="st">&quot;rsq&quot;</span>, <span class="st">&quot;pval_rsq&quot;</span>,
+                     <span class="st">&quot;mutrate&quot;</span>)
+  <span class="kw">return</span>(results)
+}
+
+ntrtestrPetrout =<span class="st"> </span><span class="kw">t</span>(<span class="kw">sapply</span>(donors, 
+                           <span class="cf">function</span>(sampleID) <span class="kw">getSampleNtrtest</span>(
+                             petrAF, sampleID, fmin, fmax)))
+<span class="kw">write.table</span>(ntrtestrPetrout, <span class="st">&quot;data/selection/neutralitytestr.tsv&quot;</span>, 
+            <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>, <span class="dt">quote =</span> <span class="ot">FALSE</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</code></pre></div>
+</div>
+<div id="plot-selection-classification" class="section level2">
+<h2>Plot selection classification</h2>
+<p>Plot the selection classification based on the goodness of fit results from neutrality testr and the negative binomial like fit.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ntrtestrPetr =<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;data/selection/neutralitytestr.tsv&quot;</span>, 
+                          <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
+
+negbinfitPetr =<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;data/selection/neg-bin-rsquared-fit.csv&quot;</span>,
+                           <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>, <span class="dt">sep =</span> <span class="st">&quot;,&quot;</span>)
+negbinfitPetr<span class="op">$</span>sampleID =<span class="st"> </span>negbinfitPetr<span class="op">$</span>fname
+negbinfitPetr<span class="op">$</span>sampleID =<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;AF-&quot;</span>, <span class="st">&quot;&quot;</span>, negbinfitPetr<span class="op">$</span>sampleID)
+negbinfitPetr<span class="op">$</span>sampleID =<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;.tsv&quot;</span>, <span class="st">&quot;&quot;</span>, negbinfitPetr<span class="op">$</span>sampleID)
+<span class="kw">rownames</span>(negbinfitPetr) =<span class="st"> </span>negbinfitPetr<span class="op">$</span>sampleID
+
+dfrsq =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">sampleID =</span> ntrtestrPetr<span class="op">$</span>sampleID,
+                   <span class="dt">rsq_ntrtestr =</span> ntrtestrPetr<span class="op">$</span>rsq,
+                   <span class="dt">rsq_negbinfit =</span> negbinfitPetr[ntrtestrPetr<span class="op">$</span>sampleID, <span class="st">&quot;rsq&quot;</span>])
+
+cutoff_selection_cummut =<span class="st"> </span><span class="fl">0.85</span>
+cutoff_selection_negbin =<span class="st"> </span><span class="fl">0.25</span>
+cutoff_neutral_cummut =<span class="st"> </span><span class="fl">0.9</span>
+cutoff_neutral_negbin =<span class="st"> </span><span class="fl">0.55</span>
+
+
+donors =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;euts&quot;</span>, <span class="st">&quot;fawm&quot;</span>, <span class="st">&quot;feec&quot;</span>, <span class="st">&quot;fikt&quot;</span>, <span class="st">&quot;garx&quot;</span>, <span class="st">&quot;gesg&quot;</span>, <span class="st">&quot;heja&quot;</span>, <span class="st">&quot;hipn&quot;</span>, <span class="st">&quot;ieki&quot;</span>,
+           <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;kuco&quot;</span>, <span class="st">&quot;laey&quot;</span>, <span class="st">&quot;lexy&quot;</span>, <span class="st">&quot;naju&quot;</span>, <span class="st">&quot;nusw&quot;</span>, <span class="st">&quot;oaaz&quot;</span>, <span class="st">&quot;oilg&quot;</span>, <span class="st">&quot;pipw&quot;</span>,
+           <span class="st">&quot;puie&quot;</span>, <span class="st">&quot;qayj&quot;</span>, <span class="st">&quot;qolg&quot;</span>, <span class="st">&quot;qonc&quot;</span>, <span class="st">&quot;rozh&quot;</span>, <span class="st">&quot;sehl&quot;</span>, <span class="st">&quot;ualf&quot;</span>, <span class="st">&quot;vass&quot;</span>, <span class="st">&quot;vils&quot;</span>,
+           <span class="st">&quot;vuna&quot;</span>, <span class="st">&quot;wahn&quot;</span>, <span class="st">&quot;wetu&quot;</span>, <span class="st">&quot;xugn&quot;</span>, <span class="st">&quot;zoxy&quot;</span>)
+
+dfrsq =<span class="st"> </span>dfrsq[(dfrsq<span class="op">$</span>sampleID <span class="op">%in%</span><span class="st"> </span>donors),]
+
+dfrsq<span class="op">$</span>candidatelabel =<span class="st"> </span><span class="ot">NA</span>
+dfrsq<span class="op">$</span>candidatelabel[dfrsq<span class="op">$</span>sampleID <span class="op">==</span><span class="st"> &quot;puie&quot;</span>] =<span class="st"> &quot;puie&quot;</span>
+
+filter_selection =<span class="st"> </span>(dfrsq<span class="op">$</span>rsq_ntrtestr <span class="op">&lt;</span><span class="st"> </span>cutoff_selection_cummut) <span class="op">&amp;</span><span class="st"> </span>(dfrsq<span class="op">$</span>rsq_negbinfit <span class="op">&lt;</span><span class="st"> </span>cutoff_selection_negbin)
+filter_neutral =<span class="st"> </span>(dfrsq<span class="op">$</span>rsq_ntrtestr <span class="op">&gt;</span><span class="st"> </span>cutoff_neutral_cummut) <span class="op">&amp;</span><span class="st"> </span>(dfrsq<span class="op">$</span>rsq_negbinfit <span class="op">&gt;</span><span class="st"> </span>cutoff_neutral_negbin)
+
+dfrsq<span class="op">$</span>selection =<span class="st"> &quot;undetermined&quot;</span>
+dfrsq<span class="op">$</span>selection[filter_selection] =<span class="st"> &quot;selected&quot;</span>
+dfrsq<span class="op">$</span>selection[filter_neutral] =<span class="st"> &quot;neutral&quot;</span>
+
+
+plt_scatter =<span class="st"> </span><span class="kw">ggplot</span>(dfrsq, <span class="kw">aes</span>(<span class="dt">x =</span> rsq_negbinfit, <span class="dt">y =</span> rsq_ntrtestr)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_colour_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span> =<span class="st"> &quot;#007536&quot;</span>, <span class="st">&quot;selected&quot;</span> =<span class="st"> &quot;#5EF288&quot;</span>,
+                               <span class="st">&quot;undetermined&quot;</span> =<span class="st"> &quot;#CCCCCC&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">colour =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> candidatelabel), <span class="dt">color =</span> <span class="st">&quot;white&quot;</span>,
+                   <span class="dt">size =</span> <span class="fl">2.5</span>,
+                   <span class="dt">fill =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">box.padding =</span> <span class="fl">0.35</span>, <span class="dt">point.padding =</span> <span class="fl">0.5</span>,
+                   <span class="dt">segment.color =</span> <span class="st">&#39;grey50&#39;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>), <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">8</span>),
+        <span class="dt">axis.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>), 
+        <span class="dt">plot.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">hjust =</span> <span class="fl">0.5</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Goodness of Fit - Negative Binomial Distribution&quot;</span>, 
+       <span class="dt">y =</span> <span class="st">&quot;Goodness of Fit - Cumulative Mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_blank</span>()) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.justification =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>), <span class="dt">legend.position =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;transparent&quot;</span>, 
+                                         <span class="dt">colour =</span> <span class="st">&quot;transparent&quot;</span>), 
+        <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.25</span>, <span class="st">&quot;cm&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">colour =</span> <span class="st">&quot;Selection&quot;</span>)
+
+plt_scatter</code></pre></div>
+<p><img src="figure/selection_models.Rmd/plot-prev-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="visualise-negative-binomial-model" class="section level2">
+<h2>Visualise negative binomial model</h2>
+<p>Results from the negative binomial model for neutral evolution.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dfAFpetr =<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;data/selection/full-AF.tsv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>, 
+                      <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
+dfAFpetr =<span class="st"> </span>dfAFpetr[dfAFpetr<span class="op">$</span>sampleID <span class="op">%in%</span><span class="st"> </span>donors,]
+
+fitparamspetr =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/selection/neg-bin-params-fit.csv&quot;</span>, 
+                         <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
+fitparamspetr<span class="op">$</span>sampleID =<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;AF-&quot;</span>, <span class="st">&quot;&quot;</span>, fitparamspetr<span class="op">$</span>fname)
+fitparamspetr<span class="op">$</span>sampleID =<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;.tsv&quot;</span>, <span class="st">&quot;&quot;</span>, fitparamspetr<span class="op">$</span>sampleID)
+
+a =<span class="st"> </span><span class="dv">1</span>
+b =<span class="st"> </span><span class="dv">1</span>
+fun.<span class="dv">1</span> &lt;-<span class="st"> </span><span class="cf">function</span>(x, <span class="dt">a=</span><span class="dv">1</span>, <span class="dt">b=</span><span class="dv">1</span>) <span class="dv">1</span><span class="op">/</span>(a<span class="op">*</span>x)<span class="op">*</span><span class="kw">exp</span>(<span class="op">-</span>x<span class="op">/</span>b)
+args =<span class="st"> </span><span class="kw">list</span>(<span class="dt">mean =</span> <span class="dv">2</span>, <span class="dt">sd =</span> .<span class="dv">5</span>)
+
+dd &lt;-<span class="st"> </span><span class="kw">data.frame</span>(
+  <span class="dt">predicted =</span> <span class="kw">rnorm</span>(<span class="dv">72</span>, <span class="dt">mean =</span> <span class="dv">2</span>, <span class="dt">sd =</span> <span class="dv">2</span>),
+  <span class="dt">state =</span> <span class="kw">rep</span>(<span class="kw">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>, <span class="st">&quot;C&quot;</span>), <span class="dt">each =</span> <span class="dv">24</span>)
+)
+
+<span class="co"># save generate plotting points</span>
+grid =<span class="st"> </span><span class="kw">seq</span>(<span class="fl">0.01</span>, <span class="fl">0.6</span>, <span class="dt">length =</span> <span class="dv">500</span>)
+
+normaldens &lt;-<span class="st"> </span><span class="kw">ddply</span>(fitparamspetr, <span class="st">&quot;sampleID&quot;</span>, <span class="cf">function</span>(df) {
+  <span class="kw">data.frame</span>(
+    <span class="dt">predicted =</span> grid,
+    <span class="dt">density =</span> <span class="kw">fun.1</span>(grid, df<span class="op">$</span>a, df<span class="op">$</span>b)
+  )
+})
+
+normaldens =<span class="st"> </span>normaldens[normaldens<span class="op">$</span>sampleID <span class="op">%in%</span><span class="st"> </span>donors,]
+
+dfAFpetr<span class="op">$</span>id =<span class="st"> </span><span class="kw">sapply</span>(dfAFpetr<span class="op">$</span>sampleID, 
+                     <span class="cf">function</span>(sampleID) <span class="kw">paste0</span>(
+                       sampleID, <span class="st">&quot; (rsq &quot;</span>,
+                       <span class="kw">round</span>(fitparamspetr<span class="op">$</span>rsq[fitparamspetr<span class="op">$</span>sampleID <span class="op">==</span>
+<span class="st">                                                 </span>sampleID],<span class="dv">2</span>),<span class="st">&quot;)&quot;</span>))
+normaldens<span class="op">$</span>id =<span class="st"> </span><span class="kw">sapply</span>(normaldens<span class="op">$</span>sampleID, 
+                       <span class="cf">function</span>(sampleID) dfAFpetr<span class="op">$</span>id[dfAFpetr<span class="op">$</span>sampleID <span class="op">==</span>
+<span class="st">                                                        </span>sampleID][<span class="dv">1</span>])
+
+plt_hist =<span class="st"> </span><span class="kw">ggplot</span>(dfAFpetr, <span class="kw">aes</span>(<span class="dt">x =</span> af)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_vline</span>(<span class="dt">xintercept =</span> fmin, <span class="dt">colour =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_vline</span>(<span class="dt">xintercept =</span> fmax, <span class="dt">colour =</span> <span class="st">&quot;grey&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth =</span> (fmax <span class="op">-</span><span class="st"> </span>fmin)<span class="op">/</span><span class="dv">40</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">x =</span> predicted, <span class="dt">y =</span> density), <span class="dt">data =</span> normaldens, <span class="dt">colour =</span> <span class="st">&quot;red&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span><span class="st"> </span>id, <span class="dt">scales =</span> <span class="st">&quot;free_y&quot;</span>, <span class="dt">ncol =</span> <span class="dv">4</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>), <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">8</span>), <span class="dt">axis.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>), <span class="dt">plot.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">hjust =</span> <span class="fl">0.5</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="kw">paste0</span>(<span class="st">&quot;Allele Frequency&quot;</span>), <span class="dt">y =</span> <span class="st">&quot;# Mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;none&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">colour =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_blank</span>()) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;&quot;</span>)
+
+
+pname =<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;selection-neg-bin-fit&quot;</span>)
+ppath =<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;figures/selection/&quot;</span>, pname, <span class="st">&quot;.pdf&quot;</span>)
+<span class="kw">ggsave</span>(ppath, <span class="dt">plot =</span> plt_hist, <span class="dt">width =</span> <span class="dv">17</span>, <span class="dt">height =</span> <span class="dv">20</span>, <span class="dt">units  =</span>  <span class="st">&quot;cm&quot;</span>)
+ppath  =<span class="st">  </span><span class="kw">paste0</span>(<span class="st">&quot;figures/selection/&quot;</span>, pname, <span class="st">&quot;.png&quot;</span>)
+<span class="kw">ggsave</span>(ppath, <span class="dt">plot =</span> plt_hist, <span class="dt">width =</span> <span class="dv">17</span>, <span class="dt">height =</span> <span class="dv">20</span>, <span class="dt">dpi =</span> <span class="dv">300</span>, <span class="dt">units =</span> <span class="st">&quot;cm&quot;</span>, <span class="dt">limitsize =</span> <span class="ot">FALSE</span>)
+plt_hist</code></pre></div>
+<p><img src="figure/selection_models.Rmd/plot-neg-bin-fit-1.png" width="1632" style="display: block; margin: auto;" /></p>
+</div>
+<div id="visualise-results-from-neutralitytestr" class="section level2">
+<h2>Visualise results from neutralitytestr</h2>
+<p>Results from the cumulative mutations model for neutral evolution.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dfntrtestr =<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;data/selection/neutralitytestr.tsv&quot;</span>, 
+                        <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
+
+plotSampleCumMut &lt;-<span class="st"> </span><span class="cf">function</span>(afDF, dfntrtestr, sampleID, fmin, fmax) {
+  <span class="co"># plot cummulative mutations as per Sottoriva &amp; Graham</span>
+  afDFsample =<span class="st"> </span>afDF[afDF<span class="op">$</span>sampleID <span class="op">==</span><span class="st"> </span>sampleID, ]
+  rsq =<span class="st"> </span>dfntrtestr<span class="op">$</span>rsq[dfntrtestr<span class="op">$</span>sampleID <span class="op">==</span><span class="st"> </span>sampleID]
+  <span class="co"># cumsum with decreasing frequency</span>
+  afDFsample =<span class="st"> </span>afDFsample[<span class="kw">order</span>(afDFsample<span class="op">$</span>af, <span class="dt">decreasing =</span> <span class="ot">TRUE</span>), ]
+  afDFsample<span class="op">$</span>cumsum =<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(afDFsample<span class="op">$</span>af)
+  afDFsample<span class="op">$</span>inverse_af =<span class="st"> </span><span class="dv">1</span><span class="op">/</span>afDFsample<span class="op">$</span>af
+  plt_cummut =<span class="st"> </span><span class="kw">ggplot</span>(afDFsample, <span class="kw">aes</span>(<span class="dt">x =</span> inverse_af, <span class="dt">y =</span> cumsum)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_vline</span>(<span class="dt">xintercept =</span> <span class="kw">c</span>(<span class="dv">1</span><span class="op">/</span>fmin, <span class="dv">1</span><span class="op">/</span>fmax), <span class="dt">colour =</span> <span class="st">&quot;darkgrey&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="fl">0.5</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_line</span>(<span class="dt">data =</span> <span class="kw">subset</span>(afDFsample, 
+                            (inverse_af <span class="op">&lt;</span><span class="st"> </span><span class="dv">1</span><span class="op">/</span>fmin) <span class="op">&amp;</span><span class="st"> </span>(inverse_af <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span><span class="op">/</span>fmax)),
+              <span class="dt">stat =</span> <span class="st">&quot;smooth&quot;</span>, <span class="dt">method =</span> <span class="st">&#39;lm&#39;</span>, <span class="dt">formula =</span> y <span class="op">~</span><span class="st"> </span>x, <span class="dt">se =</span> <span class="ot">FALSE</span>, 
+              <span class="dt">colour =</span> <span class="st">&quot;red&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.5</span>, <span class="dt">size =</span> <span class="fl">0.8</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span><span class="op">/</span><span class="fl">0.01</span>)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_bw</span>() <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>), <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">8</span>),
+          <span class="dt">axis.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>), 
+          <span class="dt">plot.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">hjust =</span> <span class="fl">0.5</span>)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="kw">paste0</span>(<span class="st">&quot;Inverse AF&quot;</span>), <span class="dt">y =</span> <span class="st">&quot;# Cum Mut&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;none&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="co"># remove unnecessary facet</span>
+<span class="st">    </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_blank</span>()) <span class="op">+</span>
+<span class="st">    </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="kw">paste0</span>(sampleID, <span class="st">&quot; (rsq &quot;</span>, <span class="kw">round</span>(rsq,<span class="dv">2</span>), <span class="st">&quot;)&quot;</span>))
+  <span class="kw">return</span>(plt_cummut)
+}
+
+
+pltsCumMut =<span class="st"> </span>cowplot<span class="op">::</span><span class="kw">plot_grid</span>(
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">1</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">2</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">3</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">4</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">5</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">6</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">7</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">8</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">9</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">10</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">11</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">12</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">13</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">14</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">15</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">16</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">17</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">18</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">19</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">20</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">21</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">22</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">23</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">24</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">25</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">26</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">27</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">28</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">29</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">30</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">31</span>], fmin, fmax),
+  <span class="kw">plotSampleCumMut</span>(dfAFpetr, dfntrtestr, donors[<span class="dv">32</span>], fmin, fmax),
+  <span class="dt">ncol =</span> <span class="dv">4</span>)
+
+pname =<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;selection-neutralitytestr&quot;</span>)
+ppath =<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;figures/selection/&quot;</span>, pname, <span class="st">&quot;.pdf&quot;</span>)
+<span class="kw">ggsave</span>(ppath, <span class="dt">plot =</span> pltsCumMut, <span class="dt">width =</span> <span class="dv">17</span>, <span class="dt">height =</span> <span class="dv">25</span>, <span class="dt">units =</span> <span class="st">&quot;cm&quot;</span>)
+ppath =<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;figures/selection/&quot;</span>, pname, <span class="st">&quot;.png&quot;</span>)
+<span class="kw">ggsave</span>(ppath, <span class="dt">plot =</span> pltsCumMut, <span class="dt">width =</span> <span class="dv">17</span>, <span class="dt">height =</span> <span class="dv">25</span>, <span class="dt">dpi =</span> <span class="dv">300</span>, 
+       <span class="dt">units =</span> <span class="st">&quot;cm&quot;</span>, <span class="dt">limitsize =</span> <span class="ot">FALSE</span>)
+pltsCumMut</code></pre></div>
+<p><img src="figure/selection_models.Rmd/plot-neutralitytestr-1.png" width="1632" style="display: block; margin: auto;" /></p>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">session_info</span>()</code></pre></div>
+<pre><code>Session info -------------------------------------------------------------</code></pre>
+<pre><code> setting  value                       
+ version  R version 3.5.1 (2018-07-02)
+ system   x86_64, darwin15.6.0        
+ ui       X11                         
+ language (EN)                        
+ collate  en_GB.UTF-8                 
+ tz       Europe/London               
+ date     2018-08-25                  </code></pre>
+<pre><code>Packages -----------------------------------------------------------------</code></pre>
+<pre><code> package         * version date       source        
+ assertthat        0.2.0   2017-04-11 CRAN (R 3.5.0)
+ backports         1.1.2   2017-12-13 CRAN (R 3.5.0)
+ base            * 3.5.1   2018-07-05 local         
+ bindr             0.1.1   2018-03-13 CRAN (R 3.5.0)
+ bindrcpp        * 0.2.2   2018-03-29 CRAN (R 3.5.0)
+ colorspace        1.3-2   2016-12-14 CRAN (R 3.5.0)
+ compiler          3.5.1   2018-07-05 local         
+ cowplot         * 0.9.3   2018-07-15 CRAN (R 3.5.0)
+ crayon            1.3.4   2017-09-16 CRAN (R 3.5.0)
+ datasets        * 3.5.1   2018-07-05 local         
+ devtools          1.13.6  2018-06-27 CRAN (R 3.5.0)
+ digest            0.6.16  2018-08-22 CRAN (R 3.5.0)
+ dplyr             0.7.6   2018-06-29 CRAN (R 3.5.1)
+ evaluate          0.11    2018-07-17 CRAN (R 3.5.0)
+ ggplot2         * 3.0.0   2018-07-03 CRAN (R 3.5.0)
+ ggrepel         * 0.8.0   2018-05-09 CRAN (R 3.5.0)
+ git2r             0.23.0  2018-07-17 CRAN (R 3.5.0)
+ glue              1.3.0   2018-07-17 CRAN (R 3.5.0)
+ graphics        * 3.5.1   2018-07-05 local         
+ grDevices       * 3.5.1   2018-07-05 local         
+ grid              3.5.1   2018-07-05 local         
+ gridExtra         2.3     2017-09-09 CRAN (R 3.5.0)
+ gtable            0.2.0   2016-02-26 CRAN (R 3.5.0)
+ htmltools         0.3.6   2017-04-28 CRAN (R 3.5.0)
+ knitr             1.20    2018-02-20 CRAN (R 3.5.0)
+ labeling          0.3     2014-08-23 CRAN (R 3.5.0)
+ lazyeval          0.2.1   2017-10-29 CRAN (R 3.5.0)
+ magrittr          1.5     2014-11-22 CRAN (R 3.5.0)
+ memoise           1.1.0   2017-04-21 CRAN (R 3.5.0)
+ methods         * 3.5.1   2018-07-05 local         
+ munsell           0.5.0   2018-06-12 CRAN (R 3.5.0)
+ neutralitytestr * 0.0.2   2018-05-21 CRAN (R 3.5.0)
+ pillar            1.3.0   2018-07-14 CRAN (R 3.5.0)
+ pkgconfig         2.0.2   2018-08-16 CRAN (R 3.5.0)
+ plyr            * 1.8.4   2016-06-08 CRAN (R 3.5.0)
+ pracma            2.1.4   2018-01-30 CRAN (R 3.5.0)
+ purrr             0.2.5   2018-05-29 CRAN (R 3.5.0)
+ R.methodsS3       1.7.1   2016-02-16 CRAN (R 3.5.0)
+ R.oo              1.22.0  2018-04-22 CRAN (R 3.5.0)
+ R.utils           2.6.0   2017-11-05 CRAN (R 3.5.0)
+ R6                2.2.2   2017-06-17 CRAN (R 3.5.0)
+ Rcpp              0.12.18 2018-07-23 CRAN (R 3.5.0)
+ rlang             0.2.2   2018-08-16 CRAN (R 3.5.0)
+ rmarkdown         1.10    2018-06-11 CRAN (R 3.5.0)
+ rprojroot         1.3-2   2018-01-03 CRAN (R 3.5.0)
+ scales            1.0.0   2018-08-09 CRAN (R 3.5.0)
+ stats           * 3.5.1   2018-07-05 local         
+ stringi           1.2.4   2018-07-20 CRAN (R 3.5.0)
+ stringr           1.3.1   2018-05-10 CRAN (R 3.5.0)
+ tibble            1.4.2   2018-01-22 CRAN (R 3.5.0)
+ tidyselect        0.2.4   2018-02-26 CRAN (R 3.5.0)
+ tools             3.5.1   2018-07-05 local         
+ utils           * 3.5.1   2018-07-05 local         
+ viridis         * 0.5.1   2018-03-29 CRAN (R 3.5.0)
+ viridisLite     * 0.3.0   2018-02-01 CRAN (R 3.5.0)
+ whisker           0.3-2   2013-04-28 CRAN (R 3.5.0)
+ withr             2.1.2   2018-03-15 CRAN (R 3.5.0)
+ workflowr         1.1.1   2018-07-06 CRAN (R 3.5.0)
+ yaml              2.2.0   2018-07-25 CRAN (R 3.5.1)</code></pre>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
