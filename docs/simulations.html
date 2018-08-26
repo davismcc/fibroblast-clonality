@@ -12,7 +12,7 @@
 <meta name="author" content="Yuanhua Huang &amp; Davis J. McCarthy" />
 
 
-<title>Simulation analysis for all lines</title>
+<title>Simulation analysis: systematic and for all lines</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -361,13 +361,13 @@ div.section {
 
 
 
-<h1 class="title toc-ignore">Simulation analysis for all lines</h1>
+<h1 class="title toc-ignore">Simulation analysis: systematic and for all lines</h1>
 <h4 class="author"><em>Yuanhua Huang &amp; Davis J. McCarthy</em></h4>
 
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-25</p>
+<p><strong>Last updated:</strong> 2018-08-26</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/a865fa3f06836e7b7286fb690f67be077244bf26" target="_blank">a865fa3</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/cae617ffae45c04aac7d42624743ac91dd6072bb" target="_blank">cae617f</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -432,6 +432,7 @@ Untracked files:
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
     Untracked:  docs/figure/selection_models.Rmd/
+    Untracked:  docs/figure/tech_effects.Rmd/
     Untracked:  figures/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
@@ -469,6 +470,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/cae617ffae45c04aac7d42624743ac91dd6072bb/analysis/simulations.Rmd" target="_blank">cae617f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+<td style="text-align:left;">
+Updating simulation analyses
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/36acf15b30f110282dd56b004c5d478d560b75e1/docs/simulations.html" target="_blank">36acf15</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-25
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -567,12 +602,427 @@ Adding data pre-processing workflow and updating analyses.
 <span class="kw">library</span>(cardelino)
 <span class="kw">library</span>(viridis)
 <span class="kw">library</span>(cowplot)
+<span class="kw">library</span>(latex2exp)
 lines &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;euts&quot;</span>, <span class="st">&quot;fawm&quot;</span>, <span class="st">&quot;feec&quot;</span>, <span class="st">&quot;fikt&quot;</span>, <span class="st">&quot;garx&quot;</span>, <span class="st">&quot;gesg&quot;</span>, <span class="st">&quot;heja&quot;</span>, <span class="st">&quot;hipn&quot;</span>, 
             <span class="st">&quot;ieki&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;kuco&quot;</span>, <span class="st">&quot;laey&quot;</span>, <span class="st">&quot;lexy&quot;</span>, <span class="st">&quot;naju&quot;</span>, <span class="st">&quot;nusw&quot;</span>, <span class="st">&quot;oaaz&quot;</span>, 
             <span class="st">&quot;oilg&quot;</span>, <span class="st">&quot;pipw&quot;</span>, <span class="st">&quot;puie&quot;</span>, <span class="st">&quot;qayj&quot;</span>, <span class="st">&quot;qolg&quot;</span>, <span class="st">&quot;qonc&quot;</span>, <span class="st">&quot;rozh&quot;</span>, <span class="st">&quot;sehl&quot;</span>, 
             <span class="st">&quot;ualf&quot;</span>, <span class="st">&quot;vass&quot;</span>, <span class="st">&quot;vuna&quot;</span>, <span class="st">&quot;wahn&quot;</span>, <span class="st">&quot;wetu&quot;</span>, <span class="st">&quot;xugn&quot;</span>, <span class="st">&quot;zoxy&quot;</span>, <span class="st">&quot;vils&quot;</span>)</code></pre></div>
-<div id="load-simulation-results" class="section level3">
-<h3>Load simulation results</h3>
+</div>
+<div id="simulation-experiments" class="section level2">
+<h2>Simulation experiments</h2>
+<p>Define functions for simulation.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># assess cardelino with simulation</span>
+dat_dir &lt;-<span class="st"> &quot;data/&quot;</span>
+<span class="kw">data</span>(config_all)
+<span class="kw">data</span>(simulation_input)
+simu_input &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;D&quot;</span> =<span class="st"> </span>D_input)
+
+demuxlet &lt;-<span class="st"> </span><span class="cf">function</span>(A, D, Config, <span class="dt">theta1 =</span> <span class="fl">0.5</span>, <span class="dt">theta0 =</span> <span class="fl">0.01</span>) {
+  P0_mat &lt;-<span class="st"> </span><span class="kw">dbinom</span>(A, D, theta0, <span class="dt">log =</span> <span class="ot">TRUE</span>)
+  P1_mat &lt;-<span class="st"> </span><span class="kw">dbinom</span>(A, D, theta1, <span class="dt">log =</span> <span class="ot">TRUE</span>)
+  P0_mat[<span class="kw">which</span>(<span class="kw">is.na</span>(P0_mat))] &lt;-<span class="st"> </span><span class="dv">0</span>
+  P1_mat[<span class="kw">which</span>(<span class="kw">is.na</span>(P1_mat))] &lt;-<span class="st"> </span><span class="dv">0</span>
+  logLik_mat &lt;-<span class="st"> </span><span class="kw">t</span>(P0_mat) <span class="op">%*%</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>Config) <span class="op">+</span><span class="st"> </span><span class="kw">t</span>(P1_mat) <span class="op">%*%</span><span class="st"> </span>Config
+  prob_mat &lt;-<span class="st"> </span><span class="kw">exp</span>(logLik_mat) <span class="op">/</span><span class="st"> </span><span class="kw">rowSums</span>(<span class="kw">exp</span>(logLik_mat))
+  prob_mat
+}
+
+simulate_joint &lt;-<span class="st"> </span><span class="cf">function</span>(Config_all, D_all, <span class="dt">n_clone =</span> <span class="dv">4</span>, <span class="dt">mut_size =</span> <span class="dv">5</span>,
+                           <span class="dt">missing =</span> <span class="ot">NULL</span>, <span class="dt">error_mean =</span> <span class="kw">c</span>(<span class="fl">0.01</span>, <span class="fl">0.44</span>), 
+                           <span class="dt">error_var =</span> <span class="kw">c</span>(<span class="dv">30</span>, <span class="fl">4.8</span>), <span class="dt">n_repeat =</span> <span class="dv">1</span>) {
+  simu_data_full &lt;-<span class="st"> </span><span class="kw">list</span>()
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(n_repeat)) {
+    Config &lt;-<span class="st"> </span><span class="kw">sample</span>(Config_all[[n_clone <span class="op">-</span><span class="st"> </span><span class="dv">2</span>]], <span class="dt">size =</span> <span class="dv">1</span>)[[<span class="dv">1</span>]]
+    Config &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rep</span>(<span class="kw">c</span>(<span class="kw">t</span>(Config)), mut_size), <span class="dt">ncol =</span> <span class="kw">ncol</span>(Config), 
+                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>)
+    <span class="kw">row.names</span>(Config) &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;SNV&quot;</span>, <span class="kw">seq_len</span>(<span class="kw">nrow</span>(Config)))
+    <span class="kw">colnames</span>(Config) &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;Clone&quot;</span>, <span class="kw">seq_len</span>(<span class="kw">ncol</span>(Config)))
+    D_input &lt;-<span class="st"> </span><span class="kw">sample_seq_depth</span>(D_all, <span class="dt">n_cells =</span> <span class="dv">200</span>, <span class="dt">missing_rate =</span> missing, 
+                                <span class="dt">n_sites =</span> <span class="kw">nrow</span>(Config))
+    sim_dat &lt;-<span class="st"> </span><span class="kw">sim_read_count</span>(Config, D_input, <span class="dt">Psi =</span> <span class="ot">NULL</span>, <span class="dt">cell_num =</span> <span class="dv">200</span>, 
+                              <span class="dt">means =</span> error_mean, <span class="dt">vars =</span> error_var)
+    sim_dat[[<span class="st">&quot;Config&quot;</span>]] &lt;-<span class="st"> </span>Config
+    simu_data_full[[i]] &lt;-<span class="st"> </span>sim_dat
+  }
+  simu_data_full
+}
+
+assign_score &lt;-<span class="st"> </span><span class="cf">function</span>(prob_mat, simu_mat, <span class="dt">threshold=</span><span class="fl">0.2</span>, <span class="dt">mode=</span><span class="st">&quot;delta&quot;</span>) {
+  assign_<span class="dv">0</span> &lt;-<span class="st"> </span>cardelino<span class="op">::</span><span class="kw">get_prob_label</span>(simu_mat)
+  assign_<span class="dv">1</span> &lt;-<span class="st"> </span>cardelino<span class="op">::</span><span class="kw">get_prob_label</span>(prob_mat)
+  prob_val &lt;-<span class="st"> </span>cardelino<span class="op">::</span><span class="kw">get_prob_value</span>(prob_mat, <span class="dt">mode =</span> mode)
+  idx &lt;-<span class="st"> </span>prob_val <span class="op">&gt;=</span><span class="st"> </span>threshold
+  
+  rt_list &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;ass&quot;</span> =<span class="st"> </span><span class="kw">mean</span>(idx), 
+                  <span class="st">&quot;acc&quot;</span> =<span class="st"> </span><span class="kw">mean</span>(assign_<span class="dv">0</span> <span class="op">==</span><span class="st"> </span>assign_<span class="dv">1</span>),
+                  <span class="st">&quot;acc_ass&quot;</span> =<span class="st"> </span><span class="kw">mean</span>((assign_<span class="dv">0</span> <span class="op">==</span><span class="st"> </span>assign_<span class="dv">1</span>)[idx]))
+  rt_list
+}
+
+assign_curve &lt;-<span class="st"> </span><span class="cf">function</span>(prob_mat, simu_mat, <span class="dt">mode=</span><span class="st">&quot;delta&quot;</span>){
+  assign_<span class="dv">0</span> &lt;-<span class="st"> </span>cardelino<span class="op">::</span><span class="kw">get_prob_label</span>(simu_mat)
+  assign_<span class="dv">1</span> &lt;-<span class="st"> </span>cardelino<span class="op">::</span><span class="kw">get_prob_label</span>(prob_mat)
+  prob_val &lt;-<span class="st"> </span>cardelino<span class="op">::</span><span class="kw">get_prob_value</span>(prob_mat, <span class="dt">mode =</span> mode)
+  
+  thresholds &lt;-<span class="st"> </span><span class="kw">sort</span>(<span class="kw">unique</span>(prob_val))
+  ACC &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(thresholds))
+  ASS &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(thresholds))
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(thresholds))) {
+    idx &lt;-<span class="st"> </span>prob_val <span class="op">&gt;=</span><span class="st"> </span>thresholds[i]
+    ASS[i] &lt;-<span class="st"> </span><span class="kw">mean</span>(idx)
+    ACC[i] &lt;-<span class="st"> </span><span class="kw">mean</span>((assign_<span class="dv">0</span> <span class="op">==</span><span class="st"> </span>assign_<span class="dv">1</span>)[idx])
+  }
+  thresholds &lt;-<span class="st"> </span><span class="kw">c</span>(thresholds, <span class="fl">1.0</span>)
+  ACC &lt;-<span class="st"> </span><span class="kw">c</span>(ACC, <span class="fl">1.0</span>)
+  ASS &lt;-<span class="st"> </span><span class="kw">c</span>(ASS, <span class="fl">0.0</span>)
+  AUC &lt;-<span class="st"> </span>AUC_acc_ass &lt;-<span class="st"> </span><span class="fl">0.0</span>
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(thresholds) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)) {
+    AUC &lt;-<span class="st"> </span>AUC <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span>(thresholds[i] <span class="op">-</span><span class="st"> </span>thresholds[i <span class="op">+</span><span class="st"> </span><span class="dv">1</span>]) <span class="op">*</span><span class="st"> </span>
+<span class="st">      </span>(ACC[i] <span class="op">+</span><span class="st"> </span>ACC[i <span class="op">+</span><span class="st"> </span><span class="dv">1</span>])
+    AUC_acc_ass &lt;-<span class="st"> </span>AUC_acc_ass <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span>(ASS[i] <span class="op">-</span><span class="st"> </span>ASS[i <span class="op">+</span><span class="st"> </span><span class="dv">1</span>]) <span class="op">*</span><span class="st"> </span>
+<span class="st">      </span>(ACC[i] <span class="op">+</span><span class="st"> </span>ACC[i <span class="op">+</span><span class="st"> </span><span class="dv">1</span>])
+  }
+  AUC &lt;-<span class="st"> </span>AUC <span class="op">/</span><span class="st"> </span>(thresholds[<span class="dv">1</span>] <span class="op">-</span><span class="st"> </span>thresholds[<span class="kw">length</span>(thresholds)])
+  AUC_acc_ass &lt;-<span class="st"> </span>AUC_acc_ass <span class="op">/</span><span class="st"> </span>(ASS[<span class="dv">1</span>] <span class="op">-</span><span class="st"> </span>ASS[<span class="kw">length</span>(thresholds)])
+  
+  rt_list &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;ACC&quot;</span> =<span class="st"> </span>ACC, <span class="st">&quot;ASS&quot;</span> =<span class="st"> </span>ASS, <span class="st">&quot;AUC&quot;</span> =<span class="st"> </span>AUC, 
+                  <span class="st">&quot;AUC_acc_ass&quot;</span> =<span class="st"> </span>AUC_acc_ass, <span class="st">&quot;thresholds&quot;</span> =<span class="st"> </span>thresholds)
+  rt_list
+}
+
+assign_macro_ROC &lt;-<span class="st"> </span><span class="cf">function</span>(prob_mat, simu_mat) {
+  thresholds &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>, <span class="fl">0.999</span>, <span class="fl">0.001</span>)
+  ACC &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(thresholds))
+  ASS &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(thresholds))
+  FPR &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(thresholds))
+  TPR &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(thresholds))
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(thresholds))) {
+    idx &lt;-<span class="st"> </span>prob_mat <span class="op">&gt;=</span><span class="st"> </span>thresholds[i]
+    ASS[i] &lt;-<span class="st"> </span><span class="kw">mean</span>(idx) <span class="co"># not very meaningful</span>
+    ACC[i] &lt;-<span class="st"> </span><span class="kw">mean</span>(simu_mat[idx])
+    FPR[i] &lt;-<span class="st"> </span><span class="kw">sum</span>(simu_mat[idx] <span class="op">==</span><span class="st"> </span><span class="dv">0</span>) <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(simu_mat <span class="op">==</span><span class="st"> </span><span class="dv">0</span>)
+    TPR[i] &lt;-<span class="st"> </span><span class="kw">sum</span>(simu_mat[idx] <span class="op">==</span><span class="st"> </span><span class="dv">1</span>) <span class="op">/</span><span class="st"> </span><span class="kw">sum</span>(simu_mat <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
+  }
+  
+  AUC &lt;-<span class="st"> </span><span class="fl">0.0</span>
+  <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(thresholds) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)) {
+    AUC &lt;-<span class="st"> </span>AUC <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span>(FPR[i] <span class="op">-</span><span class="st"> </span>FPR[i <span class="op">+</span><span class="st"> </span><span class="dv">1</span>]) <span class="op">*</span><span class="st"> </span>(TPR[i] <span class="op">+</span><span class="st"> </span>TPR[i <span class="op">+</span><span class="st"> </span><span class="dv">1</span>])
+  }
+  
+  rt_list &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;FPR&quot;</span> =<span class="st"> </span>FPR, <span class="st">&quot;TPR&quot;</span> =<span class="st"> </span>TPR, <span class="st">&quot;AUC&quot;</span> =<span class="st"> </span>AUC,
+                  <span class="st">&quot;thresholds&quot;</span> =<span class="st"> </span>thresholds, <span class="st">&quot;ACC&quot;</span> =<span class="st"> </span>ACC, <span class="st">&quot;ASS&quot;</span> =<span class="st"> </span>ASS)
+  rt_list
+}</code></pre></div>
+<p>Run simulations.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">1</span>)
+ACC_all &lt;-<span class="st"> </span><span class="kw">c</span>()
+ASS_all &lt;-<span class="st"> </span><span class="kw">c</span>()
+AUC_all &lt;-<span class="st"> </span><span class="kw">c</span>()
+ERR_all &lt;-<span class="st"> </span><span class="kw">c</span>()
+labels_all &lt;-<span class="st"> </span><span class="kw">c</span>()
+method_all &lt;-<span class="st"> </span><span class="kw">c</span>()
+variable_all &lt;-<span class="st"> </span><span class="kw">c</span>()
+
+type_use &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;mut_size&quot;</span>, <span class="st">&quot;n_clone&quot;</span>, <span class="st">&quot;missing&quot;</span>, <span class="st">&quot;FNR&quot;</span>, <span class="st">&quot;shapes1&quot;</span>)
+value_list &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">7</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">25</span>), 
+                   <span class="kw">seq</span>(<span class="dv">3</span>, <span class="dv">8</span>), 
+                   <span class="kw">seq</span>(<span class="fl">0.7</span>, <span class="fl">0.95</span>, <span class="fl">0.05</span>), 
+                   <span class="kw">seq</span>(<span class="fl">0.35</span>, <span class="fl">0.6</span>, <span class="fl">0.05</span>),
+                   <span class="kw">c</span>(<span class="fl">0.5</span>, <span class="fl">1.0</span>, <span class="fl">2.0</span>, <span class="fl">4.0</span>, <span class="fl">8.0</span>, <span class="fl">16.0</span>))
+
+<span class="cf">for</span> (mm <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(value_list))) {
+  values_all &lt;-<span class="st"> </span>value_list[[mm]]
+  <span class="cf">for</span> (k <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(values_all)))  {
+    <span class="cf">if</span> (mm <span class="op">==</span><span class="st"> </span><span class="dv">1</span>) {
+      simu_data &lt;-<span class="st"> </span><span class="kw">simulate_joint</span>(Config_all, simu_input<span class="op">$</span>D, <span class="dt">n_clone =</span> <span class="dv">4</span>, 
+                                  <span class="dt">mut_size =</span> values_all[k], <span class="dt">missing =</span> <span class="fl">0.8</span>, 
+                                  <span class="dt">error_mean =</span> <span class="kw">c</span>(<span class="fl">0.01</span>, <span class="fl">0.44</span>), <span class="dt">n_repeat =</span> <span class="dv">20</span>)
+    } <span class="cf">else</span> <span class="cf">if</span> (mm <span class="op">==</span><span class="st"> </span><span class="dv">2</span>) { 
+      simu_data &lt;-<span class="st"> </span><span class="kw">simulate_joint</span>(Config_all, simu_input<span class="op">$</span>D, 
+                                  <span class="dt">n_clone =</span> values_all[k], <span class="dt">mut_size =</span> <span class="dv">10</span>, 
+                                  <span class="dt">missing =</span> <span class="fl">0.8</span>, <span class="dt">error_mean =</span> <span class="kw">c</span>(<span class="fl">0.01</span>, <span class="fl">0.44</span>),
+                                  <span class="dt">n_repeat =</span> <span class="dv">20</span>)
+    } <span class="cf">else</span> <span class="cf">if</span> (mm <span class="op">==</span><span class="st"> </span><span class="dv">3</span>) {
+      simu_data &lt;-<span class="st"> </span><span class="kw">simulate_joint</span>(Config_all, simu_input<span class="op">$</span>D, <span class="dt">n_clone =</span> <span class="dv">4</span>, 
+                                  <span class="dt">mut_size =</span> <span class="dv">10</span>, <span class="dt">missing =</span> values_all[k], 
+                                  <span class="dt">error_mean =</span> <span class="kw">c</span>(<span class="fl">0.01</span>, <span class="fl">0.44</span>), <span class="dt">n_repeat =</span> <span class="dv">20</span>)
+    } <span class="cf">else</span> <span class="cf">if</span> (mm <span class="op">==</span><span class="st"> </span><span class="dv">4</span>) {
+      simu_data &lt;-<span class="st"> </span><span class="kw">simulate_joint</span>(Config_all, simu_input<span class="op">$</span>D, <span class="dt">n_clone =</span> <span class="dv">4</span>, 
+                                  <span class="dt">mut_size =</span> <span class="dv">10</span>, <span class="dt">missing =</span> <span class="fl">0.8</span>, 
+                                  <span class="dt">error_mean =</span> <span class="kw">c</span>(<span class="fl">0.01</span>, values_all[k]), 
+                                  <span class="dt">n_repeat =</span> <span class="dv">20</span>)
+    } <span class="cf">else</span> <span class="cf">if</span> (mm <span class="op">==</span><span class="st"> </span><span class="dv">5</span>) {
+      simu_data &lt;-<span class="st"> </span><span class="kw">simulate_joint</span>(Config_all, simu_input<span class="op">$</span>D, <span class="dt">n_clone =</span> <span class="dv">4</span>, 
+                                  <span class="dt">mut_size =</span> <span class="dv">10</span>, <span class="dt">missing =</span> <span class="fl">0.8</span>, 
+                                  <span class="dt">error_mean =</span> <span class="kw">c</span>(<span class="fl">0.01</span>, <span class="fl">0.44</span>), 
+                                  <span class="dt">error_var =</span> <span class="kw">c</span>(<span class="dv">30</span>, values_all[k]), 
+                                  <span class="dt">n_repeat =</span> <span class="dv">20</span>)
+    }
+    
+    <span class="cf">for</span> (d_tmp <span class="cf">in</span> simu_data) {
+      prob_all &lt;-<span class="st"> </span><span class="kw">list</span>()
+      methods_use &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;demuxlet&quot;</span>, <span class="st">&quot;Bern_EM&quot;</span>, <span class="st">&quot;Binom_EM&quot;</span>, <span class="st">&quot;Binom_Gibbs&quot;</span>,
+                       <span class="st">&quot;Binom_gmline&quot;</span>)
+      prob_all[[<span class="dv">1</span>]] &lt;-<span class="st"> </span><span class="kw">demuxlet</span>(d_tmp<span class="op">$</span>A_sim, d_tmp<span class="op">$</span>D_sim, d_tmp<span class="op">$</span>Config, 
+                                <span class="dt">theta0 =</span> <span class="kw">mean</span>(d_tmp<span class="op">$</span>theta0_binom, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>))
+      prob_all[[<span class="dv">2</span>]] &lt;-<span class="st"> </span><span class="kw">cell_assign_EM</span>(d_tmp<span class="op">$</span>A_sim, d_tmp<span class="op">$</span>D_sim, d_tmp<span class="op">$</span>Config, 
+                                      <span class="dt">Psi =</span> <span class="ot">NULL</span>, <span class="dt">verbose =</span> F)<span class="op">$</span>prob
+      prob_all[[<span class="dv">3</span>]] &lt;-<span class="st"> </span><span class="kw">cell_assign_EM</span>(d_tmp<span class="op">$</span>A_sim, d_tmp<span class="op">$</span>D_sim, d_tmp<span class="op">$</span>Config, 
+                                      <span class="dt">Psi =</span> <span class="ot">NULL</span>, <span class="dt">model =</span> <span class="st">&quot;binomial&quot;</span>,
+                                      <span class="dt">verbose =</span> <span class="ot">FALSE</span>)<span class="op">$</span>prob
+      prob_all[[<span class="dv">4</span>]] &lt;-<span class="st"> </span><span class="kw">cell_assign_Gibbs</span>(d_tmp<span class="op">$</span>A_sim, d_tmp<span class="op">$</span>D_sim,
+                                         d_tmp<span class="op">$</span>Config, <span class="dt">Psi =</span> <span class="ot">NULL</span>,
+                                         <span class="dt">min_iter =</span> <span class="dv">1000</span>, <span class="dt">wise =</span> <span class="st">&quot;variant&quot;</span>, 
+                                         <span class="dt">prior1 =</span> <span class="kw">c</span>(<span class="fl">2.11</span>, <span class="fl">2.69</span>), 
+                                         <span class="dt">verbose =</span> <span class="ot">FALSE</span>)<span class="op">$</span>prob
+      
+      <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(prob_all))) {
+        prob_mat &lt;-<span class="st"> </span>prob_all[[i]]
+        assign_scr &lt;-<span class="st"> </span><span class="kw">assign_score</span>(prob_mat, d_tmp<span class="op">$</span>I_sim, 
+                                                <span class="dt">threshold =</span> <span class="fl">0.5001</span>, 
+                                                <span class="dt">mode =</span> <span class="st">&quot;best&quot;</span>)
+        ACC_all &lt;-<span class="st"> </span><span class="kw">c</span>(ACC_all, assign_scr<span class="op">$</span>acc_ass)
+        ASS_all &lt;-<span class="st"> </span><span class="kw">c</span>(ASS_all, assign_scr<span class="op">$</span>ass)
+        AUC_all &lt;-<span class="st"> </span><span class="kw">c</span>(AUC_all, <span class="kw">assign_curve</span>(prob_mat, d_tmp<span class="op">$</span>I_sim, 
+                                           <span class="dt">mode =</span> <span class="st">&quot;best&quot;</span>)<span class="op">$</span>AUC_acc_ass)
+        ERR_all &lt;-<span class="st"> </span><span class="kw">c</span>(ERR_all, <span class="kw">mean</span>(<span class="kw">abs</span>(prob_mat <span class="op">-</span><span class="st"> </span>d_tmp<span class="op">$</span>I_sim)))
+        labels_all &lt;-<span class="st"> </span><span class="kw">c</span>(labels_all, values_all[k])
+        method_all &lt;-<span class="st"> </span><span class="kw">c</span>(method_all, methods_use[i])
+        variable_all &lt;-<span class="st"> </span><span class="kw">c</span>(variable_all, type_use[mm])
+      }
+    }
+  }
+}
+
+df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Accuracy =</span> ACC_all, <span class="dt">AUC_of_ACC_ASS =</span> AUC_all, 
+                 <span class="dt">Assignable =</span> ASS_all, <span class="dt">MAE =</span> ERR_all, <span class="dt">Methods =</span> method_all, 
+                 <span class="dt">labels =</span> labels_all, <span class="dt">variable =</span> variable_all)
+
+dat_dir &lt;-<span class="st"> &quot;data/simulations&quot;</span>
+<span class="kw">saveRDS</span>(df, <span class="kw">paste0</span>(dat_dir, <span class="st">&quot;/simulate_extra_s1_v2.rds&quot;</span>))</code></pre></div>
+</div>
+<div id="precision-recall-curve" class="section level2">
+<h2>Precision-recall curve</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">1</span>)
+PCAU_curve_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+
+simu_data &lt;-<span class="st"> </span><span class="kw">simulate_joint</span>(Config_all, simu_input<span class="op">$</span>D, <span class="dt">n_clone =</span> <span class="dv">4</span>, 
+                              <span class="dt">mut_size =</span> <span class="dv">10</span>, <span class="dt">missing =</span> <span class="fl">0.8</span>, 
+                              <span class="dt">error_mean =</span> <span class="kw">c</span>(<span class="fl">0.01</span>, <span class="fl">0.44</span>), <span class="dt">n_repeat =</span> <span class="dv">20</span>)
+
+assign_<span class="dv">0</span> &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>, <span class="dt">nrow =</span> <span class="dv">200</span>, <span class="dt">ncol =</span> <span class="dv">20</span>)
+assign_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>, <span class="dt">nrow =</span> <span class="dv">200</span>, <span class="dt">ncol =</span> <span class="dv">20</span>)
+prob_all &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>, <span class="dt">nrow =</span> <span class="dv">200</span>, <span class="dt">ncol =</span> <span class="dv">20</span>)
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(simu_data))) {
+  d_tmp &lt;-<span class="st"> </span>simu_data[[i]]
+  prob_tmp &lt;-<span class="st"> </span><span class="kw">cell_assign_Gibbs</span>(d_tmp<span class="op">$</span>A_sim, d_tmp<span class="op">$</span>D_sim,
+                                d_tmp<span class="op">$</span>Config, <span class="dt">Psi =</span> <span class="ot">NULL</span>,
+                                <span class="dt">min_iter =</span> <span class="dv">1000</span>, <span class="dt">wise =</span> <span class="st">&quot;variant&quot;</span>, 
+                                <span class="dt">prior1 =</span> <span class="kw">c</span>(<span class="fl">2.11</span>, <span class="fl">2.69</span>), <span class="dt">verbose =</span> <span class="ot">FALSE</span>)<span class="op">$</span>prob
+  assign_<span class="dv">0</span>[, i] &lt;-<span class="st"> </span><span class="kw">get_prob_label</span>(d_tmp<span class="op">$</span>I_sim)
+  assign_<span class="dv">1</span>[, i] &lt;-<span class="st"> </span><span class="kw">get_prob_label</span>(prob_tmp)
+  prob_all[, i] &lt;-<span class="st"> </span><span class="kw">get_prob_value</span>(prob_tmp, <span class="dt">mode =</span> <span class="st">&quot;best&quot;</span>)
+}
+
+dat_dir =<span class="st"> &quot;data/simulations&quot;</span>
+<span class="kw">saveRDS</span>(<span class="kw">list</span>(<span class="st">&quot;assign_0&quot;</span> =<span class="st"> </span>assign_<span class="dv">0</span>, <span class="st">&quot;assign_1&quot;</span> =<span class="st"> </span>assign_<span class="dv">1</span>, 
+             <span class="st">&quot;prob_all&quot;</span> =<span class="st"> </span>prob_all), 
+        <span class="kw">paste0</span>(dat_dir, <span class="st">&quot;/simulate_prob_curve.rds&quot;</span>))</code></pre></div>
+</div>
+<div id="analysis-of-systematic-results" class="section level2">
+<h2>Analysis of systematic results</h2>
+<div id="precision-recall-curve-for-default-settings" class="section level3">
+<h3>Precision-recall curve for default settings</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rds.tmp &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">paste0</span>(dat_dir, <span class="st">&quot;/simulate_prob_curve.rds&quot;</span>))
+assign_<span class="dv">0</span> &lt;-<span class="st"> </span>rds.tmp<span class="op">$</span>assign_<span class="dv">0</span>
+assign_<span class="dv">1</span> &lt;-<span class="st"> </span>rds.tmp<span class="op">$</span>assign_<span class="dv">1</span>
+prob_all &lt;-<span class="st"> </span>rds.tmp<span class="op">$</span>prob_all
+
+thresholds &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.001</span>)
+recalls &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(thresholds))
+precision_all &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>, <span class="dt">nrow =</span> <span class="kw">length</span>(thresholds), <span class="dt">ncol =</span> <span class="kw">ncol</span>(prob_all) <span class="op">+</span><span class="st"> </span><span class="dv">1</span>)
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(thresholds))) {
+    idx &lt;-<span class="st"> </span>prob_all <span class="op">&gt;=</span><span class="st"> </span>thresholds[i] 
+    recalls[i] &lt;-<span class="st"> </span><span class="kw">mean</span>(idx)
+    precision_all[i, <span class="kw">ncol</span>(prob_all) <span class="op">+</span><span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="kw">mean</span>((assign_<span class="dv">0</span> <span class="op">==</span><span class="st"> </span>assign_<span class="dv">1</span>)[idx])
+    <span class="cf">for</span> (j <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">ncol</span>(prob_all))) {
+        idx &lt;-<span class="st"> </span>prob_all[, j] <span class="op">&gt;=</span><span class="st"> </span><span class="kw">sort</span>(prob_all[, j], 
+                                     <span class="dt">decreasing =</span> <span class="ot">TRUE</span>)[<span class="kw">round</span>(recalls[i] <span class="op">*</span>
+<span class="st">                                                                </span><span class="kw">nrow</span>(prob_all))]
+        precision_all[i, j] &lt;-<span class="st"> </span><span class="kw">mean</span>((assign_<span class="dv">0</span>[,j] <span class="op">==</span><span class="st"> </span>assign_<span class="dv">1</span>[,j])[idx])
+    }
+}
+
+order_idx &lt;-<span class="st"> </span><span class="kw">order</span>(<span class="kw">colMeans</span>(precision_all[, <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(prob_all)]))
+idx1 &lt;-<span class="st"> </span>order_idx[<span class="kw">round</span>(<span class="fl">0.25</span> <span class="op">*</span><span class="st"> </span><span class="kw">length</span>(order_idx))]
+idx2 &lt;-<span class="st"> </span>order_idx[<span class="kw">round</span>(<span class="fl">0.75</span> <span class="op">*</span><span class="st"> </span><span class="kw">length</span>(order_idx))]
+
+df.tmp &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">cutoff =</span> thresholds, <span class="dt">Recall =</span> recalls, 
+                     <span class="dt">Presision =</span> precision_all[, <span class="kw">ncol</span>(precision_all)], 
+                     <span class="dt">ACC_low1 =</span> precision_all[, idx1],
+                     <span class="dt">ACC_high1 =</span> precision_all[, idx2])</code></pre></div>
+<p>Calculate AUC score.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nn &lt;-<span class="st"> </span><span class="kw">ncol</span>(precision_all)
+AUC_score &lt;-<span class="st"> </span><span class="fl">0.0</span>
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(recalls) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)) {
+    AUC_score &lt;-<span class="st"> </span>AUC_score <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span>(recalls[i] <span class="op">-</span><span class="st"> </span>recalls[i <span class="op">+</span><span class="st"> </span><span class="dv">1</span>]) <span class="op">*</span><span class="st"> </span>
+<span class="st">      </span>(precision_all[i, nn] <span class="op">+</span><span class="st"> </span>precision_all[i <span class="op">+</span><span class="st"> </span><span class="dv">1</span>, nn])
+}
+AUC_score &lt;-<span class="st"> </span>AUC_score <span class="op">/</span><span class="st"> </span>(recalls[<span class="dv">1</span>] <span class="op">-</span><span class="st"> </span>recalls[<span class="kw">length</span>(recalls)])
+<span class="kw">print</span>(AUC_score)</code></pre></div>
+<pre><code>[1] 0.9469786</code></pre>
+<p>Plot PR curve.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_dir &lt;-<span class="st"> &quot;figures/simulations&quot;</span>
+
+idx_<span class="dv">05</span> &lt;-<span class="st"> </span>prob_all <span class="op">&gt;=</span><span class="st"> </span><span class="fl">0.5</span>
+recall_<span class="dv">05</span> &lt;-<span class="st"> </span><span class="kw">mean</span>(idx_<span class="dv">05</span>)
+precision_<span class="dv">05</span> &lt;-<span class="st"> </span><span class="kw">mean</span>((assign_<span class="dv">0</span> <span class="op">==</span><span class="st"> </span>assign_<span class="dv">1</span>)[idx_<span class="dv">05</span>])
+<span class="kw">print</span>(<span class="kw">c</span>(recall_<span class="dv">05</span>, precision_<span class="dv">05</span>))</code></pre></div>
+<pre><code>[1] 0.7902500 0.8895919</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig.curve &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df.tmp, <span class="kw">aes</span>(<span class="dt">x =</span> Recall, <span class="dt">y =</span> Presision)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> ACC_low1, <span class="dt">ymax =</span> ACC_high1), <span class="dt">fill =</span> <span class="st">&quot;grey80&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_color_viridis</span>(<span class="dt">option =</span> <span class="st">&quot;B&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">color =</span> cutoff)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">color =</span> cutoff), <span class="dt">size =</span> <span class="fl">0.5</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x =</span> recall_<span class="dv">05</span>, <span class="dt">y =</span> precision_<span class="dv">05</span>), <span class="dt">shape =</span> <span class="dv">1</span>, <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>,
+             <span class="dt">size =</span> <span class="dv">3</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Recall: Fraction of assignable cells&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Precision&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ylim</span>(<span class="fl">0.5</span>, <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">pub.theme</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="kw">c</span>(<span class="fl">0.25</span>,<span class="fl">0.45</span>)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">color =</span> <span class="st">&#39;highest P&#39;</span>) 
+
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig1b_PRcurve.png&quot;</span>), 
+       fig.curve, <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="kw">paste0</span>(fig_dir, <span class="st">&quot;/fig1b_PRcurve.pdf&quot;</span>), 
+       fig.curve, <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+fig.curve</code></pre></div>
+<p><img src="figure/simulations.Rmd/plot-pr-curve-1.png" width="336" style="display: block; margin: auto;" /></p>
+</div>
+<div id="comparison-of-parameters" class="section level3">
+<h3>Comparison of parameters</h3>
+<p>Assess cardelino with simulated data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">paste0</span>(<span class="st">&quot;data/simulations/simulate_extra_s1_v2.rds&quot;</span>))
+
+## Change method names
+df<span class="op">$</span>Methods &lt;-<span class="st"> </span><span class="kw">as.character</span>(df<span class="op">$</span>Methods)
+df &lt;-<span class="st"> </span>df[df<span class="op">$</span>Methods <span class="op">!=</span><span class="st"> &quot;Bern_EM&quot;</span>, ]
+df<span class="op">$</span>Methods[df<span class="op">$</span>Methods <span class="op">==</span><span class="st"> &quot;demuxlet&quot;</span>] &lt;-<span class="st"> &quot;theta_fixed&quot;</span>
+df<span class="op">$</span>Methods[df<span class="op">$</span>Methods <span class="op">==</span><span class="st"> &quot;Binom_EM&quot;</span>] &lt;-<span class="st"> &quot;theta_EM&quot;</span>
+df<span class="op">$</span>Methods[df<span class="op">$</span>Methods <span class="op">==</span><span class="st"> &quot;Binom_Gibbs&quot;</span>] &lt;-<span class="st"> &quot;cardelino&quot;</span>
+df<span class="op">$</span>Methods &lt;-<span class="st"> </span><span class="kw">as.factor</span>(df<span class="op">$</span>Methods)
+
+## Change variables
+df<span class="op">$</span>labels[df<span class="op">$</span>variable <span class="op">==</span><span class="st"> &quot;missing&quot;</span>] &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>df<span class="op">$</span>labels[df<span class="op">$</span>variable <span class="op">==</span><span class="st"> &quot;missing&quot;</span>]
+df<span class="op">$</span>labels[df<span class="op">$</span>variable <span class="op">==</span><span class="st"> &quot;shapes1&quot;</span>] &lt;-<span class="st"> </span><span class="dv">1</span> <span class="op">/</span><span class="st"> </span>df<span class="op">$</span>labels[df<span class="op">$</span>variable <span class="op">==</span><span class="st"> &quot;shapes1&quot;</span>] <span class="co">#paste0(&quot;1/&quot;, df$labels[df$variable == &quot;shapes1&quot;])</span></code></pre></div>
+<p>Table of results from simulations:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(df)</code></pre></div>
+<pre><code>   Accuracy AUC_of_ACC_ASS Assignable       MAE     Methods labels
+1 0.8600000      0.6958512      0.250 0.2976787 theta_fixed      3
+3 0.8600000      0.6906667      0.250 0.2990589    theta_EM      3
+4 0.8571429      0.6900893      0.245 0.2992734   cardelino      3
+5 0.9142857      0.8002719      0.350 0.2139113 theta_fixed      3
+7 0.9295775      0.8078752      0.355 0.2109320    theta_EM      3
+8 0.9295775      0.8107345      0.355 0.2087012   cardelino      3
+  variable
+1 mut_size
+3 mut_size
+4 mut_size
+5 mut_size
+7 mut_size
+8 mut_size</code></pre>
+<p>Area under Precision-Recall curves for different parameter settings.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_dir &lt;-<span class="st"> &quot;figures/simulations/&quot;</span>
+
+df1 &lt;-<span class="st"> </span>df[df<span class="op">$</span>Methods <span class="op">==</span><span class="st"> &quot;cardelino&quot;</span>, ]
+
+type_use &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;mut_size&quot;</span>, <span class="st">&quot;n_clone&quot;</span>, <span class="st">&quot;missing&quot;</span>, <span class="st">&quot;FNR&quot;</span>, <span class="st">&quot;shapes1&quot;</span>)
+xlabels &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;# variants per clonal branch&quot;</span>, <span class="st">&quot;Number of clones&quot;</span>, 
+             <span class="st">&quot;Overall variant coverage&quot;</span>)
+titles &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Mutations per branch&quot;</span>, <span class="st">&quot;Numbers of clones&quot;</span>, <span class="st">&quot;Variant coverages&quot;</span>,
+            <span class="st">&quot;Fraction of ALT allele&quot;</span>, <span class="st">&quot;Constrentration of allelic expr&quot;</span>)
+
+df1 &lt;-<span class="st"> </span>df1[df1<span class="op">$</span>labels <span class="op">!=</span><span class="st"> </span><span class="dv">40</span>, ]
+df1 &lt;-<span class="st"> </span>df1[df1<span class="op">$</span>labels <span class="op">!=</span><span class="st"> </span><span class="fl">0.65</span>, ]
+df1 &lt;-<span class="st"> </span>df1[df1<span class="op">$</span>labels <span class="op">!=</span><span class="st"> </span><span class="fl">0.60</span>, ]
+
+fig_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (mm <span class="cf">in</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>)) {
+  fig_list[[mm]] &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df1[df1<span class="op">$</span>variable <span class="op">==</span><span class="st"> </span>type_use[mm], ],
+                           <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">as.factor</span>(labels), <span class="dt">y =</span> AUC_of_ACC_ASS)) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;AU precision-recall curve&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">geom_boxplot</span>() <span class="op">+</span><span class="st"> </span><span class="kw">xlab</span>(xlabels[mm]) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">ylim</span>(<span class="fl">0.6</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">pub.theme</span>()
+  <span class="co">#     if (mm == 1) {</span>
+  <span class="co">#         fig_list[[mm]] &lt;- fig_list[[mm]] + </span>
+  <span class="co">#             scale_x_discrete(labels=c(&quot;3&quot;, &quot;5&quot;, &quot;7&quot;, &quot;10*&quot;, &quot;15&quot;, &quot;15&quot;)) }</span>
+  <span class="co">#     if (mm == 3) {</span>
+  <span class="co">#         fig_list[[mm]] &lt;- fig_list[[mm]] + </span>
+  <span class="co">#             scale_x_discrete(labels=c(&quot;0.05&quot;, &quot;0.1&quot;, &quot;0.15&quot;, &quot;0.2*&quot;, &quot;0.25&quot;, &quot;0.3&quot;)) }</span>
+}
+
+<span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1c_mutations.png&quot;</span>),
+       fig_list[[<span class="dv">1</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)</code></pre></div>
+<pre><code>Warning: Removed 6 rows containing non-finite values (stat_boxplot).</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1c_mutations.pdf&quot;</span>),
+       fig_list[[<span class="dv">1</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)</code></pre></div>
+<pre><code>Warning: Removed 6 rows containing non-finite values (stat_boxplot).</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1d_coverages.png&quot;</span>),
+       fig_list[[<span class="dv">3</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)</code></pre></div>
+<pre><code>Warning: Removed 3 rows containing non-finite values (stat_boxplot).</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1d_coverages.pdf&quot;</span>),
+       fig_list[[<span class="dv">3</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)</code></pre></div>
+<pre><code>Warning: Removed 3 rows containing non-finite values (stat_boxplot).</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_list[[<span class="dv">1</span>]]</code></pre></div>
+<pre><code>Warning: Removed 6 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="figure/simulations.Rmd/fig1d-1.png" width="336" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_list[[<span class="dv">3</span>]]</code></pre></div>
+<pre><code>Warning: Removed 3 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="figure/simulations.Rmd/fig1d-2.png" width="336" style="display: block; margin: auto;" /></p>
+<p>Boxplots comparing different models for cell-clone assignment.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">type_use &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;mut_size&quot;</span>, <span class="st">&quot;n_clone&quot;</span>, <span class="st">&quot;missing&quot;</span>, <span class="st">&quot;FNR&quot;</span>, <span class="st">&quot;shapes1&quot;</span>)
+xlabels &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;# variants per clonal branch&quot;</span>, <span class="st">&quot;Number of clones&quot;</span>, 
+             <span class="st">&quot;Overall variant coverage&quot;</span>, 
+             <span class="st">&quot;Mean fraction of ALT alleles&quot;</span>, <span class="st">&quot;Variance of allelic imbalance&quot;</span>)
+df<span class="op">$</span>Methods &lt;-<span class="st"> </span><span class="kw">ordered</span>(df<span class="op">$</span>Methods, <span class="dt">levels=</span><span class="kw">c</span>(<span class="st">&quot;theta_fixed&quot;</span>, <span class="st">&quot;theta_EM&quot;</span>, 
+                                           <span class="st">&quot;cardelino&quot;</span>)) <span class="co">#Bern_EM</span>
+
+xlabel_list &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="kw">c</span>(<span class="st">&quot;3&quot;</span>, <span class="st">&quot;5&quot;</span>, <span class="st">&quot;7&quot;</span>, <span class="st">&quot;10*&quot;</span>, <span class="st">&quot;15&quot;</span>, <span class="st">&quot;15&quot;</span>), 
+                    <span class="kw">c</span>(<span class="st">&quot;3&quot;</span>, <span class="st">&quot;4*&quot;</span>, <span class="st">&quot;5&quot;</span>, <span class="st">&quot;6&quot;</span>, <span class="st">&quot;7&quot;</span>, <span class="st">&quot;8&quot;</span>),
+                    <span class="kw">c</span>(<span class="st">&quot;0.05&quot;</span>, <span class="st">&quot;0.1&quot;</span>, <span class="st">&quot;0.15&quot;</span>, <span class="st">&quot;0.2*&quot;</span>, <span class="st">&quot;0.25&quot;</span>, <span class="st">&quot;0.3&quot;</span>),
+                    <span class="kw">c</span>(<span class="st">&quot;0.35&quot;</span>, <span class="st">&quot;0.4&quot;</span>, <span class="st">&quot;* 0.45&quot;</span>, <span class="st">&quot;0.5&quot;</span>, <span class="st">&quot;0.55&quot;</span>, <span class="st">&quot;0.6&quot;</span>),
+                    <span class="kw">c</span>(<span class="st">&quot;1/16&quot;</span>, <span class="st">&quot;1/8&quot;</span>, <span class="st">&quot;*  1/4&quot;</span>, <span class="st">&quot;1/2&quot;</span>, <span class="st">&quot;1&quot;</span>, <span class="st">&quot;2&quot;</span>))
+
+fig_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (mm <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(type_use))) {
+  fig_list[[mm]] &lt;-<span class="st"> </span><span class="kw">ggplot</span>(df[df<span class="op">$</span>variable <span class="op">==</span><span class="st"> </span>type_use[mm], ],
+                           <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">as.factor</span>(labels), <span class="dt">y =</span> AUC_of_ACC_ASS,
+                               <span class="dt">fill=</span>Methods)) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">geom_boxplot</span>() <span class="op">+</span><span class="st"> </span><span class="kw">xlab</span>(xlabels[mm]) <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;AUC: precision-recall curve&quot;</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">pub.theme</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">scale_fill_brewer</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">scale_x_discrete</span>(<span class="dt">labels=</span>xlabel_list[[mm]])
+}
+
+fig_box &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(fig_list[[<span class="dv">1</span>]], fig_list[[<span class="dv">3</span>]], fig_list[[<span class="dv">2</span>]], 
+                     fig_list[[<span class="dv">4</span>]], fig_list[[<span class="dv">5</span>]], 
+                     <span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>, <span class="st">&quot;C&quot;</span>, <span class="st">&quot;D&quot;</span>, <span class="st">&quot;E&quot;</span>),
+                     <span class="dt">nrow =</span> <span class="dv">2</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">align =</span> <span class="st">&quot;hv&quot;</span>, 
+                     <span class="dt">common.legend =</span> <span class="ot">TRUE</span>, <span class="dt">legend =</span> <span class="st">&quot;bottom&quot;</span>)
+
+<span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;simulation_overall_AUC.png&quot;</span>),
+       fig_box, <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">12</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;simulation_overall_AUC.pdf&quot;</span>),
+       fig_box, <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">12</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+
+fig_box</code></pre></div>
+<p><img src="figure/simulations.Rmd/unnamed-chunk-6-1.png" width="1152" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="analysis-of-simulation-results-for-individual-lines" class="section level2">
+<h2>Analysis of simulation results for individual lines</h2>
+<div id="load-simulation-results-for-individual-lines" class="section level3">
+<h3>Load simulation results for individual lines</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_files &lt;-<span class="st"> </span><span class="kw">paste0</span>(lines, <span class="st">&quot;.simulate.rds&quot;</span>)
 assign_<span class="dv">0</span> &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>, <span class="dt">nrow =</span> <span class="dv">500</span>, <span class="dt">ncol =</span> <span class="kw">length</span>(lines))
 assign_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>, <span class="dt">nrow =</span> <span class="dv">500</span>, <span class="dt">ncol =</span> <span class="kw">length</span>(lines))
@@ -629,37 +1079,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">colour =</span> <span class="ot">FALSE</span>, <span class="dt">group =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Assignment rate: simulated&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assignment rate: observed&quot;</span>)</code></pre></div>
-<p><img src="figure/simulations.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-4-1.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/02a8343abed931029fae740e8e0877331bfae02b/docs/figure/simulations.Rmd/unnamed-chunk-4-1.png" target="_blank">02a8343</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-24
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/simulations.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/assign_rate_obs_v_sim.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="dv">5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/assign_rate_obs_v_sim.pdf&quot;</span>, 
@@ -682,37 +1102,7 @@ davismcc
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">colour =</span> <span class="ot">FALSE</span>, <span class="dt">group =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Assignment rate (recall)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Precision&quot;</span>)</code></pre></div>
-<p><img src="figure/simulations.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-1.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/02a8343abed931029fae740e8e0877331bfae02b/docs/figure/simulations.Rmd/unnamed-chunk-5-1.png" target="_blank">02a8343</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-24
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/simulations.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/sim_precision_v_recall.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/sim_precision_v_recall.pdf&quot;</span>, 
@@ -741,7 +1131,7 @@ davismcc
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-25                  </code></pre>
+ date     2018-08-26                  </code></pre>
 <pre><code>Packages -----------------------------------------------------------------</code></pre>
 <pre><code> package              * version   date       source        
  AnnotationDbi          1.42.1    2018-05-08 Bioconductor  
@@ -800,6 +1190,7 @@ davismcc
  jsonlite               1.5       2017-06-01 CRAN (R 3.5.0)
  knitr                  1.20      2018-02-20 CRAN (R 3.5.0)
  labeling               0.3       2014-08-23 CRAN (R 3.5.0)
+ latex2exp            * 0.4.0     2015-11-30 CRAN (R 3.5.0)
  lattice                0.20-35   2017-03-25 CRAN (R 3.5.1)
  lazyeval               0.2.1     2017-10-29 CRAN (R 3.5.0)
  lubridate              1.7.4     2018-04-11 CRAN (R 3.5.0)
