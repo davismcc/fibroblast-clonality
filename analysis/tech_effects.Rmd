@@ -1,0 +1,308 @@
+---
+title: "Technical effecs on clonal assignment"
+author: "Yuanhua Huang & Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+
+## Load libraries and data
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(viridis)
+library(ggpubr)
+library(SingleCellExperiment)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+options(stringsAsFactors = FALSE)
+dir.create("figures/tech_effects", showWarnings = FALSE, 
+           recursive = TRUE)
+```
+
+```{r}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites" 
+fls <- list.files("data/sces")
+fls <- fls[grepl(params$callset, fls)]
+donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+
+sce_unst_list <- list()
+for (don in donors) {
+    sce_unst_list[[don]] <- readRDS(file.path("data/sces", 
+        paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), "cells.\n"))
+}
+```
+
+```{r}
+idx <- c()
+cdln_list <- list()
+for (don in donors) {
+    cdln_list[[don]] <- readRDS(file.path("data/cell_assignment", 
+        paste0("cardelino_results.", don, ".", params$callset, ".rds")))
+    cat(paste("reading", don, "\n"))
+}
+
+for (i in seq_len(length(donors))) {
+    don <- donors[i]
+    D <- cdln_list[[don]]$D[, sce_unst_list[[don]]$cell]
+    D[which(is.na(D))] <- 0
+    if (sum(sce_unst_list[[don]]$assignable) >= 60) {idx <- c(idx, i)}
+}
+t(idx)
+```
+
+## Total genes
+
+```{r total-genes, fig.height=10, fig.width=8}
+cols <- c("clone1" = "#F8766D", "clone2" = "#7CAE00", "clone3" = "#00BFC4",
+          "clone4" = "#C77CFF", "unassigned" = "gray")
+
+fig_box_all <- list()
+for (i in seq_len(length(donors))) {
+  don <- donors[i]
+  df <- data.frame(total_gene = sce_unst_list[[don]]$total_features_endogenous,
+                   Clone = sce_unst_list[[don]]$assigned)
+  fig_box <- ggplot(df, aes(x = Clone, y = total_gene, fill = Clone)) + 
+    geom_boxplot(outlier.size = 0.8) + 
+    geom_point(size = 0.8) +
+    ggtitle(don) + 
+    ylim(7000, 15000) + 
+    scale_fill_manual(values = cols) + 
+    theme_classic() + 
+    theme(panel.grid.major = element_line(size = 0.1, colour = "#d3d3d3"))
+  fig_box_all[[i]] <- fig_box
+}
+
+fig_dir <- "figures/tech_effects"
+
+fig_box_dp <- ggarrange(
+  fig_box_all[[idx[1]]], fig_box_all[[idx[2]]], fig_box_all[[idx[3]]], 
+  fig_box_all[[idx[4]]], fig_box_all[[idx[5]]], fig_box_all[[idx[6]]], 
+  fig_box_all[[idx[7]]], fig_box_all[[idx[8]]], fig_box_all[[idx[9]]], 
+  fig_box_all[[idx[10]]], fig_box_all[[idx[11]]], fig_box_all[[idx[12]]], 
+  common.legend = TRUE, legend = "bottom", nrow = 4, ncol = 3, align = "hv")
+
+ggsave(paste0(fig_dir, "/fig_dp_nGene.png"), 
+       fig_box_dp, height = 10, width = 8, dpi = 300)
+ggsave(paste0(fig_dir, "/fig_dp_nGene.pdf"), 
+       fig_box_dp, height = 10, width = 8, dpi = 300)
+
+fig_box_dp
+```
+
+## Total reads
+
+```{r}
+cols <- c("clone1" = "#F8766D", "clone2" = "#7CAE00", "clone3" = "#00BFC4",
+          "clone4" = "#C77CFF", "unassigned" = "gray")
+
+fig_box_all <- list()
+for (i in seq_len(length(donors))) {
+  don <- donors[i]
+  df <- data.frame(total_reads = sce_unst_list[[don]]$total_counts_endogenous,
+                   Clone = sce_unst_list[[don]]$assigned)
+  fig_box <- ggplot(df, aes(x = Clone, y = total_reads, fill = Clone)) + 
+    geom_boxplot(outlier.size = 0.8) + 
+    geom_point(size = 0.8) +
+    ggtitle(don) + 
+    scale_fill_manual(values = cols) + 
+    scale_y_log10() + 
+    theme_classic() +  
+    theme(panel.grid.major = element_line(size = 0.1, colour = "#d3d3d3"))
+  fig_box_all[[i]] <- fig_box
+}
+
+fig_dir <- "figures/tech_effects"
+
+fig_box_dp2 <- ggarrange(
+  fig_box_all[[idx[1]]], fig_box_all[[idx[2]]], fig_box_all[[idx[3]]], 
+  fig_box_all[[idx[4]]], fig_box_all[[idx[5]]], fig_box_all[[idx[6]]], 
+  fig_box_all[[idx[7]]], fig_box_all[[idx[8]]], fig_box_all[[idx[9]]], 
+  fig_box_all[[idx[10]]], fig_box_all[[idx[11]]], fig_box_all[[idx[12]]], 
+  common.legend = TRUE, legend = "bottom", nrow = 4, ncol = 3, align = "hv")
+
+ggsave(paste0(fig_dir, "/fig_dp_nReads.png"), 
+       fig_box_dp2, height = 10, width = 8, dpi = 300)
+ggsave(paste0(fig_dir, "/fig_dp_nReads.pdf"), 
+       fig_box_dp2, height = 10, width = 8, dpi = 300)
+
+fig_box_dp2
+```
+
+## Total number of somatic variants with read coverage
+
+```{r}
+cols <- c("clone1" = "#F8766D", "clone2" = "#7CAE00", "clone3" = "#00BFC4",
+          "clone4" = "#C77CFF", "unassigned" = "gray")
+
+fig_box_all <- list()
+for (i in seq_len(length(donors))) {
+    don <- donors[i]
+    df <- data.frame(
+      covered_variants = colSums(cdln_list[[don]]$D > 0, na.rm = TRUE),
+      Clone = sce_unst_list[[don]]$assigned)
+    fig_box <- ggplot(df, aes(x = Clone, y = covered_variants, fill = Clone)) + 
+      geom_boxplot(outlier.size = 0.8) + 
+      geom_point(size = 0.8)+
+      ggtitle(don) + 
+      scale_fill_manual(values = cols) + 
+      theme_classic() +  
+      theme(panel.grid.major = element_line(size = 0.1, colour = "#d3d3d3"))
+    fig_box_all[[i]] <- fig_box
+}
+
+fig_dir <- "figures/tech_effects"
+
+fig_box_dp2 <- ggarrange(
+  fig_box_all[[idx[1]]], fig_box_all[[idx[2]]], fig_box_all[[idx[3]]], 
+  fig_box_all[[idx[4]]], fig_box_all[[idx[5]]], fig_box_all[[idx[6]]], 
+  fig_box_all[[idx[7]]], fig_box_all[[idx[8]]], fig_box_all[[idx[9]]], 
+  fig_box_all[[idx[10]]], fig_box_all[[idx[11]]], fig_box_all[[idx[12]]], 
+  common.legend = TRUE, legend = "bottom", nrow = 4, ncol = 3, align = "hv")
+
+ggsave(paste0(fig_dir, "/fig_dp_nVariants.png"), 
+       fig_box_dp2, height = 10, width = 8, dpi = 300)
+ggsave(paste0(fig_dir, "/fig_dp_nVariants.pdf"), 
+       fig_box_dp2, height = 10, width = 8, dpi = 300)
+
+fig_box_dp2
+```
+
+
+## PCA on read coverage of somatic variants
+
+### Points coloured by clone assignment
+
+```{r}
+cols <- c("clone1" = "#F8766D", "clone2" = "#7CAE00", "clone3" = "#00BFC4",
+          "clone4" = "#C77CFF", "unassigned" = "gray")
+
+fig_pca_all <- list()
+for (i in seq_len(length(donors))) {
+    don <- donors[i]
+    D <- cdln_list[[don]]$D[, sce_unst_list[[don]]$cell]
+    D[which(is.na(D))] <- 0
+    ## plot PCA
+    ir.pca <- prcomp(t(D))
+    var_frac <- ir.pca$sdev ** 2 / sum(ir.pca$sdev ** 2)
+    df <- data.frame(PC1 = ir.pca$x[,1], PC2 = ir.pca$x[,2], 
+                     Clone = sce_unst_list[[don]]$assigned,
+                     clone1_prob = sce_unst_list[[don]]$clone1_prob,
+                     clone2_prob = sce_unst_list[[don]]$clone2_prob)
+    fig_pca <- ggplot(df, aes(x = PC1, y = PC2, color = Clone)) +
+      geom_point(size = 2) +
+      xlab(paste0("PC 1: ", round(var_frac[1] * 100, digits = 1), "% var")) +
+      ylab(paste0("PC 2: ", round(var_frac[2] * 100, digits = 1), "% var")) + 
+      ggtitle(don) + 
+      scale_colour_manual(values = cols) + 
+      theme_classic() + 
+      theme(panel.grid.major = element_line(size = 0.1, colour = "#d3d3d3"))
+    fig_pca_all[[i]] <- fig_pca
+}
+```
+
+
+```{r, fig.height=10, fig.width=8}
+fig_pca_dp <- ggarrange(
+  fig_pca_all[[idx[1]]], fig_pca_all[[idx[2]]], fig_pca_all[[idx[3]]], 
+  fig_pca_all[[idx[4]]], fig_pca_all[[idx[5]]], fig_pca_all[[idx[6]]], 
+  fig_pca_all[[idx[7]]], fig_pca_all[[idx[8]]], fig_pca_all[[idx[9]]], 
+  fig_pca_all[[idx[10]]], fig_pca_all[[idx[11]]], fig_pca_all[[idx[12]]], 
+  common.legend = TRUE, legend = "bottom", nrow = 4, ncol = 3, align = "hv")
+
+ggsave(paste0(fig_dir, "/fig_dp_PCA.png"),
+       fig_pca_dp, height = 10, width = 8, dpi = 300)
+ggsave(paste0(fig_dir, "/fig_dp_PCA.pdf"),
+       fig_pca_dp, height = 10, width = 8, dpi = 300)
+
+fig_pca_dp
+```
+
+
+### Points coloured by clone1 probability
+
+```{r}
+cols <- c("clone1" = "#F8766D", "clone2" = "#7CAE00", "clone3" = "#00BFC4",
+          "clone4" = "#C77CFF", "unassigned" = "gray")
+
+fig_pca_all <- list()
+for (i in seq_len(length(donors))) {
+    don <- donors[i]
+    D <- cdln_list[[don]]$D[, sce_unst_list[[don]]$cell]
+    D[which(is.na(D))] <- 0
+    ## plot PCA
+    ir.pca <- prcomp(t(D))
+    var_frac <- ir.pca$sdev ** 2 / sum(ir.pca$sdev ** 2)
+    df <- data.frame(PC1 = ir.pca$x[,1], PC2 = ir.pca$x[,2], 
+                     Clone = sce_unst_list[[don]]$assigned,
+                     clone1_prob = sce_unst_list[[don]]$clone1_prob,
+                     clone2_prob = sce_unst_list[[don]]$clone2_prob)
+    fig_pca <- ggplot(df, aes(x = PC1, y = PC2, color = clone1_prob)) +
+      geom_point(size = 2) +
+      xlab(paste0("PC 1: ", round(var_frac[1] * 100, digits = 1), "% var")) +
+      ylab(paste0("PC 2: ", round(var_frac[2] * 100, digits = 1), "% var")) + 
+      ggtitle(don) + 
+      scale_color_viridis() +
+      theme_classic() + 
+      theme(panel.grid.major = element_line(size = 0.1, colour = "#d3d3d3"))
+    fig_pca_all[[i]] <- fig_pca
+}
+```
+
+```{r, fig.height=10, fig.width=8}
+fig_pca_dp <- ggarrange(
+  fig_pca_all[[idx[1]]], fig_pca_all[[idx[2]]], fig_pca_all[[idx[3]]], 
+  fig_pca_all[[idx[4]]], fig_pca_all[[idx[5]]], fig_pca_all[[idx[6]]], 
+  fig_pca_all[[idx[7]]], fig_pca_all[[idx[8]]], fig_pca_all[[idx[9]]], 
+  fig_pca_all[[idx[10]]], fig_pca_all[[idx[11]]], fig_pca_all[[idx[12]]], 
+  common.legend = TRUE, legend = "bottom", nrow = 4, ncol = 3, align = "hv")
+
+ggsave(paste0(fig_dir, "/fig_dp_PCA_clone1.png"), 
+       fig_pca_dp, height = 10, width = 8, dpi = 300)
+ggsave(paste0(fig_dir, "/fig_dp_PCA_clone1.pdf"), 
+       fig_pca_dp, height = 10, width = 8, dpi = 300)
+fig_pca_dp
+```
+
+
+### Points coloured by clone1 probability
+
+```{r}
+fig_pca_all <- list()
+for (i in seq_len(length(donors))) {
+    don <- donors[i]
+    D <- cdln_list[[don]]$D[, sce_unst_list[[don]]$cell]
+    D[which(is.na(D))] <- 0
+    ## plot PCA
+    ir.pca <- prcomp(t(D))
+    var_frac <- ir.pca$sdev ** 2 / sum(ir.pca$sdev ** 2)
+    df <- data.frame(PC1 = ir.pca$x[,1], PC2 = ir.pca$x[,2], 
+                     Clone = sce_unst_list[[don]]$assigned,
+                     clone1_prob = sce_unst_list[[don]]$clone1_prob,
+                     clone2_prob = sce_unst_list[[don]]$clone2_prob)
+    fig_pca <- ggplot(df, aes(x = PC1, y = PC2, color = clone2_prob)) +
+      geom_point(size = 2) +
+      xlab(paste0("PC 1: ", round(var_frac[1] * 100, digits = 1), "% var")) +
+      ylab(paste0("PC 2: ", round(var_frac[2] * 100, digits = 1), "% var")) + 
+      ggtitle(don) + 
+      scale_color_viridis() +
+      theme_classic() + 
+      theme(panel.grid.major = element_line(size = 0.1, colour = "#d3d3d3"))
+    fig_pca_all[[i]] <- fig_pca
+}
+```
+
+```{r, fig.height=10, fig.width=8}
+fig_pca_dp <- ggarrange(
+  fig_pca_all[[idx[1]]], fig_pca_all[[idx[2]]], fig_pca_all[[idx[3]]], 
+  fig_pca_all[[idx[4]]], fig_pca_all[[idx[5]]], fig_pca_all[[idx[6]]], 
+  fig_pca_all[[idx[7]]], fig_pca_all[[idx[8]]], fig_pca_all[[idx[9]]], 
+  fig_pca_all[[idx[10]]], fig_pca_all[[idx[11]]], fig_pca_all[[idx[12]]], 
+  common.legend = TRUE, legend = "bottom", nrow = 4, ncol = 3, align = "hv")
+
+ggsave(paste0(fig_dir, "/fig_dp_PCA_clone2.png"), 
+       fig_pca_dp, height = 10, width = 8, dpi = 300)
+ggsave(paste0(fig_dir, "/fig_dp_PCA_clone2.pdf"), 
+       fig_pca_dp, height = 10, width = 8, dpi = 300)
+fig_pca_dp
+```
