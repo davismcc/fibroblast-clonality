@@ -1,5 +1,5 @@
 ---
-title: "Technical effecs on clonal assignment"
+title: "Technical effects on clonal assignment"
 author: "Yuanhua Huang & Davis J. McCarthy"
 site: workflowr::wflow_site
 ---
@@ -48,7 +48,6 @@ for (i in seq_len(length(donors))) {
     D[which(is.na(D))] <- 0
     if (sum(sce_unst_list[[don]]$assignable) >= 60) {idx <- c(idx, i)}
 }
-t(idx)
 ```
 
 ## Total genes
@@ -92,7 +91,7 @@ fig_box_dp
 
 ## Total reads
 
-```{r}
+```{r, fig.height=10, fig.width=8}
 cols <- c("clone1" = "#F8766D", "clone2" = "#7CAE00", "clone3" = "#00BFC4",
           "clone4" = "#C77CFF", "unassigned" = "gray")
 
@@ -131,7 +130,7 @@ fig_box_dp2
 
 ## Total number of somatic variants with read coverage
 
-```{r}
+```{r, fig.height=10, fig.width=8}
 cols <- c("clone1" = "#F8766D", "clone2" = "#7CAE00", "clone3" = "#00BFC4",
           "clone4" = "#C77CFF", "unassigned" = "gray")
 
@@ -265,7 +264,7 @@ fig_pca_dp
 ```
 
 
-### Points coloured by clone1 probability
+### Points coloured by clone2 probability
 
 ```{r}
 fig_pca_all <- list()
