@@ -39,3 +39,16 @@ cancer and healthy ageing.
 populations, with implications for cancer and ageing. 
 
 
+## Authors
+
+The full author list is as follows:
+
+Davis J. McCarthy<sup>1,4\*</sup>, Raghd Rostom<sup>1,2,\*</sup>, Yuanhua Huang<sup>1\*</sup>, Daniel J. Kunz<sup>2,5,6</sup>, Petr Danecek<sup>2</sup>, Marc Jan Bonder<sup>1</sup>, Tzachi Hagai<sup>1,2</sup>, HipSci Consortium, Wenyi Wang, Daniel J. Gaffney<sup>2</sup>, Benjamin D. Simons<sup>5,6,7</sup>, Oliver Stegle<sup>1,3,#</sup>, Sarah A. Teichmann<sup>1,2,5,#</sup>
+
+<sup>1</sup>European Molecular Biology Laboratory, European Bioinformatics Institute, Wellcome Genome Campus, CB10 1SD
+Hinxton, Cambridge, UK; <sup>2</sup>Wellcome Sanger Institute, Wellcome Genome Campus, Hinxton, CB10 1SA, UK; <sup>3</sup>European Molecular Biology Laboratory, Genome Biology Unit, 69117 Heidelberg, Germany; <sup>4</sup>St Vincent’s Institute of Medical Research, Fitzroy, Victoria 3065, Australia. <sup>5</sup>Cavendish Laboratory, Department of Physics, JJ Thomson Avenue, Cambridge, CB3 0HE, UK. <sup>6</sup>The Wellcome Trust/Cancer Research UK Gurdon Institute, University of Cambridge, Cambridge, CB2 1QN, UK. <sup>7</sup>The Wellcome Trust/Medical Research Council Stem Cell Institute, University of Cambridge, Cambridge, UK.
+
+<sup>*</sup> These authors contributed equally to this work.
+
+<sup>#</sup> Corresponding authors. 
+

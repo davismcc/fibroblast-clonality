@@ -389,5 +389,13 @@
     "sce_merge_and_qc" :
     {
         "memory" : "64000"
+    },
+    "run_simulation_per_donor":
+    {
+        "memory" : "4000"
+    },
+    "run_varpart_per_donor":
+    {
+        "memory" : "16000"
     }
 }

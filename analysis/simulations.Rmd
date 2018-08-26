@@ -1,5 +1,5 @@
 ---
-title: "Simulation analysis for all lines"
+title: "Simulation analysis: systematic and for all lines"
 author: "Yuanhua Huang & Davis J. McCarthy"
 site: workflowr::wflow_site
 ---
@@ -13,6 +13,7 @@ library(tidyverse)
 library(cardelino)
 library(viridis)
 library(cowplot)
+library(latex2exp)
 lines <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
             "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
             "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
@@ -20,8 +21,435 @@ lines <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn",
 ```
 
 
+## Simulation experiments
 
-### Load simulation results
+Define functions for simulation.
+
+```{r}
+# assess cardelino with simulation
+dat_dir <- "data/"
+data(config_all)
+data(simulation_input)
+simu_input <- list("D" = D_input)
+
+demuxlet <- function(A, D, Config, theta1 = 0.5, theta0 = 0.01) {
+  P0_mat <- dbinom(A, D, theta0, log = TRUE)
+  P1_mat <- dbinom(A, D, theta1, log = TRUE)
+  P0_mat[which(is.na(P0_mat))] <- 0
+  P1_mat[which(is.na(P1_mat))] <- 0
+  logLik_mat <- t(P0_mat) %*% (1 - Config) + t(P1_mat) %*% Config
+  prob_mat <- exp(logLik_mat) / rowSums(exp(logLik_mat))
+  prob_mat
+}
+
+simulate_joint <- function(Config_all, D_all, n_clone = 4, mut_size = 5,
+                           missing = NULL, error_mean = c(0.01, 0.44), 
+                           error_var = c(30, 4.8), n_repeat = 1) {
+  simu_data_full <- list()
+  for (i in seq_len(n_repeat)) {
+    Config <- sample(Config_all[[n_clone - 2]], size = 1)[[1]]
+    Config <- matrix(rep(c(t(Config)), mut_size), ncol = ncol(Config), 
+                     byrow = TRUE)
+    row.names(Config) <- paste0("SNV", seq_len(nrow(Config)))
+    colnames(Config) <- paste0("Clone", seq_len(ncol(Config)))
+    D_input <- sample_seq_depth(D_all, n_cells = 200, missing_rate = missing, 
+                                n_sites = nrow(Config))
+    sim_dat <- sim_read_count(Config, D_input, Psi = NULL, cell_num = 200, 
+                              means = error_mean, vars = error_var)
+    sim_dat[["Config"]] <- Config
+    simu_data_full[[i]] <- sim_dat
+  }
+  simu_data_full
+}
+
+assign_score <- function(prob_mat, simu_mat, threshold=0.2, mode="delta") {
+  assign_0 <- cardelino::get_prob_label(simu_mat)
+  assign_1 <- cardelino::get_prob_label(prob_mat)
+  prob_val <- cardelino::get_prob_value(prob_mat, mode = mode)
+  idx <- prob_val >= threshold
+  
+  rt_list <- list("ass" = mean(idx), 
+                  "acc" = mean(assign_0 == assign_1),
+                  "acc_ass" = mean((assign_0 == assign_1)[idx]))
+  rt_list
+}
+
+assign_curve <- function(prob_mat, simu_mat, mode="delta"){
+  assign_0 <- cardelino::get_prob_label(simu_mat)
+  assign_1 <- cardelino::get_prob_label(prob_mat)
+  prob_val <- cardelino::get_prob_value(prob_mat, mode = mode)
+  
+  thresholds <- sort(unique(prob_val))
+  ACC <- rep(0, length(thresholds))
+  ASS <- rep(0, length(thresholds))
+  for (i in seq_len(length(thresholds))) {
+    idx <- prob_val >= thresholds[i]
+    ASS[i] <- mean(idx)
+    ACC[i] <- mean((assign_0 == assign_1)[idx])
+  }
+  thresholds <- c(thresholds, 1.0)
+  ACC <- c(ACC, 1.0)
+  ASS <- c(ASS, 0.0)
+  AUC <- AUC_acc_ass <- 0.0
+  for (i in seq_len(length(thresholds) - 1)) {
+    AUC <- AUC + 0.5 * (thresholds[i] - thresholds[i + 1]) * 
+      (ACC[i] + ACC[i + 1])
+    AUC_acc_ass <- AUC_acc_ass + 0.5 * (ASS[i] - ASS[i + 1]) * 
+      (ACC[i] + ACC[i + 1])
+  }
+  AUC <- AUC / (thresholds[1] - thresholds[length(thresholds)])
+  AUC_acc_ass <- AUC_acc_ass / (ASS[1] - ASS[length(thresholds)])
+  
+  rt_list <- list("ACC" = ACC, "ASS" = ASS, "AUC" = AUC, 
+                  "AUC_acc_ass" = AUC_acc_ass, "thresholds" = thresholds)
+  rt_list
+}
+
+assign_macro_ROC <- function(prob_mat, simu_mat) {
+  thresholds <- seq(0, 0.999, 0.001)
+  ACC <- rep(0, length(thresholds))
+  ASS <- rep(0, length(thresholds))
+  FPR <- rep(0, length(thresholds))
+  TPR <- rep(0, length(thresholds))
+  for (i in seq_len(length(thresholds))) {
+    idx <- prob_mat >= thresholds[i]
+    ASS[i] <- mean(idx) # not very meaningful
+    ACC[i] <- mean(simu_mat[idx])
+    FPR[i] <- sum(simu_mat[idx] == 0) / sum(simu_mat == 0)
+    TPR[i] <- sum(simu_mat[idx] == 1) / sum(simu_mat == 1)
+  }
+  
+  AUC <- 0.0
+  for (i in seq_len(length(thresholds) - 1)) {
+    AUC <- AUC + 0.5 * (FPR[i] - FPR[i + 1]) * (TPR[i] + TPR[i + 1])
+  }
+  
+  rt_list <- list("FPR" = FPR, "TPR" = TPR, "AUC" = AUC,
+                  "thresholds" = thresholds, "ACC" = ACC, "ASS" = ASS)
+  rt_list
+}
+
+```
+
+Run simulations.
+
+```{r run-sims}
+set.seed(1)
+ACC_all <- c()
+ASS_all <- c()
+AUC_all <- c()
+ERR_all <- c()
+labels_all <- c()
+method_all <- c()
+variable_all <- c()
+
+type_use <- c("mut_size", "n_clone", "missing", "FNR", "shapes1")
+value_list <- list(c(3, 5, 7, 10, 15, 25), 
+                   seq(3, 8), 
+                   seq(0.7, 0.95, 0.05), 
+                   seq(0.35, 0.6, 0.05),
+                   c(0.5, 1.0, 2.0, 4.0, 8.0, 16.0))
+
+for (mm in seq_len(length(value_list))) {
+  values_all <- value_list[[mm]]
+  for (k in seq_len(length(values_all)))  {
+    if (mm == 1) {
+      simu_data <- simulate_joint(Config_all, simu_input$D, n_clone = 4, 
+                                  mut_size = values_all[k], missing = 0.8, 
+                                  error_mean = c(0.01, 0.44), n_repeat = 20)
+    } else if (mm == 2) { 
+      simu_data <- simulate_joint(Config_all, simu_input$D, 
+                                  n_clone = values_all[k], mut_size = 10, 
+                                  missing = 0.8, error_mean = c(0.01, 0.44),
+                                  n_repeat = 20)
+    } else if (mm == 3) {
+      simu_data <- simulate_joint(Config_all, simu_input$D, n_clone = 4, 
+                                  mut_size = 10, missing = values_all[k], 
+                                  error_mean = c(0.01, 0.44), n_repeat = 20)
+    } else if (mm == 4) {
+      simu_data <- simulate_joint(Config_all, simu_input$D, n_clone = 4, 
+                                  mut_size = 10, missing = 0.8, 
+                                  error_mean = c(0.01, values_all[k]), 
+                                  n_repeat = 20)
+    } else if (mm == 5) {
+      simu_data <- simulate_joint(Config_all, simu_input$D, n_clone = 4, 
+                                  mut_size = 10, missing = 0.8, 
+                                  error_mean = c(0.01, 0.44), 
+                                  error_var = c(30, values_all[k]), 
+                                  n_repeat = 20)
+    }
+    
+    for (d_tmp in simu_data) {
+      prob_all <- list()
+      methods_use <- c("demuxlet", "Bern_EM", "Binom_EM", "Binom_Gibbs",
+                       "Binom_gmline")
+      prob_all[[1]] <- demuxlet(d_tmp$A_sim, d_tmp$D_sim, d_tmp$Config, 
+                                theta0 = mean(d_tmp$theta0_binom, na.rm = TRUE))
+      prob_all[[2]] <- cell_assign_EM(d_tmp$A_sim, d_tmp$D_sim, d_tmp$Config, 
+                                      Psi = NULL, verbose = F)$prob
+      prob_all[[3]] <- cell_assign_EM(d_tmp$A_sim, d_tmp$D_sim, d_tmp$Config, 
+                                      Psi = NULL, model = "binomial",
+                                      verbose = FALSE)$prob
+      prob_all[[4]] <- cell_assign_Gibbs(d_tmp$A_sim, d_tmp$D_sim,
+                                         d_tmp$Config, Psi = NULL,
+                                         min_iter = 1000, wise = "variant", 
+                                         prior1 = c(2.11, 2.69), 
+                                         verbose = FALSE)$prob
+      
+      for (i in seq_len(length(prob_all))) {
+        prob_mat <- prob_all[[i]]
+        assign_scr <- assign_score(prob_mat, d_tmp$I_sim, 
+                                                threshold = 0.5001, 
+                                                mode = "best")
+        ACC_all <- c(ACC_all, assign_scr$acc_ass)
+        ASS_all <- c(ASS_all, assign_scr$ass)
+        AUC_all <- c(AUC_all, assign_curve(prob_mat, d_tmp$I_sim, 
+                                           mode = "best")$AUC_acc_ass)
+        ERR_all <- c(ERR_all, mean(abs(prob_mat - d_tmp$I_sim)))
+        labels_all <- c(labels_all, values_all[k])
+        method_all <- c(method_all, methods_use[i])
+        variable_all <- c(variable_all, type_use[mm])
+      }
+    }
+  }
+}
+
+df <- data.frame(Accuracy = ACC_all, AUC_of_ACC_ASS = AUC_all, 
+                 Assignable = ASS_all, MAE = ERR_all, Methods = method_all, 
+                 labels = labels_all, variable = variable_all)
+
+dat_dir <- "data/simulations"
+saveRDS(df, paste0(dat_dir, "/simulate_extra_s1_v2.rds"))
+```
+
+
+## Precision-recall curve
+
+```{r pr-curve-calc}
+set.seed(1)
+PCAU_curve_list <- list()
+
+simu_data <- simulate_joint(Config_all, simu_input$D, n_clone = 4, 
+                              mut_size = 10, missing = 0.8, 
+                              error_mean = c(0.01, 0.44), n_repeat = 20)
+
+assign_0 <- matrix(0, nrow = 200, ncol = 20)
+assign_1 <- matrix(0, nrow = 200, ncol = 20)
+prob_all <- matrix(0, nrow = 200, ncol = 20)
+for (i in seq_len(length(simu_data))) {
+  d_tmp <- simu_data[[i]]
+  prob_tmp <- cell_assign_Gibbs(d_tmp$A_sim, d_tmp$D_sim,
+                                d_tmp$Config, Psi = NULL,
+                                min_iter = 1000, wise = "variant", 
+                                prior1 = c(2.11, 2.69), verbose = FALSE)$prob
+  assign_0[, i] <- get_prob_label(d_tmp$I_sim)
+  assign_1[, i] <- get_prob_label(prob_tmp)
+  prob_all[, i] <- get_prob_value(prob_tmp, mode = "best")
+}
+
+dat_dir = "data/simulations"
+saveRDS(list("assign_0" = assign_0, "assign_1" = assign_1, 
+             "prob_all" = prob_all), 
+        paste0(dat_dir, "/simulate_prob_curve.rds"))
+```
+
+
+## Analysis of systematic results
+
+### Precision-recall curve for default settings
+
+```{r}
+rds.tmp <- readRDS(paste0(dat_dir, "/simulate_prob_curve.rds"))
+assign_0 <- rds.tmp$assign_0
+assign_1 <- rds.tmp$assign_1
+prob_all <- rds.tmp$prob_all
+
+thresholds <- seq(0, 1, 0.001)
+recalls <- rep(0, length(thresholds))
+precision_all <- matrix(0, nrow = length(thresholds), ncol = ncol(prob_all) + 1)
+for (i in seq_len(length(thresholds))) {
+    idx <- prob_all >= thresholds[i] 
+    recalls[i] <- mean(idx)
+    precision_all[i, ncol(prob_all) + 1] <- mean((assign_0 == assign_1)[idx])
+    for (j in seq_len(ncol(prob_all))) {
+        idx <- prob_all[, j] >= sort(prob_all[, j], 
+                                     decreasing = TRUE)[round(recalls[i] *
+                                                                nrow(prob_all))]
+        precision_all[i, j] <- mean((assign_0[,j] == assign_1[,j])[idx])
+    }
+}
+
+order_idx <- order(colMeans(precision_all[, 1:ncol(prob_all)]))
+idx1 <- order_idx[round(0.25 * length(order_idx))]
+idx2 <- order_idx[round(0.75 * length(order_idx))]
+
+df.tmp <- data.frame(cutoff = thresholds, Recall = recalls, 
+                     Presision = precision_all[, ncol(precision_all)], 
+                     ACC_low1 = precision_all[, idx1],
+                     ACC_high1 = precision_all[, idx2])
+```
+
+Calculate AUC score.
+
+```{r}
+nn <- ncol(precision_all)
+AUC_score <- 0.0
+for (i in seq_len(length(recalls) - 1)) {
+    AUC_score <- AUC_score + 0.5 * (recalls[i] - recalls[i + 1]) * 
+      (precision_all[i, nn] + precision_all[i + 1, nn])
+}
+AUC_score <- AUC_score / (recalls[1] - recalls[length(recalls)])
+print(AUC_score)
+```
+
+Plot PR curve.
+
+```{r plot-pr-curve, fig.height=2.5, fig.width=3.5}
+fig_dir <- "figures/simulations"
+
+idx_05 <- prob_all >= 0.5
+recall_05 <- mean(idx_05)
+precision_05 <- mean((assign_0 == assign_1)[idx_05])
+print(c(recall_05, precision_05))
+
+fig.curve <- ggplot(df.tmp, aes(x = Recall, y = Presision)) + 
+  geom_ribbon(aes(ymin = ACC_low1, ymax = ACC_high1), fill = "grey80") +
+  scale_color_viridis(option = "B") +
+  geom_line(aes(color = cutoff)) + geom_point(aes(color = cutoff), size = 0.5) + 
+  geom_point(aes(x = recall_05, y = precision_05), shape = 1, color = "black",
+             size = 3) +
+  xlab("Recall: Fraction of assignable cells") + 
+  ylab("Precision") + 
+  ylim(0.5, 1) +
+  pub.theme() + 
+  theme(legend.position = c(0.25,0.45)) + 
+  labs(color = 'highest P') 
+
+ggsave(paste0(fig_dir, "/fig1b_PRcurve.png"), 
+       fig.curve, height = 2.5, width = 3.5, dpi = 300)
+ggsave(paste0(fig_dir, "/fig1b_PRcurve.pdf"), 
+       fig.curve, height = 2.5, width = 3.5, dpi = 300)
+fig.curve
+```
+
+
+### Comparison of parameters
+
+Assess cardelino with simulated data.
+
+```{r}
+df <- readRDS(paste0("data/simulations/simulate_extra_s1_v2.rds"))
+
+## Change method names
+df$Methods <- as.character(df$Methods)
+df <- df[df$Methods != "Bern_EM", ]
+df$Methods[df$Methods == "demuxlet"] <- "theta_fixed"
+df$Methods[df$Methods == "Binom_EM"] <- "theta_EM"
+df$Methods[df$Methods == "Binom_Gibbs"] <- "cardelino"
+df$Methods <- as.factor(df$Methods)
+
+## Change variables
+df$labels[df$variable == "missing"] <- 1 - df$labels[df$variable == "missing"]
+df$labels[df$variable == "shapes1"] <- 1 / df$labels[df$variable == "shapes1"] #paste0("1/", df$labels[df$variable == "shapes1"])
+```
+
+Table of results from simulations:
+
+```{r}
+head(df)
+```
+
+Area under Precision-Recall curves for different parameter settings.
+
+```{r fig1d, fig.height=2.5, fig.width=3.5}
+fig_dir <- "figures/simulations/"
+
+df1 <- df[df$Methods == "cardelino", ]
+
+type_use <- c("mut_size", "n_clone", "missing", "FNR", "shapes1")
+xlabels <- c("# variants per clonal branch", "Number of clones", 
+             "Overall variant coverage")
+titles <- c("Mutations per branch", "Numbers of clones", "Variant coverages",
+            "Fraction of ALT allele", "Constrentration of allelic expr")
+
+df1 <- df1[df1$labels != 40, ]
+df1 <- df1[df1$labels != 0.65, ]
+df1 <- df1[df1$labels != 0.60, ]
+
+fig_list <- list()
+for (mm in c(1,3)) {
+  fig_list[[mm]] <- ggplot(df1[df1$variable == type_use[mm], ],
+                           aes(x = as.factor(labels), y = AUC_of_ACC_ASS)) +
+    ylab("AU precision-recall curve") + 
+    geom_boxplot() + xlab(xlabels[mm]) + 
+    ylim(0.6, 1) + pub.theme()
+  #     if (mm == 1) {
+  #         fig_list[[mm]] <- fig_list[[mm]] + 
+  #             scale_x_discrete(labels=c("3", "5", "7", "10*", "15", "15")) }
+  #     if (mm == 3) {
+  #         fig_list[[mm]] <- fig_list[[mm]] + 
+  #             scale_x_discrete(labels=c("0.05", "0.1", "0.15", "0.2*", "0.25", "0.3")) }
+}
+
+ggsave(file = paste0(fig_dir, "fig_1c_mutations.png"),
+       fig_list[[1]], height = 2.5, width = 3.5, dpi = 300)
+ggsave(file = paste0(fig_dir, "fig_1c_mutations.pdf"),
+       fig_list[[1]], height = 2.5, width = 3.5, dpi = 300)
+
+ggsave(file = paste0(fig_dir, "fig_1d_coverages.png"),
+       fig_list[[3]], height = 2.5, width = 3.5, dpi = 300)
+ggsave(file = paste0(fig_dir, "fig_1d_coverages.pdf"),
+       fig_list[[3]], height = 2.5, width = 3.5, dpi = 300)
+
+fig_list[[1]]
+fig_list[[3]]
+```
+
+Boxplots comparing different models for cell-clone assignment.
+
+```{r, fig.height=7, fig.width=12}
+type_use <- c("mut_size", "n_clone", "missing", "FNR", "shapes1")
+xlabels <- c("# variants per clonal branch", "Number of clones", 
+             "Overall variant coverage", 
+             "Mean fraction of ALT alleles", "Variance of allelic imbalance")
+df$Methods <- ordered(df$Methods, levels=c("theta_fixed", "theta_EM", 
+                                           "cardelino")) #Bern_EM
+
+xlabel_list <- list(c("3", "5", "7", "10*", "15", "15"), 
+                    c("3", "4*", "5", "6", "7", "8"),
+                    c("0.05", "0.1", "0.15", "0.2*", "0.25", "0.3"),
+                    c("0.35", "0.4", "* 0.45", "0.5", "0.55", "0.6"),
+                    c("1/16", "1/8", "*  1/4", "1/2", "1", "2"))
+
+fig_list <- list()
+for (mm in seq_len(length(type_use))) {
+  fig_list[[mm]] <- ggplot(df[df$variable == type_use[mm], ],
+                           aes(x = as.factor(labels), y = AUC_of_ACC_ASS,
+                               fill=Methods)) + 
+    geom_boxplot() + xlab(xlabels[mm]) + ylab("AUC: precision-recall curve") +
+    pub.theme() + 
+    scale_fill_brewer() + 
+    scale_x_discrete(labels=xlabel_list[[mm]])
+}
+
+fig_box <- ggarrange(fig_list[[1]], fig_list[[3]], fig_list[[2]], 
+                     fig_list[[4]], fig_list[[5]], 
+                     labels = c("A", "B", "C", "D", "E"),
+                     nrow = 2, ncol = 3, align = "hv", 
+                     common.legend = TRUE, legend = "bottom")
+
+ggsave(file = paste0(fig_dir, "simulation_overall_AUC.png"),
+       fig_box, height = 7, width = 12, dpi = 300)
+ggsave(file = paste0(fig_dir, "simulation_overall_AUC.pdf"),
+       fig_box, height = 7, width = 12, dpi = 300)
+
+fig_box
+```
+
+
+## Analysis of simulation results for individual lines
+
+### Load simulation results for individual lines
 
 ```{r}
 all_files <- paste0(lines, ".simulate.rds")
@@ -37,6 +465,7 @@ for (i in seq_len(length(all_files))) {
   prob_all[, i] <- get_prob_value(sim_dat$prob_Gibbs, mode = "best")
 }
 ```
+
 
 ### Load results from real data
 

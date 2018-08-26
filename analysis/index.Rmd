@@ -53,9 +53,9 @@ The results presented in the paper were produced with these analyses.
 
 1. [Simulation results.](simulations.html)
 
-1. [Overview of lines](overview_lines.html)
+1. [Overview of lines.](overview_lines.html)
 
-1. [Selection models](selection_models.Rmd)
+1. [Selection models.](selection_models.html)
 
 1. [Analysis of clonal prevalences.](clone_prevalences.html)
 
