@@ -12,7 +12,7 @@
 <meta name="author" content="Yuanhua Huang &amp; Davis J. McCarthy" />
 
 
-<title>Technical effecs on clonal assignment</title>
+<title>Technical effects on clonal assignment</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -361,13 +361,13 @@ div.section {
 
 
 
-<h1 class="title toc-ignore">Technical effecs on clonal assignment</h1>
+<h1 class="title toc-ignore">Technical effects on clonal assignment</h1>
 <h4 class="author"><em>Yuanhua Huang &amp; Davis J. McCarthy</em></h4>
 
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-26</p>
+<p><strong>Last updated:</strong> 2018-08-27</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/957a8d2bff180f9394098c7889d5419ff50c6318" target="_blank">957a8d2</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/678546d87f50bae3c1430f12e82c511a6eecdf6f" target="_blank">678546d</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -431,7 +431,6 @@ Untracked files:
     Untracked:  data/selection/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/selection_models.Rmd/
     Untracked:  figures/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
@@ -441,9 +440,6 @@ Untracked files:
     Untracked:  output/variance_components/
     Untracked:  references/
     Untracked:  tree.txt
-
-Unstaged changes:
-    Modified:   analysis/index.Rmd
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -472,6 +468,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/7888ad339a101fdd4f7308b6c4dede2f61fac96c/docs/tech_effects.html" target="_blank">7888ad3</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+<td style="text-align:left;">
+Adding untracked html files
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/6d296e7a721e6ddd33ffd02ca1be65d57d112cbf/analysis/tech_effects.Rmd" target="_blank">6d296e7</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+<td style="text-align:left;">
+Fixing a couple of little bugs
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -592,10 +622,7 @@ reading zoxy </code></pre>
     D &lt;-<span class="st"> </span>cdln_list[[don]]<span class="op">$</span>D[, sce_unst_list[[don]]<span class="op">$</span>cell]
     D[<span class="kw">which</span>(<span class="kw">is.na</span>(D))] &lt;-<span class="st"> </span><span class="dv">0</span>
     <span class="cf">if</span> (<span class="kw">sum</span>(sce_unst_list[[don]]<span class="op">$</span>assignable) <span class="op">&gt;=</span><span class="st"> </span><span class="dv">60</span>) {idx &lt;-<span class="st"> </span><span class="kw">c</span>(idx, i)}
-}
-<span class="kw">t</span>(idx)</code></pre></div>
-<pre><code>     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12]
-[1,]    1    3    5    6   10   13   18   25   28    29    30    32</code></pre>
+}</code></pre></div>
 </div>
 <div id="total-genes" class="section level2">
 <h2>Total genes</h2>
@@ -634,6 +661,36 @@ fig_box_dp &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(
 
 fig_box_dp</code></pre></div>
 <p><img src="figure/tech_effects.Rmd/total-genes-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of total-genes-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/7888ad339a101fdd4f7308b6c4dede2f61fac96c/docs/figure/tech_effects.Rmd/total-genes-1.png" target="_blank">7888ad3</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 <div id="total-reads" class="section level2">
 <h2>Total reads</h2>
@@ -671,7 +728,37 @@ fig_box_dp2 &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(
        fig_box_dp2, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
 
 fig_box_dp2</code></pre></div>
-<p><img src="figure/tech_effects.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/tech_effects.Rmd/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-4-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/7888ad339a101fdd4f7308b6c4dede2f61fac96c/docs/figure/tech_effects.Rmd/unnamed-chunk-4-1.png" target="_blank">7888ad3</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 <div id="total-number-of-somatic-variants-with-read-coverage" class="section level2">
 <h2>Total number of somatic variants with read coverage</h2>
@@ -709,7 +796,37 @@ fig_box_dp2 &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(
        fig_box_dp2, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
 
 fig_box_dp2</code></pre></div>
-<p><img src="figure/tech_effects.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/tech_effects.Rmd/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/7888ad339a101fdd4f7308b6c4dede2f61fac96c/docs/figure/tech_effects.Rmd/unnamed-chunk-5-1.png" target="_blank">7888ad3</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 <div id="pca-on-read-coverage-of-somatic-variants" class="section level2">
 <h2>PCA on read coverage of somatic variants</h2>
@@ -754,6 +871,36 @@ fig_pca_all &lt;-<span class="st"> </span><span class="kw">list</span>()
 
 fig_pca_dp</code></pre></div>
 <p><img src="figure/tech_effects.Rmd/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-7-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/7888ad339a101fdd4f7308b6c4dede2f61fac96c/docs/figure/tech_effects.Rmd/unnamed-chunk-7-1.png" target="_blank">7888ad3</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 <div id="points-coloured-by-clone1-probability" class="section level3">
 <h3>Points coloured by clone1 probability</h3>
@@ -795,9 +942,39 @@ fig_pca_all &lt;-<span class="st"> </span><span class="kw">list</span>()
        fig_pca_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
 fig_pca_dp</code></pre></div>
 <p><img src="figure/tech_effects.Rmd/unnamed-chunk-9-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-9-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/7888ad339a101fdd4f7308b6c4dede2f61fac96c/docs/figure/tech_effects.Rmd/unnamed-chunk-9-1.png" target="_blank">7888ad3</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
-<div id="points-coloured-by-clone1-probability-1" class="section level3">
-<h3>Points coloured by clone1 probability</h3>
+<div id="points-coloured-by-clone2-probability" class="section level3">
+<h3>Points coloured by clone2 probability</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_pca_all &lt;-<span class="st"> </span><span class="kw">list</span>()
 <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
     don &lt;-<span class="st"> </span>donors[i]
@@ -833,6 +1010,36 @@ fig_pca_dp</code></pre></div>
        fig_pca_dp, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="dv">8</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
 fig_pca_dp</code></pre></div>
 <p><img src="figure/tech_effects.Rmd/unnamed-chunk-11-1.png" width="768" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-11-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/7888ad339a101fdd4f7308b6c4dede2f61fac96c/docs/figure/tech_effects.Rmd/unnamed-chunk-11-1.png" target="_blank">7888ad3</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 </div>
 <div id="session-information" class="section level2">
@@ -845,7 +1052,7 @@ fig_pca_dp</code></pre></div>
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-26                  
+ date     2018-08-27                  
 
  package              * version   date       source        
  assertthat             0.2.0     2017-04-11 CRAN (R 3.5.0)

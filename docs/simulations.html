@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-26</p>
+<p><strong>Last updated:</strong> 2018-08-27</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/cae617ffae45c04aac7d42624743ac91dd6072bb" target="_blank">cae617f</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/678546d87f50bae3c1430f12e82c511a6eecdf6f" target="_blank">678546d</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -431,8 +431,6 @@ Untracked files:
     Untracked:  data/selection/
     Untracked:  data/simulations/
     Untracked:  data/variance_components/
-    Untracked:  docs/figure/selection_models.Rmd/
-    Untracked:  docs/figure/tech_effects.Rmd/
     Untracked:  figures/
     Untracked:  output/differential_expression/
     Untracked:  output/donor_specific/
@@ -470,6 +468,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/678546d87f50bae3c1430f12e82c511a6eecdf6f/analysis/simulations.Rmd" target="_blank">678546d</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Suppressing warnings.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/9ec2a595a73ee48db72d6c6d860dc45fb0192a36/docs/simulations.html" target="_blank">9ec2a59</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -596,7 +628,8 @@ Adding data pre-processing workflow and updating analyses.
 <hr />
 <div id="load-libraries-and-simulation-results" class="section level2">
 <h2>Load libraries and simulation results</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dir.create</span>(<span class="st">&quot;figures/simulations&quot;</span>, <span class="dt">showWarnings =</span> <span class="ot">FALSE</span>, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>, <span class="dt">warning =</span> <span class="ot">FALSE</span>, <span class="dt">message =</span> <span class="ot">FALSE</span>)
+<span class="kw">dir.create</span>(<span class="st">&quot;figures/simulations&quot;</span>, <span class="dt">showWarnings =</span> <span class="ot">FALSE</span>, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)
 <span class="kw">library</span>(ggpubr)
 <span class="kw">library</span>(tidyverse)
 <span class="kw">library</span>(cardelino)
@@ -898,6 +931,36 @@ precision_<span class="dv">05</span> &lt;-<span class="st"> </span><span class="
        fig.curve, <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
 fig.curve</code></pre></div>
 <p><img src="figure/simulations.Rmd/plot-pr-curve-1.png" width="336" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plot-pr-curve-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/9ec2a595a73ee48db72d6c6d860dc45fb0192a36/docs/figure/simulations.Rmd/plot-pr-curve-1.png" target="_blank">9ec2a59</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 <div id="comparison-of-parameters" class="section level3">
 <h3>Comparison of parameters</h3>
@@ -962,23 +1025,79 @@ fig_list &lt;-<span class="st"> </span><span class="kw">list</span>()
 }
 
 <span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1c_mutations.png&quot;</span>),
-       fig_list[[<span class="dv">1</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)</code></pre></div>
-<pre><code>Warning: Removed 6 rows containing non-finite values (stat_boxplot).</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1c_mutations.pdf&quot;</span>),
-       fig_list[[<span class="dv">1</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)</code></pre></div>
-<pre><code>Warning: Removed 6 rows containing non-finite values (stat_boxplot).</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1d_coverages.png&quot;</span>),
-       fig_list[[<span class="dv">3</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)</code></pre></div>
-<pre><code>Warning: Removed 3 rows containing non-finite values (stat_boxplot).</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1d_coverages.pdf&quot;</span>),
-       fig_list[[<span class="dv">3</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)</code></pre></div>
-<pre><code>Warning: Removed 3 rows containing non-finite values (stat_boxplot).</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_list[[<span class="dv">1</span>]]</code></pre></div>
-<pre><code>Warning: Removed 6 rows containing non-finite values (stat_boxplot).</code></pre>
+       fig_list[[<span class="dv">1</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1c_mutations.pdf&quot;</span>),
+       fig_list[[<span class="dv">1</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+
+<span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1d_coverages.png&quot;</span>),
+       fig_list[[<span class="dv">3</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+<span class="kw">ggsave</span>(<span class="dt">file =</span> <span class="kw">paste0</span>(fig_dir, <span class="st">&quot;fig_1d_coverages.pdf&quot;</span>),
+       fig_list[[<span class="dv">3</span>]], <span class="dt">height =</span> <span class="fl">2.5</span>, <span class="dt">width =</span> <span class="fl">3.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>)
+
+fig_list[[<span class="dv">1</span>]]</code></pre></div>
 <p><img src="figure/simulations.Rmd/fig1d-1.png" width="336" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of fig1d-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/9ec2a595a73ee48db72d6c6d860dc45fb0192a36/docs/figure/simulations.Rmd/fig1d-1.png" target="_blank">9ec2a59</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fig_list[[<span class="dv">3</span>]]</code></pre></div>
-<pre><code>Warning: Removed 3 rows containing non-finite values (stat_boxplot).</code></pre>
 <p><img src="figure/simulations.Rmd/fig1d-2.png" width="336" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of fig1d-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/9ec2a595a73ee48db72d6c6d860dc45fb0192a36/docs/figure/simulations.Rmd/fig1d-2.png" target="_blank">9ec2a59</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <p>Boxplots comparing different models for cell-clone assignment.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">type_use &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;mut_size&quot;</span>, <span class="st">&quot;n_clone&quot;</span>, <span class="st">&quot;missing&quot;</span>, <span class="st">&quot;FNR&quot;</span>, <span class="st">&quot;shapes1&quot;</span>)
 xlabels &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;# variants per clonal branch&quot;</span>, <span class="st">&quot;Number of clones&quot;</span>, 
@@ -1017,6 +1136,36 @@ fig_box &lt;-<span class="st"> </span><span class="kw">ggarrange</span>(fig_list
 
 fig_box</code></pre></div>
 <p><img src="figure/simulations.Rmd/unnamed-chunk-6-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-6-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/9ec2a595a73ee48db72d6c6d860dc45fb0192a36/docs/figure/simulations.Rmd/unnamed-chunk-6-1.png" target="_blank">9ec2a59</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 </div>
 </div>
 <div id="analysis-of-simulation-results-for-individual-lines" class="section level2">
@@ -1080,6 +1229,36 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Assignment rate: simulated&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assignment rate: observed&quot;</span>)</code></pre></div>
 <p><img src="figure/simulations.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-10-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/9ec2a595a73ee48db72d6c6d860dc45fb0192a36/docs/figure/simulations.Rmd/unnamed-chunk-10-1.png" target="_blank">9ec2a59</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/assign_rate_obs_v_sim.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="dv">5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/assign_rate_obs_v_sim.pdf&quot;</span>, 
@@ -1103,6 +1282,36 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Assignment rate (recall)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Precision&quot;</span>)</code></pre></div>
 <p><img src="figure/simulations.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of unnamed-chunk-11-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/9ec2a595a73ee48db72d6c6d860dc45fb0192a36/docs/figure/simulations.Rmd/unnamed-chunk-11-1.png" target="_blank">9ec2a59</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-26
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/sim_precision_v_recall.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/sim_precision_v_recall.pdf&quot;</span>, 
@@ -1123,7 +1332,6 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
 <div id="session-information" class="section level2">
 <h2>Session information</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">session_info</span>()</code></pre></div>
-<pre><code>Session info -------------------------------------------------------------</code></pre>
 <pre><code> setting  value                       
  version  R version 3.5.1 (2018-07-02)
  system   x86_64, darwin15.6.0        
@@ -1131,9 +1339,9 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-26                  </code></pre>
-<pre><code>Packages -----------------------------------------------------------------</code></pre>
-<pre><code> package              * version   date       source        
+ date     2018-08-27                  
+
+ package              * version   date       source        
  AnnotationDbi          1.42.1    2018-05-08 Bioconductor  
  ape                    5.1       2018-04-04 CRAN (R 3.5.0)
  assertthat             0.2.0     2017-04-11 CRAN (R 3.5.0)
