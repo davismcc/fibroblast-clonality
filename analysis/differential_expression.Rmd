@@ -28,6 +28,7 @@ library(viridis)
 library(IHW)
 library(cowplot)
 library(broom)
+library(cardelino)
 options(stringsAsFactors = FALSE)
 dir.create("figures/differential_expression", showWarnings = FALSE, 
            recursive = TRUE)
@@ -881,7 +882,7 @@ ggsave("figures/differential_expression/top_genesets_H_corrplot_with_nsig_donor.
 
 ## Linking DE to selection
 
-```{r}
+```{r link-de-to-selection}
 df_donor_info <- read.table("data/donor_info_070818.txt")
 df_donor_info <- as_data_frame(df_donor_info)
 df_donor_info$donor <- df_donor_info$donor_short
@@ -1120,11 +1121,11 @@ each line.
 
 We load the simulation results for individual lines.
 
-```{r}
-all_files <- paste0(lines, ".simulate.rds")
-assign_0 <- matrix(0, nrow = 500, ncol = length(lines))
-assign_1 <- matrix(0, nrow = 500, ncol = length(lines))
-prob_all <- matrix(0, nrow = 500, ncol = length(lines))
+```{r read-sim-results}
+all_files <- paste0(donors, ".simulate.rds")
+assign_0 <- matrix(0, nrow = 500, ncol = length(donors))
+assign_1 <- matrix(0, nrow = 500, ncol = length(donors))
+prob_all <- matrix(0, nrow = 500, ncol = length(donors))
 
 for (i in seq_len(length(all_files))) {
   afile <- all_files[i]
@@ -1135,21 +1136,20 @@ for (i in seq_len(length(all_files))) {
 }
 
 
-precision_simu <- rep(0, length(lines))
-for (i in seq_len(length(lines))) {
+precision_simu <- rep(0, length(donors))
+for (i in seq_len(length(donors))) {
   idx <- prob_all[, i] > 0.5
   precision_simu[i] <- mean(assign_0[idx, i] == assign_1[idx, i])
 }
 
-df <- data.frame(line = lines, n_sites = n_sites, n_clone = n_clone, 
-                 recall_real = recall_all, recall_simu = colMeans(prob_all > 0.5),
+df <- data.frame(line = donors, recall_simu = colMeans(prob_all > 0.5),
                  precision_simu = precision_simu)
 ```
 
 We can now look at the relationship between the number of DE genes detected 
 per line and the assignment accuracy and assignment rate per line.
 
-```{r plot-de-assignment-acc}
+```{r plot-de-assignment-acc, fig.height=10, fig.width=6.5}
 df <- inner_join(df, dplyr::mutate(df_nbglm_nde, line = donor))
 ## n_de (resids) vs assignment accuracy
 p1 <- df %>%
