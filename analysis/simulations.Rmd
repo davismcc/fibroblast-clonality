@@ -7,6 +7,7 @@ site: workflowr::wflow_site
 ## Load libraries and simulation results
 
 ```{r load-libs, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 dir.create("figures/simulations", showWarnings = FALSE, recursive = TRUE)
 library(ggpubr)
 library(tidyverse)
