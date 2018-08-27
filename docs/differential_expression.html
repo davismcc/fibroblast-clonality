@@ -399,7 +399,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/678546d87f50bae3c1430f12e82c511a6eecdf6f" target="_blank">678546d</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/c882c5989069a373a6f53b9a153c48ff54201dc2" target="_blank">c882c59</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -476,6 +476,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/c882c5989069a373a6f53b9a153c48ff54201dc2/analysis/differential_expression.Rmd" target="_blank">c882c59</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Fixing some typos
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/8f74680874677bcc6be4eea5f6c1fba9d02db602/analysis/differential_expression.Rmd" target="_blank">8f74680</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Adding a couple of extra plots
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/e573f2fcd4c0769acde01e24a2bb0c7fc3066ae9/docs/differential_expression.html" target="_blank">e573f2f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -844,7 +895,7 @@ df_de_all_unst &lt;-<span class="st"> </span><span class="kw">data_frame</span>(
 df_ncells_de &lt;-<span class="st"> </span>assignments <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">filter</span>(assigned <span class="op">!=</span><span class="st"> &quot;unassigned&quot;</span>, 
                               donor_short_id <span class="op">%in%</span><span class="st"> </span><span class="kw">names</span>(de_res<span class="op">$</span>qlf_list)) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(donor_short_id) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_cells =</span> <span class="kw">n</span>())
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_cells =</span> <span class="kw">n</span>())
 <span class="kw">colnames</span>(df_ncells_de)[<span class="dv">1</span>] &lt;-<span class="st"> &quot;donor&quot;</span>
 
 fdr_thresh &lt;-<span class="st"> </span><span class="fl">0.1</span>
@@ -864,8 +915,8 @@ df_de_sig_unst &lt;-<span class="st"> </span><span class="kw">data_frame</span>(
 df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(gene) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, gene)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">count =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">count =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span>
 <span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> n_donors, <span class="dt">y =</span> count)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">x =</span> n_donors, <span class="dt">xend =</span> n_donors, <span class="dt">y =</span> count, <span class="dt">yend =</span> <span class="fl">0.1</span>), 
                  <span class="dt">colour =</span> <span class="st">&quot;gray50&quot;</span>) <span class="op">+</span>
@@ -918,8 +969,8 @@ davismcc
 p1 &lt;-<span class="st"> </span>df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(gene) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, gene)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">count =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">count =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span>
 <span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> n_donors, <span class="dt">y =</span> count)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">x =</span> n_donors, <span class="dt">xend =</span> n_donors, <span class="dt">y =</span> count, <span class="dt">yend =</span> <span class="fl">0.1</span>), 
                  <span class="dt">colour =</span> <span class="st">&quot;gray50&quot;</span>) <span class="op">+</span>
@@ -970,7 +1021,7 @@ davismcc
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p2 &lt;-<span class="st"> </span>df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(gene) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, gene)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(gene, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(gene, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">gene =</span> <span class="kw">gsub</span>(<span class="st">&quot;ENSG.*_&quot;</span>, <span class="st">&quot;&quot;</span>, gene)) <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(n_donors <span class="op">&gt;</span><span class="st"> </span><span class="fl">7.5</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">y =</span> n_donors, <span class="dt">x =</span> <span class="kw">reorder</span>(gene, n_donors, max))) <span class="op">+</span>
@@ -1027,14 +1078,14 @@ df_donor_n_de &lt;-<span class="st"> </span>df_de_sig_unst <span class="op">%&gt
 <span class="st">    </span><span class="kw">group_by</span>(gene) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, gene)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(donor) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">count =</span> <span class="kw">n</span>())
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">count =</span> <span class="kw">n</span>())
 no_de_donor &lt;-<span class="st"> </span><span class="kw">unique</span>(df_de_all_unst[[<span class="st">&quot;donor&quot;</span>]])[<span class="op">!</span>(<span class="kw">unique</span>(df_de_all_unst[[<span class="st">&quot;donor&quot;</span>]]) <span class="op">%in%</span><span class="st"> </span>df_donor_n_de[[<span class="st">&quot;donor&quot;</span>]])]
 df_donor_n_de &lt;-<span class="st"> </span><span class="kw">rbind</span>(df_donor_n_de, <span class="kw">data_frame</span>(<span class="dt">donor =</span> no_de_donor, <span class="dt">count =</span> <span class="dv">0</span>))</code></pre></div>
 <p>Permute gene labels to get a null distribution.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_de_nsig &lt;-<span class="st"> </span>df_de_all_unst <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">filter</span>(FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.1</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, gene)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(donor) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_sig =</span> <span class="kw">n</span>())
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_sig =</span> <span class="kw">n</span>())
 df_nsig_ncells_de &lt;-<span class="st"> </span><span class="kw">full_join</span>(df_ncells_de, df_de_nsig)
 df_nsig_ncells_de<span class="op">$</span>n_sig[<span class="kw">is.na</span>(df_nsig_ncells_de<span class="op">$</span>n_sig)] &lt;-<span class="st"> </span><span class="dv">0</span>
 
@@ -1057,7 +1108,7 @@ df_perm &lt;-<span class="st"> </span><span class="kw">list</span>()
 df_perm &lt;-<span class="st"> </span><span class="kw">do.call</span>(<span class="st">&quot;rbind&quot;</span>, df_perm)
 df_perm &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(df_perm, <span class="dt">data_type =</span> <span class="st">&quot;permuted&quot;</span>)
 
-df_perm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarise</span>(<span class="dt">min =</span> <span class="kw">min</span>(n_genes), 
+df_perm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">min =</span> <span class="kw">min</span>(n_genes), 
                                              <span class="dt">median =</span> <span class="kw">median</span>(n_genes),
                                              <span class="dt">mean =</span> <span class="kw">mean</span>(n_genes), 
                                              <span class="dt">max =</span> <span class="kw">max</span>(n_genes))</code></pre></div>
@@ -1078,8 +1129,8 @@ df_perm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ppp &lt;-<span class="st"> </span>df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(gene) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, gene)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_genes =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">data_type =</span> <span class="st">&quot;observed&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_genes =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">data_type =</span> <span class="st">&quot;observed&quot;</span>) <span class="op">%&gt;%</span>
 <span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> n_donors, <span class="dt">y =</span> n_genes)) <span class="op">+</span>
 <span class="st">    </span><span class="co"># geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), </span>
 <span class="st">    </span><span class="co">#              colour = &quot;gray50&quot;) +</span>
@@ -1115,8 +1166,8 @@ df_perm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">
 df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(gene) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, gene)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_genes =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">data_type =</span> <span class="st">&quot;observed&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(n_donors) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_genes =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">data_type =</span> <span class="st">&quot;observed&quot;</span>) <span class="op">%&gt;%</span>
 <span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> n_donors, <span class="dt">y =</span> n_genes)) <span class="op">+</span>
 <span class="st">    </span><span class="co"># geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), </span>
 <span class="st">    </span><span class="co">#              colour = &quot;gray50&quot;) +</span>
@@ -1178,7 +1229,7 @@ davismcc
 <span class="st">    </span><span class="kw">group_by</span>(gene) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, gene)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(gene) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">count =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">count =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(<span class="kw">desc</span>(count)) <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">ensembl_gene_id =</span> <span class="kw">gsub</span>(<span class="st">&quot;_.*&quot;</span>, <span class="st">&quot;&quot;</span>, gene),
                   <span class="dt">hgnc_symbol =</span> <span class="kw">gsub</span>(<span class="st">&quot;.*_&quot;</span>, <span class="st">&quot;&quot;</span>, gene))
@@ -1374,7 +1425,7 @@ davismcc
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(donor, msigdb_collection) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_sig =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">print</span>(<span class="dt">n =</span> <span class="ot">Inf</span>)</code></pre></div>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_sig =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">print</span>(<span class="dt">n =</span> <span class="ot">Inf</span>)</code></pre></div>
 <pre><code># A tibble: 67 x 3
 # Groups:   donor [?]
    donor msigdb_collection     n_sig
@@ -1451,7 +1502,7 @@ davismcc
 df_camera_all_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(donor, msigdb_collection) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_sig =</span> <span class="kw">sum</span>(FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_sig =</span> <span class="kw">sum</span>(FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">donor =</span> <span class="kw">factor</span>(donor, <span class="dt">levels =</span> <span class="kw">rev</span>(<span class="kw">levels</span>(<span class="kw">factor</span>(donor))))) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">y =</span> n_sig, <span class="dt">x =</span> donor)) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="dv">1</span>, <span class="dt">size =</span> <span class="dv">4</span>) <span class="op">+</span>
@@ -1507,7 +1558,7 @@ davismcc
 df_camera_all_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(donor, msigdb_collection) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_sig =</span> <span class="kw">sum</span>(FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() -&gt;<span class="st"> </span>df_to_plot
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_sig =</span> <span class="kw">sum</span>(FDR <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() -&gt;<span class="st"> </span>df_to_plot
 df_to_plot &lt;-<span class="st"> </span><span class="kw">inner_join</span>(df_to_plot, 
                         <span class="kw">data_frame</span>(<span class="dt">donor =</span> <span class="kw">names</span>(ncells_by_donor),
                                    <span class="dt">ncells =</span> ncells_by_donor))
@@ -1567,7 +1618,7 @@ df_camera_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>dplyr<
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(geneset) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, geneset)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(geneset, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(geneset, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> <span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, geneset))) <span class="op">%&gt;%</span>
 <span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">y =</span> n_donors, <span class="dt">x =</span> <span class="kw">reorder</span>(geneset, n_donors, max))) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="fl">0.7</span>, <span class="dt">size =</span> <span class="dv">4</span>) <span class="op">+</span>
@@ -1626,7 +1677,7 @@ tmp &lt;-<span class="st"> </span>df_camera_sig_unst <span class="op">%&gt;%</sp
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(geneset, Direction) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, geneset)) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(geneset, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(geneset, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">y =</span> n_donors, <span class="dt">x =</span> <span class="kw">reorder</span>(geneset, n_donors, max),
              <span class="dt">colour =</span> Direction)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="fl">0.7</span>, <span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">position =</span> <span class="kw">position_dodge</span>(<span class="dt">width =</span> <span class="fl">0.5</span>)) <span class="op">+</span>
@@ -1675,7 +1726,7 @@ davismcc
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(collection <span class="op">==</span><span class="st"> &quot;H&quot;</span>, stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(geneset) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, geneset)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(n_donors) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(n_donors) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(n_donors <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>) 
 repeated_sig_H_genesets_vec &lt;-<span class="st"> </span><span class="kw">unique</span>(repeated_sig_H_genesets[[<span class="st">&quot;geneset&quot;</span>]])
 repeated_sig_H_genesets_vec &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, 
@@ -1825,7 +1876,7 @@ pp_nsig &lt;-<span class="st"> </span>df_camera_sig_unst <span class="op">%&gt;%
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(geneset) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, geneset)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(geneset, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(geneset, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> <span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, geneset))) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">y =</span> n_donors, <span class="dt">x =</span> <span class="kw">reorder</span>(geneset, n_donors, max))) <span class="op">+</span>
 <span class="st">    </span><span class="kw">geom_hline</span>(<span class="dt">yintercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray50&quot;</span>) <span class="op">+</span>
@@ -1894,7 +1945,7 @@ davismcc
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(collection <span class="op">==</span><span class="st"> &quot;H&quot;</span>, stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(geneset) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, geneset)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(n_donors) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(n_donors) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(n_donors <span class="op">&gt;</span><span class="st"> </span><span class="fl">2.5</span>) 
 repeated_sig_H_genesets_vec3 &lt;-<span class="st"> </span><span class="kw">unique</span>(repeated_sig_H_genesets3[[<span class="st">&quot;geneset&quot;</span>]])
 repeated_sig_H_genesets_vec3 &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, 
@@ -2124,7 +2175,7 @@ davismcc
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">filter</span>(stat <span class="op">==</span><span class="st"> &quot;logFC&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(geneset) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">id =</span> <span class="kw">paste0</span>(donor, geneset)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">distinct</span>(id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(geneset, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_donors =</span> <span class="kw">n</span>()) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">arrange</span>(geneset, n_donors) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> <span class="kw">gsub</span>(<span class="st">&quot;_&quot;</span>, <span class="st">&quot; &quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;HALLMARK_&quot;</span>, <span class="st">&quot;&quot;</span>, geneset))) <span class="op">%&gt;%</span>
 <span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">geneset =</span> <span class="kw">factor</span>(
       geneset, <span class="dt">levels =</span> <span class="kw">rownames</span>(mat_H_gene_overlap)[hclust_cor<span class="op">$</span>order])) <span class="op">%&gt;%</span>
@@ -2202,26 +2253,26 @@ df_donor_info<span class="op">$</span>donor &lt;-<span class="st"> </span>df_don
 df_ncells_de &lt;-<span class="st"> </span>assignments <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">filter</span>(assigned <span class="op">!=</span><span class="st"> &quot;unassigned&quot;</span>, 
                               donor_short_id <span class="op">%in%</span><span class="st"> </span><span class="kw">names</span>(de_res<span class="op">$</span>qlf_list)) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(donor_short_id) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">n_cells =</span> <span class="kw">n</span>())
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n_cells =</span> <span class="kw">n</span>())
 <span class="kw">colnames</span>(df_ncells_de)[<span class="dv">1</span>] &lt;-<span class="st"> &quot;donor&quot;</span>
 
 df_prop_assigned &lt;-<span class="st"> </span>assignments <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(donor_short_id <span class="op">%in%</span><span class="st"> </span><span class="kw">names</span>(de_res<span class="op">$</span>qlf_list)) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">group_by</span>(donor_short_id) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">prop_assigned =</span> <span class="kw">mean</span>(assigned <span class="op">!=</span><span class="st"> &quot;unassigned&quot;</span>))
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">prop_assigned =</span> <span class="kw">mean</span>(assigned <span class="op">!=</span><span class="st"> &quot;unassigned&quot;</span>))
 <span class="kw">colnames</span>(df_prop_assigned)[<span class="dv">1</span>] &lt;-<span class="st"> &quot;donor&quot;</span>
 
 df_nvars_by_cat &lt;-<span class="st"> </span>readr<span class="op">::</span><span class="kw">read_tsv</span>(<span class="st">&quot;output/nvars_by_category_by_donor.tsv&quot;</span>)
 df_nvars_by_cat_wd &lt;-<span class="st"> </span>tidyr<span class="op">::</span><span class="kw">spread</span>(
   df_nvars_by_cat[, <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>], consequence, n_vars_all_genes)
 df_nvars_by_cat_wd &lt;-<span class="st"> </span><span class="kw">left_join</span>(
-  <span class="kw">summarise</span>(<span class="kw">group_by</span>(df_nvars_by_cat, donor), <span class="dt">nvars_all =</span> <span class="kw">sum</span>(n_vars_all_genes)),
+  dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="kw">group_by</span>(df_nvars_by_cat, donor), <span class="dt">nvars_all =</span> <span class="kw">sum</span>(n_vars_all_genes)),
   df_nvars_by_cat_wd
 )
 df_nvars_by_cat_wd &lt;-<span class="st"> </span>df_nvars_by_cat <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(consequence <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;missense&quot;</span>, <span class="st">&quot;splicing&quot;</span>, <span class="st">&quot;nonsense&quot;</span>)) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(donor) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">nvars_misnonspli =</span> <span class="kw">sum</span>(n_vars_all_genes)) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">nvars_misnonspli =</span> <span class="kw">sum</span>(n_vars_all_genes)) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">left_join</span>(., df_nvars_by_cat_wd)
 
 df_donor_info &lt;-<span class="st"> </span><span class="kw">left_join</span>(df_ncells_de, df_donor_info)
@@ -2244,37 +2295,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of cells&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-1.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-1.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_genes_vs_n_cells.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2290,37 +2311,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Inferred selection status&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">coord_flip</span>()</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-2.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-2.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-2.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-2.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_boxplot.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2357,37 +2348,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_y_sqrt</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">1500</span>, <span class="dv">2000</span>, <span class="dv">2500</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">coord_flip</span>()</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-3.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-3.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-3.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-3.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_boxplot.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2401,37 +2362,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-4.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-4.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-4.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-4.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_gof_cumul_mut_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2446,37 +2377,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-5.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-5.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-5.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-5.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_vs_gof_cumul_mut_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2490,37 +2391,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: negative binomial distribution&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-6.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-6.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-6.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-6.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_gof_negbin_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2535,37 +2406,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic variants&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-7.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-7.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-7.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-7.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_all.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2581,37 +2422,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_y_sqrt</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">100</span>, <span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">1500</span>, <span class="dv">2000</span>, <span class="dv">2500</span>))</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-8.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-8.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-8.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-8.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_vs_n_somatic_vars_all.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2626,37 +2437,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic missense variants&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-9.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-9.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-9.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-9.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_missense.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2671,37 +2452,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of missense, nonsense &amp; splicing variants&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-10.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-10.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-10.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-10.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_misnonspli.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2715,37 +2466,7 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic variants&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
-<p><img src="figure/differential_expression.Rmd/unnamed-chunk-5-11.png" width="672" style="display: block; margin: auto;" /></p>
-<details> <summary><em>Expand here to see past versions of unnamed-chunk-5-11.png:</em></summary>
-<table style="border-collapse:separate; border-spacing:5px;">
-<thead>
-<tr>
-<th style="text-align:left;">
-Version
-</th>
-<th style="text-align:left;">
-Author
-</th>
-<th style="text-align:left;">
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-<a href="https://github.com/davismcc/fibroblast-clonality/blob/d2e8b3145e4600ec75d0d0df9ad1e210ecb1bdd3/docs/figure/differential_expression.Rmd/unnamed-chunk-5-11.png" target="_blank">d2e8b31</a>
-</td>
-<td style="text-align:left;">
-davismcc
-</td>
-<td style="text-align:left;">
-2018-08-19
-</td>
-</tr>
-</tbody>
-</table>
-<p></details></p>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-11.png" width="672" style="display: block; margin: auto;" /></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2769,7 +2490,71 @@ davismcc
 <span class="co">#     group_by(gene) %&gt;% </span>
 <span class="co">#     dplyr::mutate(id = paste0(donor, gene)) %&gt;% distinct(id, .keep_all = TRUE) %&gt;%</span>
 <span class="co">#     group_by(donor) %&gt;%</span>
-<span class="co">#     summarise(count = n())</span></code></pre></div>
+<span class="co">#     dplyr::summarise(count = n())</span></code></pre></div>
+</div>
+<div id="linking-de-to-assignment-accuracy" class="section level2">
+<h2>Linking DE to assignment accuracy</h2>
+<p>Simulation results provide us with an estimate of the assignment accuracy for each line.</p>
+<p>We load the simulation results for individual lines.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_files &lt;-<span class="st"> </span><span class="kw">paste0</span>(donors, <span class="st">&quot;.simulate.rds&quot;</span>)
+assign_<span class="dv">0</span> &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>, <span class="dt">nrow =</span> <span class="dv">500</span>, <span class="dt">ncol =</span> <span class="kw">length</span>(donors))
+assign_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>, <span class="dt">nrow =</span> <span class="dv">500</span>, <span class="dt">ncol =</span> <span class="kw">length</span>(donors))
+prob_all &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>, <span class="dt">nrow =</span> <span class="dv">500</span>, <span class="dt">ncol =</span> <span class="kw">length</span>(donors))
+
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(all_files))) {
+  afile &lt;-<span class="st"> </span>all_files[i]
+  sim_dat &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">file.path</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;simulations&quot;</span>, afile))
+  assign_<span class="dv">0</span>[, i] &lt;-<span class="st"> </span><span class="kw">get_prob_label</span>(sim_dat<span class="op">$</span>I_sim)
+  assign_<span class="dv">1</span>[, i] &lt;-<span class="st"> </span><span class="kw">get_prob_label</span>(sim_dat<span class="op">$</span>prob_Gibbs)
+  prob_all[, i] &lt;-<span class="st"> </span><span class="kw">get_prob_value</span>(sim_dat<span class="op">$</span>prob_Gibbs, <span class="dt">mode =</span> <span class="st">&quot;best&quot;</span>)
+}
+
+
+precision_simu &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(donors))
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
+  idx &lt;-<span class="st"> </span>prob_all[, i] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>
+  precision_simu[i] &lt;-<span class="st"> </span><span class="kw">mean</span>(assign_<span class="dv">0</span>[idx, i] <span class="op">==</span><span class="st"> </span>assign_<span class="dv">1</span>[idx, i])
+}
+
+df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">line =</span> donors, <span class="dt">recall_simu =</span> <span class="kw">colMeans</span>(prob_all <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>),
+                 <span class="dt">precision_simu =</span> precision_simu)</code></pre></div>
+<p>We can now look at the relationship between the number of DE genes detected per line and the assignment accuracy and assignment rate per line.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">inner_join</span>(df, dplyr<span class="op">::</span><span class="kw">mutate</span>(df_nbglm_nde, <span class="dt">line =</span> donor))
+## n_de (resids) vs assignment accuracy
+p1 &lt;-<span class="st"> </span>df <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> precision_simu, <span class="dt">y =</span> .resid, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Assignment accuracy (precision) from simulations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_sim_assign_acc.png&quot;</span>, 
+       <span class="dt">plot =</span> p1, <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
+
+## n_de (resids) vs assignment rate
+p2 &lt;-<span class="st"> </span>df <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> recall_simu, <span class="dt">y =</span> .resid, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Assignment rate (recall) from simulations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_sim_assign_rate.png&quot;</span>, 
+       <span class="dt">plot =</span> p2, <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
+
+p3 &lt;-<span class="st"> </span><span class="kw">plot_grid</span>(p1, p2, <span class="dt">labels =</span> <span class="st">&quot;auto&quot;</span>, <span class="dt">nrow =</span> <span class="dv">2</span>)
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_sim_assign_acc_rate_combined.png&quot;</span>, 
+       <span class="dt">plot =</span> p3, <span class="dt">height =</span> <span class="dv">10</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
+
+p3</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/plot-de-assignment-acc-1.png" width="624" style="display: block; margin: auto;" /></p>
 </div>
 <div id="linking-pathway-results-to-selection" class="section level2">
 <h2>Linking pathway results to selection</h2>
@@ -2812,6 +2597,7 @@ davismcc
 
  package              * version   date       source                
  AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
+ ape                    5.1       2018-04-04 CRAN (R 3.5.0)        
  assertthat             0.2.0     2017-04-11 CRAN (R 3.5.0)        
  backports              1.1.2     2017-12-13 CRAN (R 3.5.0)        
  base                 * 3.5.1     2018-07-05 local                 
@@ -2821,11 +2607,15 @@ davismcc
  Biobase              * 2.40.0    2018-05-01 Bioconductor          
  BiocGenerics         * 0.26.0    2018-05-01 Bioconductor          
  BiocParallel         * 1.14.2    2018-07-08 Bioconductor          
+ biomaRt                2.36.1    2018-05-24 Bioconductor          
+ Biostrings             2.48.0    2018-05-01 Bioconductor          
  bit                    1.1-14    2018-05-29 CRAN (R 3.5.0)        
  bit64                  0.9-7     2017-05-08 CRAN (R 3.5.0)        
  bitops                 1.0-6     2013-08-17 CRAN (R 3.5.0)        
  blob                   1.1.1     2018-03-25 CRAN (R 3.5.0)        
  broom                * 0.5.0     2018-07-17 CRAN (R 3.5.0)        
+ BSgenome               1.48.0    2018-05-01 Bioconductor          
+ cardelino            * 0.1.2     2018-08-21 Bioconductor          
  cellranger             1.1.0     2016-07-27 CRAN (R 3.5.0)        
  cli                    1.0.0     2017-11-05 CRAN (R 3.5.0)        
  colorspace             1.3-2     2016-12-14 CRAN (R 3.5.0)        
@@ -2850,6 +2640,8 @@ davismcc
  gdtools              * 0.1.7     2018-02-27 CRAN (R 3.5.0)        
  GenomeInfoDb         * 1.16.0    2018-05-01 Bioconductor          
  GenomeInfoDbData       1.1.0     2018-04-25 Bioconductor          
+ GenomicAlignments      1.16.0    2018-05-01 Bioconductor          
+ GenomicFeatures        1.32.2    2018-08-13 Bioconductor          
  GenomicRanges        * 1.32.6    2018-07-20 Bioconductor          
  ggbeeswarm             0.6.0     2017-08-07 CRAN (R 3.5.0)        
  ggcorrplot           * 0.1.1     2016-01-12 CRAN (R 3.5.0)        
@@ -2858,6 +2650,7 @@ davismcc
  ggrepel              * 0.8.0     2018-05-09 CRAN (R 3.5.0)        
  ggridges             * 0.5.0     2018-04-05 CRAN (R 3.5.0)        
  ggthemes               4.0.1     2018-08-24 CRAN (R 3.5.1)        
+ ggtree                 1.12.7    2018-08-07 Bioconductor          
  git2r                  0.23.0    2018-07-17 CRAN (R 3.5.0)        
  glue                   1.3.0     2018-07-17 CRAN (R 3.5.0)        
  graphics             * 3.5.1     2018-07-05 local                 
@@ -2895,9 +2688,12 @@ davismcc
  nlme                   3.1-137   2018-04-07 CRAN (R 3.5.1)        
  org.Hs.eg.db         * 3.6.0     2018-05-15 Bioconductor          
  parallel             * 3.5.1     2018-07-05 local                 
+ pheatmap               1.0.10    2018-05-19 CRAN (R 3.5.0)        
  pillar                 1.3.0     2018-07-14 CRAN (R 3.5.0)        
  pkgconfig              2.0.2     2018-08-16 CRAN (R 3.5.0)        
  plyr                   1.8.4     2016-06-08 CRAN (R 3.5.0)        
+ prettyunits            1.0.2     2015-07-13 CRAN (R 3.5.0)        
+ progress               1.2.0     2018-06-14 CRAN (R 3.5.0)        
  promises               1.0.1     2018-04-13 CRAN (R 3.5.0)        
  purrr                * 0.2.5     2018-05-29 CRAN (R 3.5.0)        
  R.methodsS3            1.7.1     2016-02-16 CRAN (R 3.5.0)        
@@ -2916,8 +2712,11 @@ davismcc
  rlang                * 0.2.2     2018-08-16 CRAN (R 3.5.0)        
  rmarkdown              1.10      2018-06-11 CRAN (R 3.5.0)        
  rprojroot              1.3-2     2018-01-03 CRAN (R 3.5.0)        
+ Rsamtools              1.32.3    2018-08-22 Bioconductor          
  RSQLite                2.1.1     2018-05-06 CRAN (R 3.5.0)        
  rstudioapi             0.7       2017-09-07 CRAN (R 3.5.0)        
+ rtracklayer            1.40.5    2018-08-20 Bioconductor          
+ rvcheck                0.1.0     2018-05-23 CRAN (R 3.5.0)        
  rvest                  0.3.2     2016-06-17 CRAN (R 3.5.0)        
  S4Vectors            * 0.18.3    2018-06-08 Bioconductor          
  scales                 1.0.0     2018-08-09 CRAN (R 3.5.0)        
@@ -2925,29 +2724,36 @@ davismcc
  shiny                  1.1.0     2018-05-17 CRAN (R 3.5.0)        
  SingleCellExperiment * 1.2.0     2018-05-01 Bioconductor          
  slam                   0.1-43    2018-04-23 CRAN (R 3.5.0)        
+ snpStats               1.30.0    2018-05-01 Bioconductor          
+ splines                3.5.1     2018-07-05 local                 
  stats                * 3.5.1     2018-07-05 local                 
  stats4               * 3.5.1     2018-07-05 local                 
  stringi                1.2.4     2018-07-20 CRAN (R 3.5.0)        
  stringr              * 1.3.1     2018-05-10 CRAN (R 3.5.0)        
  SummarizedExperiment * 1.10.1    2018-05-11 Bioconductor          
  superheat            * 0.1.0     2017-02-04 CRAN (R 3.5.0)        
+ survival               2.42-6    2018-07-13 CRAN (R 3.5.0)        
  svglite                1.2.1     2017-09-11 CRAN (R 3.5.0)        
  tibble               * 1.4.2     2018-01-22 CRAN (R 3.5.0)        
  tidyr                * 0.8.1     2018-05-18 CRAN (R 3.5.0)        
  tidyselect             0.2.4     2018-02-26 CRAN (R 3.5.0)        
+ tidytree               0.1.9     2018-06-13 CRAN (R 3.5.0)        
  tidyverse            * 1.2.1     2017-11-14 CRAN (R 3.5.0)        
  tools                  3.5.1     2018-07-05 local                 
+ treeio                 1.4.3     2018-08-13 Bioconductor          
  tweenr                 0.1.5     2016-10-10 CRAN (R 3.5.0)        
  tximport               1.8.0     2018-05-01 Bioconductor          
  units                  0.6-0     2018-06-09 CRAN (R 3.5.0)        
  utf8                   1.1.4     2018-05-24 CRAN (R 3.5.0)        
  utils                * 3.5.1     2018-07-05 local                 
+ VariantAnnotation      1.26.1    2018-07-04 Bioconductor          
  vipor                  0.4.5     2017-03-22 CRAN (R 3.5.0)        
  viridis              * 0.5.1     2018-03-29 CRAN (R 3.5.0)        
  viridisLite          * 0.3.0     2018-02-01 CRAN (R 3.5.0)        
  whisker                0.3-2     2013-04-28 CRAN (R 3.5.0)        
  withr                  2.1.2     2018-03-15 CRAN (R 3.5.0)        
  workflowr              1.1.1     2018-07-06 CRAN (R 3.5.0)        
+ XML                    3.98-1.16 2018-08-19 CRAN (R 3.5.1)        
  xml2                   1.2.0     2018-01-24 CRAN (R 3.5.0)        
  xtable                 1.8-2     2016-02-05 CRAN (R 3.5.0)        
  XVector                0.20.0    2018-05-01 Bioconductor          
