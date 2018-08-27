@@ -114,7 +114,7 @@ for (donor in names(de_res[["qlf_list"]])) {
 df_ncells_de <- assignments %>% dplyr::filter(assigned != "unassigned", 
                               donor_short_id %in% names(de_res$qlf_list)) %>%
     group_by(donor_short_id) %>%
-    summarise(n_cells = n())
+    dplyr::summarise(n_cells = n())
 colnames(df_ncells_de)[1] <- "donor"
 
 fdr_thresh <- 0.1
@@ -134,8 +134,8 @@ for (donor in names(de_res[["qlf_list"]])) {
 df_de_sig_unst %>% 
     group_by(gene) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% group_by(n_donors) %>%
-    summarise(count = n()) %>%
+    dplyr::summarise(n_donors = n()) %>% group_by(n_donors) %>%
+    dplyr::summarise(count = n()) %>%
 ggplot(aes(x = n_donors, y = count)) +
     geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), 
                  colour = "gray50") +
@@ -158,8 +158,8 @@ ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes.sv
 p1 <- df_de_sig_unst %>% 
     group_by(gene) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% group_by(n_donors) %>%
-    summarise(count = n()) %>%
+    dplyr::summarise(n_donors = n()) %>% group_by(n_donors) %>%
+    dplyr::summarise(count = n()) %>%
 ggplot(aes(x = n_donors, y = count)) +
     geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), 
                  colour = "gray50") +
@@ -184,7 +184,7 @@ ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_li
 p2 <- df_de_sig_unst %>% 
     group_by(gene) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% dplyr::arrange(gene, n_donors) %>% ungroup() %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(gene, n_donors) %>% ungroup() %>%
     dplyr::mutate(gene = gsub("ENSG.*_", "", gene)) %>%
     dplyr::filter(n_donors > 7.5) %>%
     ggplot(aes(y = n_donors, x = reorder(gene, n_donors, max))) +
@@ -211,7 +211,7 @@ df_donor_n_de <- df_de_sig_unst %>%
     group_by(gene) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
     group_by(donor) %>%
-    summarise(count = n())
+    dplyr::summarise(count = n())
 no_de_donor <- unique(df_de_all_unst[["donor"]])[!(unique(df_de_all_unst[["donor"]]) %in% df_donor_n_de[["donor"]])]
 df_donor_n_de <- rbind(df_donor_n_de, data_frame(donor = no_de_donor, count = 0))
 
@@ -223,7 +223,7 @@ Permute gene labels to get a null distribution.
 df_de_nsig <- df_de_all_unst %>% dplyr::filter(FDR < 0.1) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
     group_by(donor) %>% 
-    summarise(n_sig = n())
+    dplyr::summarise(n_sig = n())
 df_nsig_ncells_de <- full_join(df_ncells_de, df_de_nsig)
 df_nsig_ncells_de$n_sig[is.na(df_nsig_ncells_de$n_sig)] <- 0
 
@@ -246,7 +246,7 @@ for (i in seq_len(n_perm))
 df_perm <- do.call("rbind", df_perm)
 df_perm <- dplyr::mutate(df_perm, data_type = "permuted")
 
-df_perm %>% group_by(n_donors) %>% summarise(min = min(n_genes), 
+df_perm %>% group_by(n_donors) %>% dplyr::summarise(min = min(n_genes), 
                                              median = median(n_genes),
                                              mean = mean(n_genes), 
                                              max = max(n_genes))
@@ -254,8 +254,8 @@ df_perm %>% group_by(n_donors) %>% summarise(min = min(n_genes),
 ppp <- df_de_sig_unst %>% 
     group_by(gene) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% group_by(n_donors) %>%
-    summarise(n_genes = n()) %>% dplyr::mutate(data_type = "observed") %>%
+    dplyr::summarise(n_donors = n()) %>% group_by(n_donors) %>%
+    dplyr::summarise(n_genes = n()) %>% dplyr::mutate(data_type = "observed") %>%
 ggplot(aes(x = n_donors, y = n_genes)) +
     # geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), 
     #              colour = "gray50") +
@@ -291,8 +291,8 @@ ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sq
 df_de_sig_unst %>% 
     group_by(gene) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% group_by(n_donors) %>%
-    summarise(n_genes = n()) %>% dplyr::mutate(data_type = "observed") %>%
+    dplyr::summarise(n_donors = n()) %>% group_by(n_donors) %>%
+    dplyr::summarise(n_genes = n()) %>% dplyr::mutate(data_type = "observed") %>%
 ggplot(aes(x = n_donors, y = n_genes)) +
     # geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), 
     #              colour = "gray50") +
@@ -329,7 +329,7 @@ df_gene_n_de <- df_de_sig_unst %>%
     group_by(gene) %>% 
     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
     group_by(gene) %>%
-    summarise(count = n()) %>% 
+    dplyr::summarise(count = n()) %>% 
     dplyr::arrange(desc(count)) %>%
     dplyr::mutate(ensembl_gene_id = gsub("_.*", "", gene),
                   hgnc_symbol = gsub(".*_", "", gene))
@@ -473,7 +473,7 @@ df_camera_sig_unst %>%
     dplyr::filter(stat == "logFC") %>%
     dplyr::filter(FDR < 0.05) %>%
     group_by(donor, msigdb_collection) %>%
-    summarise(n_sig = n()) %>% print(n = Inf)
+    dplyr::summarise(n_sig = n()) %>% print(n = Inf)
 ```
 
 We can look at the number of significant gene sets for each donor.
@@ -483,7 +483,7 @@ We can look at the number of significant gene sets for each donor.
 df_camera_all_unst %>% 
     dplyr::filter(stat == "logFC") %>%
     group_by(donor, msigdb_collection) %>%
-    summarise(n_sig = sum(FDR < 0.05)) %>% ungroup() %>% 
+    dplyr::summarise(n_sig = sum(FDR < 0.05)) %>% ungroup() %>% 
     dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor))))) %>%
     ggplot(aes(y = n_sig, x = donor)) +
     geom_point(alpha = 1, size = 4) +
@@ -514,7 +514,7 @@ for (don in names(sce_unst_list))
 df_camera_all_unst %>% 
     dplyr::filter(stat == "logFC") %>%
     group_by(donor, msigdb_collection) %>%
-    summarise(n_sig = sum(FDR < 0.05)) %>% ungroup() -> df_to_plot
+    dplyr::summarise(n_sig = sum(FDR < 0.05)) %>% ungroup() -> df_to_plot
 df_to_plot <- inner_join(df_to_plot, 
                         data_frame(donor = names(ncells_by_donor),
                                    ncells = ncells_by_donor))
@@ -552,7 +552,7 @@ df_camera_sig_unst %>% dplyr::filter(collection == "H") %>%
     dplyr::filter(stat == "logFC") %>%
     group_by(geneset) %>% 
     dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
     dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
 ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max))) +
     geom_point(alpha = 0.7, size = 4) +
@@ -586,7 +586,7 @@ df_camera_sig_unst %>% dplyr::filter(collection == "H") %>%
   dplyr::filter(stat == "logFC") %>%
   group_by(geneset, Direction) %>% 
   dplyr::mutate(id = paste0(donor, geneset)) %>% 
-  summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+  dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
   ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max),
              colour = Direction)) +
   geom_point(alpha = 0.7, size = 4, position = position_dodge(width = 0.5)) +
@@ -610,7 +610,7 @@ repeated_sig_H_genesets <- df_camera_sig_unst %>%
     dplyr::filter(collection == "H", stat == "logFC") %>% 
     group_by(geneset) %>% 
     dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% dplyr::arrange(n_donors) %>% 
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(n_donors) %>% 
     dplyr::filter(n_donors > 0.5) 
 repeated_sig_H_genesets_vec <- unique(repeated_sig_H_genesets[["geneset"]])
 repeated_sig_H_genesets_vec <- gsub("_", " ", gsub("HALLMARK_", "", 
@@ -688,7 +688,7 @@ pp_nsig <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>%
     dplyr::filter(stat == "logFC") %>%
     group_by(geneset) %>% 
     dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
     dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
     ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max))) +
     geom_hline(yintercept = 0, colour = "gray50") +
@@ -724,7 +724,7 @@ repeated_sig_H_genesets3 <- df_camera_sig_unst %>%
     dplyr::filter(collection == "H", stat == "logFC") %>% 
     group_by(geneset) %>% 
     dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% dplyr::arrange(n_donors) %>% 
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(n_donors) %>% 
     dplyr::filter(n_donors > 2.5) 
 repeated_sig_H_genesets_vec3 <- unique(repeated_sig_H_genesets3[["geneset"]])
 repeated_sig_H_genesets_vec3 <- gsub("_", " ", gsub("HALLMARK_", "", 
@@ -847,7 +847,7 @@ pp_nsig <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>%
     dplyr::filter(stat == "logFC") %>%
     group_by(geneset) %>% 
     dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
-    summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
     dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
     dplyr::mutate(geneset = factor(
       geneset, levels = rownames(mat_H_gene_overlap)[hclust_cor$order])) %>%
@@ -889,26 +889,26 @@ df_donor_info$donor <- df_donor_info$donor_short
 df_ncells_de <- assignments %>% dplyr::filter(assigned != "unassigned", 
                               donor_short_id %in% names(de_res$qlf_list)) %>%
     group_by(donor_short_id) %>%
-    summarise(n_cells = n())
+    dplyr::summarise(n_cells = n())
 colnames(df_ncells_de)[1] <- "donor"
 
 df_prop_assigned <- assignments %>% 
   dplyr::filter(donor_short_id %in% names(de_res$qlf_list)) %>%
     group_by(donor_short_id) %>%
-    summarise(prop_assigned = mean(assigned != "unassigned"))
+    dplyr::summarise(prop_assigned = mean(assigned != "unassigned"))
 colnames(df_prop_assigned)[1] <- "donor"
 
 df_nvars_by_cat <- readr::read_tsv("output/nvars_by_category_by_donor.tsv")
 df_nvars_by_cat_wd <- tidyr::spread(
   df_nvars_by_cat[, 1:3], consequence, n_vars_all_genes)
 df_nvars_by_cat_wd <- left_join(
-  summarise(group_by(df_nvars_by_cat, donor), nvars_all = sum(n_vars_all_genes)),
+  dplyr::summarise(group_by(df_nvars_by_cat, donor), nvars_all = sum(n_vars_all_genes)),
   df_nvars_by_cat_wd
 )
 df_nvars_by_cat_wd <- df_nvars_by_cat %>% 
   dplyr::filter(consequence %in% c("missense", "splicing", "nonsense")) %>%
   group_by(donor) %>%
-  summarise(nvars_misnonspli = sum(n_vars_all_genes)) %>%
+  dplyr::summarise(nvars_misnonspli = sum(n_vars_all_genes)) %>%
   left_join(., df_nvars_by_cat_wd)
 
 df_donor_info <- left_join(df_ncells_de, df_donor_info)
@@ -1108,9 +1108,85 @@ ggsave("figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.pn
 #     group_by(gene) %>% 
 #     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
 #     group_by(donor) %>%
-#     summarise(count = n())
+#     dplyr::summarise(count = n())
 
 ```
+
+
+## Linking DE to assignment accuracy
+
+Simulation results provide us with an estimate of the assignment accuracy for
+each line. 
+
+We load the simulation results for individual lines.
+
+```{r}
+all_files <- paste0(lines, ".simulate.rds")
+assign_0 <- matrix(0, nrow = 500, ncol = length(lines))
+assign_1 <- matrix(0, nrow = 500, ncol = length(lines))
+prob_all <- matrix(0, nrow = 500, ncol = length(lines))
+
+for (i in seq_len(length(all_files))) {
+  afile <- all_files[i]
+  sim_dat <- readRDS(file.path("data", "simulations", afile))
+  assign_0[, i] <- get_prob_label(sim_dat$I_sim)
+  assign_1[, i] <- get_prob_label(sim_dat$prob_Gibbs)
+  prob_all[, i] <- get_prob_value(sim_dat$prob_Gibbs, mode = "best")
+}
+
+
+precision_simu <- rep(0, length(lines))
+for (i in seq_len(length(lines))) {
+  idx <- prob_all[, i] > 0.5
+  precision_simu[i] <- mean(assign_0[idx, i] == assign_1[idx, i])
+}
+
+df <- data.frame(line = lines, n_sites = n_sites, n_clone = n_clone, 
+                 recall_real = recall_all, recall_simu = colMeans(prob_all > 0.5),
+                 precision_simu = precision_simu)
+```
+
+We can now look at the relationship between the number of DE genes detected 
+per line and the assignment accuracy and assignment rate per line.
+
+```{r plot-de-assignment-acc}
+df <- inner_join(df, dplyr::mutate(df_nbglm_nde, line = donor))
+## n_de (resids) vs assignment accuracy
+p1 <- df %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = precision_simu, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Assignment accuracy (precision) from simulations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_de_resid_selection_vs_sim_assign_acc.png", 
+       plot = p1, height = 5.5, width = 6.5)
+
+## n_de (resids) vs assignment rate
+p2 <- df %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = recall_simu, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Assignment rate (recall) from simulations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_de_resid_selection_vs_sim_assign_rate.png", 
+       plot = p2, height = 5.5, width = 6.5)
+
+p3 <- plot_grid(p1, p2, labels = "auto", nrow = 2)
+
+ggsave("figures/differential_expression/n_de_resid_selection_vs_sim_assign_acc_rate_combined.png", 
+       plot = p3, height = 10, width = 6.5)
+
+p3
+```
+
 
 
 ## Linking pathway results to selection
@@ -1136,7 +1212,7 @@ Not yet implemented
 #     dplyr::filter(geneset %in% c("HALLMARK_E2F_TARGETS", "HALLMARK_G2M_CHECKPOINT", "HALLMARK_MYC_TARGETS_V1")) %>%
 #     group_by(geneset, classification, Direction) %>% 
 #     dplyr::mutate(id = paste0(donor, geneset, Direction)) %>% distinct(id, .keep_all = TRUE) %>%
-#     summarise(n_sig = n())
+#     dplyr::summarise(n_sig = n())
 # df_camera_nsig
 # 
 # 
@@ -1184,7 +1260,7 @@ Not yet implemented
 #     dplyr::filter(geneset %in% c("HALLMARK_E2F_TARGETS", "HALLMARK_G2M_CHECKPOINT")) %>%
 #     group_by(geneset, classification) %>% 
 #     dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
-#     summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+#     dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
 #     dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
 #     ggplot(aes(y = n_donors, x = geneset)) +
 #     geom_point(alpha = 0.7, size = 4) +
