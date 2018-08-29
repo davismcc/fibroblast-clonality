@@ -44,6 +44,8 @@ explained by clone and `r sum((varPart.df$clone > varPart.df$plate) & (varPart.d
 greater than 1% and also greater than the variance explained by plate (a good
 proxy for technical effects on variability in gene expression between cells).
 
+The median percentage of variance explained by clone is `r 100 * median(varPart.df$clone)`, whereas the median percentage of variance explained by line is `r 100 * median(varPart.df$line)`
+
 
 ```{r}
 varPart.mel <- tidyr::gather(varPart.df, key = "variable", value = "value", 

@@ -191,31 +191,35 @@ donors <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn",
 dfrsq_filt <- dfrsq[(dfrsq$donor_short %in% donors),]
 
 plt_scatter <- ggplot(dfrsq_filt, aes(x = rsq_negbinfit, y = rsq_ntrtestr)) +
-  scale_colour_manual(values = c("neutral" = "dodgerblue",
+  scale_fill_manual(values = c("neutral" = "dodgerblue",
                                  "selected" = "dodgerblue4",
                                  "undetermined" = "#CCCCCC")) +
-  geom_point(aes(colour = selection)) +
-  geom_label_repel(aes(label = candidatelabel), color = "white", size = 2.5,
+  geom_point(aes(fill = selection), size = 3, shape = 21) +
+  geom_label_repel(aes(label = candidatelabel), color = "white", size = 3.5,
                    fill = "black", box.padding = 0.35, point.padding = 0.5,
                    segment.color = "grey50") +
-  theme_bw() +
-  theme(text = element_text(size = 9,face = "bold"), 
-        axis.text = element_text(size = 9, face = "bold"),
-        axis.title = element_text(size = 10, face = "bold"),
-        plot.title = element_text(size = 9, hjust = 0.5)) +
+  # theme_bw() +
+  # theme(text = element_text(size = 11, face = "plain"), 
+  #       axis.text = element_text(size = 11, face = "plain"),
+  #       axis.title = element_text(size = 12, face = "plain"),
+  #       plot.title = element_text(size = 11, hjust = 0.5)) +
   labs(x = "Goodness of Fit - Negative Binomial Distribution", 
        y = "Goodness of Fit - Cumulative Mutations") +
   theme(strip.background = element_blank()) +
-  labs(title = "") +
   theme(legend.justification = c(1,0), legend.position = c(1,0)) +
   theme(legend.background = element_rect(fill = "white", linetype = 1, 
-                                         colour = "black", size =0.2),
+                                         colour = "black", size = 0.2),
         legend.key.size = unit(0.25, "cm")) +
-  labs(colour = "Selection") #+
+  theme(panel.grid.major = element_line(colour = "gray90", size = 0.25)) +
+  labs(fill = "Selection") #+
 # coord_fixed()
 
 ggsave("figures/overview_lines/neutral_selection_models_gof_scatter.png", 
        plot = plt_scatter, width = 12, height = 12, dpi = 300, units = "cm")
+
+ggsave("figures/overview_lines/neutral_selection_models_gof_scatter_wide.png", 
+       plot = plt_scatter, width = 6.5, height = 4.5, dpi = 300, units = "in")
+
 
 plt_scatter
 ```

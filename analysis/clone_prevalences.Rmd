@@ -178,6 +178,46 @@ ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf",
 
 ```
 
+Let us also make a version of the plot above with the line _joxm_ highlighted as
+this line is used as an example in the paper.
+
+```{r plot-prev-facet-clone-3clones-joxm, fig.height = 4.5, fig.width=8.5}
+fits %>%
+  broom::augment(fit) %>% 
+  inner_join(., df_prev) %>%
+  dplyr::filter(clone != "clone4") %>%
+  dplyr::mutate(labs = ifelse(line == "joxm", "joxm", "")) %>%
+  ggplot(aes(x = prev_canopy, y = prev_cardelino, fill = prop_assigned)) +
+  geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
+  geom_ribbon(aes(ymin = .fitted - 1.645 * .se.fit, ymax = .fitted + 1.645 * .se.fit),
+              fill = "gray70", alpha = 0.7) +
+  geom_abline(aes(intercept = x0, slope = x1), 
+              data = dplyr::filter(fits_me, clone != "clone4"),
+              colour = "firebrick", size = 1) +
+  ggrepel::geom_label_repel(aes(label = labs), fill = "gray90", size = 2.5,
+                            box.padding = 0.1, label.padding = 0.15) +
+  geom_point(size = 3, shape = 21) +
+  xlim(0, 1) + ylim(0, 1) +
+  facet_wrap(~clone, nrow = 1) +
+  scale_fill_viridis(name = "fraction of\ncells assigned", limits = c(0, 1)) +
+  scale_shape_manual(values = 21:25) +
+  scale_colour_manual(values = c("black", "firebrick"), guide = FALSE) +
+  xlab("Estimated clone prevalence (Canopy)") +
+  ylab("Assigned clone fraction (cardelino)") +
+  theme(axis.text = element_text(size = 9))
+
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel.png", 
+       height = 4.5, width = 8.5)
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel.pdf", 
+       height = 4.5, width = 8.5)
+
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel_wide.png", 
+       height = 4.5, width = 13)
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel_wide.pdf", 
+       height = 4.5, width = 13)
+```
+
+
 Also look at what happens if we filter out lines that have fewer than 75% of 
 cells assigned (`r length(unique(dplyr::filter(df_prev, prop_assigned > 0.75)$line))` lines).
 

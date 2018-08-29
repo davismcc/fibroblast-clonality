@@ -1188,6 +1188,72 @@ p3
 ```
 
 
+## Linking DE to multiple explanatory factors
+
+Let us fit a NB GLM to regress number of DE genes observed per line against
+number of cells, goodness of fit of selection models, number of somatic 
+variants, assignment accuracy (from simulations) and assignment rate (observed)
+per line.
+
+First we can look at fitting different combinations of these explanatory 
+variables and do model selection using AIC (Akaike Information Criterion).
+
+
+```{r link-de-expl-factors}
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ n_cells + rsq_negbinfit + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_negbinfit + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ sqrt(n_cells) + rsq_negbinfit + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_negbinfit + rsq_ntrtestr + sqrt(nvars_all)
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_negbinfit + rsq_ntrtestr + log10(nvars_all)
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_ntrtestr + nvars_all
+  + recall_real, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_ntrtestr + nvars_all, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_negbinfit + nvars_all, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + nvars_all, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells), data = df))
+```
+
+The preferred model based on AIC values is one
+fitting log10-scale number of cells and number of somatic variants as predictor
+variables.
+
+```{r link-de-fit-best}
+nbglm_nde_allfacts <- MASS::glm.nb(
+  n_de_genes ~  log10(n_cells) + rsq_negbinfit + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df)
+broom::tidy(nbglm_nde_allfacts)
+nbglm_nde_selectfacts <- MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + nvars_all, data = df)
+broom::tidy(nbglm_nde_selectfacts)
+broom::glance(nbglm_nde_selectfacts)
+nbglm_nde_allfacts_tbl <- bind_cols(
+  broom::tidy(nbglm_nde_selectfacts),
+  broom::confint_tidy(nbglm_nde_selectfacts, conf.level = 0.9))
+
+
+df_nbglm_nde <- broom::augment(nbglm_nde) %>%
+  left_join(df_donor_info)
+
+```
+
 
 ## Linking pathway results to selection
 

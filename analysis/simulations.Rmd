@@ -527,6 +527,12 @@ ggsave("figures/simulations/assign_rate_obs_v_sim.png",
 ggsave("figures/simulations/assign_rate_obs_v_sim.pdf", 
        height = 4.5, width = 5)
 
+ggsave("figures/simulations/assign_rate_obs_v_sim_wide.png", 
+       height = 4.5, width = 6.5)
+ggsave("figures/simulations/assign_rate_obs_v_sim_wide.pdf", 
+       height = 4.5, width = 6.5)
+
+
 ```
 
 ## Plot simulation precision-recall curve
