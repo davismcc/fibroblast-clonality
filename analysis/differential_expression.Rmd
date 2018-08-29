@@ -1141,8 +1141,26 @@ for (i in seq_len(length(donors))) {
   idx <- prob_all[, i] > 0.5
   precision_simu[i] <- mean(assign_0[idx, i] == assign_1[idx, i])
 }
+```
 
-df <- data.frame(line = donors, recall_simu = colMeans(prob_all > 0.5),
+Read results from real data as well and form a data frame for plotting.
+
+```{r read-real-results}
+all_files <- paste0("cardelino_results.", donors, 
+                    ".filt_lenient.cell_coverage_sites.rds")
+n_sites <- rep(0, length(donors))
+n_clone <- rep(0, length(donors))
+recall_all <- rep(0, length(donors))
+for (i in seq_len(length(all_files))) {
+  afile <- all_files[i]
+  carde_dat <- readRDS(file.path("data", "cell_assignment", afile))
+  n_sites[i] <- nrow(carde_dat$D)
+  n_clone[i] <- ncol(carde_dat$prob_mat)
+  recall_all[i] <- mean(get_prob_value(carde_dat$prob_mat, mode = "best") > 0.5)
+}
+
+df <- data.frame(line = donors, n_sites = n_sites, n_clone = n_clone, 
+                 recall_real = recall_all, recall_simu = colMeans(prob_all > 0.5),
                  precision_simu = precision_simu)
 ```
 
