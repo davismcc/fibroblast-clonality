@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-27</p>
+<p><strong>Last updated:</strong> 2018-08-29</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/678546d87f50bae3c1430f12e82c511a6eecdf6f" target="_blank">678546d</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/128fea51caf326169a595f26a6908ed8585bce75" target="_blank">128fea5</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -402,7 +402,6 @@ Ignored files:
     Ignored:    code/.DS_Store
     Ignored:    data/raw/
     Ignored:    src/.DS_Store
-    Ignored:    src/.ipynb_checkpoints/
     Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
@@ -468,6 +467,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/dc78a9541488651a4b9bcda20e016a0b849d0b94/analysis/clone_prevalences.Rmd" target="_blank">dc78a95</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Minor updates to analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/e573f2fcd4c0769acde01e24a2bb0c7fc3066ae9/docs/clone_prevalences.html" target="_blank">e573f2f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -982,6 +1015,41 @@ davismcc
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)</code></pre></div>
+<p>Let us also make a version of the plot above with the line <em>joxm</em> highlighted as this line is used as an example in the paper.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fits <span class="op">%&gt;%</span>
+<span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">inner_join</span>(., df_prev) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">labs =</span> <span class="kw">ifelse</span>(line <span class="op">==</span><span class="st"> &quot;joxm&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;&quot;</span>)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino, <span class="dt">fill =</span> prop_assigned)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> .fitted <span class="op">-</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit, <span class="dt">ymax =</span> .fitted <span class="op">+</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit),
+              <span class="dt">fill =</span> <span class="st">&quot;gray70&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), 
+              <span class="dt">data =</span> dplyr<span class="op">::</span><span class="kw">filter</span>(fits_me, clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>),
+              <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> labs), <span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>, <span class="dt">size =</span> <span class="fl">2.5</span>,
+                            <span class="dt">box.padding =</span> <span class="fl">0.1</span>, <span class="dt">label.padding =</span> <span class="fl">0.15</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>clone, <span class="dt">nrow =</span> <span class="dv">1</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_colour_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;black&quot;</span>, <span class="st">&quot;firebrick&quot;</span>), <span class="dt">guide =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>))</code></pre></div>
+<pre><code>Joining, by = c(&quot;clone&quot;, &quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<p><img src="figure/clone_prevalences.Rmd/plot-prev-facet-clone-3clones-joxm-1.png" width="816" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel.pdf&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel_wide.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="dv">13</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel_wide.pdf&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="dv">13</span>)</code></pre></div>
 <p>Also look at what happens if we filter out lines that have fewer than 75% of cells assigned (25 lines).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_prev <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>, prop_assigned <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.75</span>) <span class="op">%&gt;%</span>
@@ -1043,7 +1111,7 @@ davismcc
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-27                  </code></pre>
+ date     2018-08-29                  </code></pre>
 <pre><code>Packages -----------------------------------------------------------------</code></pre>
 <pre><code> package     * version date       source        
  assertthat    0.2.0   2017-04-11 CRAN (R 3.5.0)
@@ -1065,6 +1133,7 @@ davismcc
  evaluate      0.11    2018-07-17 CRAN (R 3.5.0)
  forcats     * 0.3.0   2018-02-19 CRAN (R 3.5.0)
  ggplot2     * 3.0.0   2018-07-03 CRAN (R 3.5.0)
+ ggrepel       0.8.0   2018-05-09 CRAN (R 3.5.0)
  git2r         0.23.0  2018-07-17 CRAN (R 3.5.0)
  glue          1.3.0   2018-07-17 CRAN (R 3.5.0)
  graphics    * 3.5.1   2018-07-05 local         

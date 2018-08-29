@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-27</p>
+<p><strong>Last updated:</strong> 2018-08-29</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/678546d87f50bae3c1430f12e82c511a6eecdf6f" target="_blank">678546d</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/128fea51caf326169a595f26a6908ed8585bce75" target="_blank">128fea5</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -402,7 +402,6 @@ Ignored files:
     Ignored:    code/.DS_Store
     Ignored:    data/raw/
     Ignored:    src/.DS_Store
-    Ignored:    src/.ipynb_checkpoints/
     Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
@@ -468,6 +467,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/dc78a9541488651a4b9bcda20e016a0b849d0b94/analysis/overview_lines.Rmd" target="_blank">dc78a95</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Minor updates to analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/e573f2fcd4c0769acde01e24a2bb0c7fc3066ae9/docs/overview_lines.html" target="_blank">e573f2f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -775,31 +808,35 @@ donors &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">
 dfrsq_filt &lt;-<span class="st"> </span>dfrsq[(dfrsq<span class="op">$</span>donor_short <span class="op">%in%</span><span class="st"> </span>donors),]
 
 plt_scatter &lt;-<span class="st"> </span><span class="kw">ggplot</span>(dfrsq_filt, <span class="kw">aes</span>(<span class="dt">x =</span> rsq_negbinfit, <span class="dt">y =</span> rsq_ntrtestr)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">scale_colour_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span> =<span class="st"> &quot;dodgerblue&quot;</span>,
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span> =<span class="st"> &quot;dodgerblue&quot;</span>,
                                  <span class="st">&quot;selected&quot;</span> =<span class="st"> &quot;dodgerblue4&quot;</span>,
                                  <span class="st">&quot;undetermined&quot;</span> =<span class="st"> &quot;#CCCCCC&quot;</span>)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">colour =</span> selection)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> candidatelabel), <span class="dt">color =</span> <span class="st">&quot;white&quot;</span>, <span class="dt">size =</span> <span class="fl">2.5</span>,
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">fill =</span> selection), <span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> candidatelabel), <span class="dt">color =</span> <span class="st">&quot;white&quot;</span>, <span class="dt">size =</span> <span class="fl">3.5</span>,
                    <span class="dt">fill =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">box.padding =</span> <span class="fl">0.35</span>, <span class="dt">point.padding =</span> <span class="fl">0.5</span>,
                    <span class="dt">segment.color =</span> <span class="st">&quot;grey50&quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">theme_bw</span>() <span class="op">+</span>
-<span class="st">  </span><span class="kw">theme</span>(<span class="dt">text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>,<span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
-        <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
-        <span class="dt">axis.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
-        <span class="dt">plot.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">hjust =</span> <span class="fl">0.5</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="co"># theme_bw() +</span>
+<span class="st">  </span><span class="co"># theme(text = element_text(size = 11, face = &quot;plain&quot;), </span>
+<span class="st">  </span><span class="co">#       axis.text = element_text(size = 11, face = &quot;plain&quot;),</span>
+<span class="st">  </span><span class="co">#       axis.title = element_text(size = 12, face = &quot;plain&quot;),</span>
+<span class="st">  </span><span class="co">#       plot.title = element_text(size = 11, hjust = 0.5)) +</span>
 <span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Goodness of Fit - Negative Binomial Distribution&quot;</span>, 
        <span class="dt">y =</span> <span class="st">&quot;Goodness of Fit - Cumulative Mutations&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_blank</span>()) <span class="op">+</span>
-<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.justification =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>), <span class="dt">legend.position =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>, <span class="dt">linetype =</span> <span class="dv">1</span>, 
-                                         <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span><span class="fl">0.2</span>),
+                                         <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="fl">0.2</span>),
         <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.25</span>, <span class="st">&quot;cm&quot;</span>)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">labs</span>(<span class="dt">colour =</span> <span class="st">&quot;Selection&quot;</span>) <span class="co">#+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">panel.grid.major =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;gray90&quot;</span>, <span class="dt">size =</span> <span class="fl">0.25</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">fill =</span> <span class="st">&quot;Selection&quot;</span>) <span class="co">#+</span>
 <span class="co"># coord_fixed()</span>
 
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/overview_lines/neutral_selection_models_gof_scatter.png&quot;</span>, 
        <span class="dt">plot =</span> plt_scatter, <span class="dt">width =</span> <span class="dv">12</span>, <span class="dt">height =</span> <span class="dv">12</span>, <span class="dt">dpi =</span> <span class="dv">300</span>, <span class="dt">units =</span> <span class="st">&quot;cm&quot;</span>)
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/overview_lines/neutral_selection_models_gof_scatter_wide.png&quot;</span>, 
+       <span class="dt">plot =</span> plt_scatter, <span class="dt">width =</span> <span class="fl">6.5</span>, <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">dpi =</span> <span class="dv">300</span>, <span class="dt">units =</span> <span class="st">&quot;in&quot;</span>)
+
 
 plt_scatter</code></pre></div>
 <p><img src="figure/overview_lines.Rmd/donor-mutation-selection-1.png" width="576" style="display: block; margin: auto;" /></p>
@@ -2533,7 +2570,7 @@ davismcc
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-27                  
+ date     2018-08-29                  
 
  package                     * version   date      
  AnnotationDbi               * 1.42.1    2018-05-08

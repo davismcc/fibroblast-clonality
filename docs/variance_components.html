@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-27</p>
+<p><strong>Last updated:</strong> 2018-08-29</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/678546d87f50bae3c1430f12e82c511a6eecdf6f" target="_blank">678546d</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/128fea51caf326169a595f26a6908ed8585bce75" target="_blank">128fea5</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -402,7 +402,6 @@ Ignored files:
     Ignored:    code/.DS_Store
     Ignored:    data/raw/
     Ignored:    src/.DS_Store
-    Ignored:    src/.ipynb_checkpoints/
     Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
@@ -468,6 +467,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/dc78a9541488651a4b9bcda20e016a0b849d0b94/analysis/variance_components.Rmd" target="_blank">dc78a95</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Minor updates to analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/e573f2fcd4c0769acde01e24a2bb0c7fc3066ae9/docs/variance_components.html" target="_blank">e573f2f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -624,6 +657,7 @@ varPart.df &lt;-<span class="st"> </span><span class="kw">as_data_frame</span>(v
 6 0.       0.125   0.0827  0.0143       0.778 ENSG00000002330_BAD   </code></pre>
 <p>We ran the analysis for 4998 highly variable genes (as identified using methods in the <code>scran</code> package).</p>
 <p>We detect 194 genes with more than 5% of variance explained by clone and 1034 genes for which variance explained by clone is both greater than 1% and also greater than the variance explained by plate (a good proxy for technical effects on variability in gene expression between cells).</p>
+<p>The median percentage of variance explained by clone is 0.487273, whereas the median percentage of variance explained by line is 5.4807953</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">varPart.mel &lt;-<span class="st"> </span>tidyr<span class="op">::</span><span class="kw">gather</span>(varPart.df, <span class="dt">key =</span> <span class="st">&quot;variable&quot;</span>, <span class="dt">value =</span> <span class="st">&quot;value&quot;</span>, 
                              <span class="op">-</span>gene_id)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dat_dir &lt;-<span class="st"> &quot;data/variance_components/donorVar/&quot;</span>
@@ -1076,7 +1110,7 @@ line_var_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<sp
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-27                  </code></pre>
+ date     2018-08-29                  </code></pre>
 <pre><code>Packages -----------------------------------------------------------------</code></pre>
 <pre><code> package              * version   date       source        
  assertthat             0.2.0     2017-04-11 CRAN (R 3.5.0)

@@ -221,7 +221,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-27</p>
+<p><strong>Last updated:</strong> 2018-08-29</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -230,7 +230,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/678546d87f50bae3c1430f12e82c511a6eecdf6f" target="_blank">678546d</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/128fea51caf326169a595f26a6908ed8585bce75" target="_blank">128fea5</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -238,10 +238,10 @@ Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    .vscode/
+    Ignored:    analysis/figure/
     Ignored:    code/.DS_Store
     Ignored:    data/raw/
     Ignored:    src/.DS_Store
-    Ignored:    src/.ipynb_checkpoints/
     Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
@@ -307,6 +307,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/dc78a9541488651a4b9bcda20e016a0b849d0b94/analysis/about.Rmd" target="_blank">dc78a95</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Minor updates to analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/e573f2fcd4c0769acde01e24a2bb0c7fc3066ae9/docs/about.html" target="_blank">e573f2f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -501,9 +535,6 @@ Start workflowr project.
 <hr />
 <div id="cardelino-integrating-whole-exomes-and-single-cell-transcriptomes-to-reveal-phenotypic-impact-of-somatic-variants" class="section level2">
 <h2><em>Cardelino</em> : Integrating whole exomes and single-cell transcriptomes to reveal phenotypic impact of somatic variants</h2>
-<p>Decoding the clonal substructures of somatic tissues sheds light on cell growth, development and differentiation in health, ageing and disease. Targeted DNA sequencing, whole exome sequencing, and most recently single-cell DNA sequencing have been applied to reconstruct trees describing this clonal substructure. However, the functional and phenotypic differences between clonal populations identified have been difficult to characterise and remain unclear in most cases.</p>
-<p>To address this, we present cardelino (<a href="https://github.com/PMBio/cardelino" class="uri">https://github.com/PMBio/cardelino</a>), a computational method to assign single-cell transcriptome profiles to nodes in a clonal tree, based on variants identified from single-cell RNA-seq data. After validating the model on simulated data, we apply cardelino to matched single-cell RNA-seq and exome sequencing data from 32 human dermal fibroblast lines.</p>
-<p>The somatic mutation landscape reveals non-neutral clonal evolution in a subset of these healthy donors. In line with this evolutionary selection pressure, we identify gene expression differences between clones. Interestingly, cell cycle and proliferation pathways separate clones repeatedly in our fibroblast samples. In summary, we develop and apply an approach that allows for reconstructing transcriptome profiles of clonal subpopulations within tissues. This has the potential to inform on mutational processes at single-cell resolution, both in cancer and healthy ageing.</p>
 <p><strong>Key findings:</strong></p>
 <ul>
 <li>A new approach for integrating DNA-seq and single-cell RNA-seq data to reconstruct clonal substructure and single-cell transcriptomes.</li>
@@ -511,12 +542,16 @@ Start workflowr project.
 <li>Evidence for non-neutral evolution of clonal populations in human fibroblasts.</li>
 <li>Proliferation and cell cycle pathways are commonly distorted in mutated clonal populations, with implications for cancer and ageing.</li>
 </ul>
+<p><strong>Abstract</strong></p>
+<p>Decoding the clonal substructures of somatic tissues sheds light on cell growth, development and differentiation in health, ageing and disease. DNA-sequencing, either using bulk or using single-cell assays, has enabled the reconstruction of clonal trees from somatic variants. However, approaches to characterize phenotypic and functional variations between clones are not established.</p>
+<p>Here we present cardelino (<a href="https://github.com/PMBio/cardelino" class="uri">https://github.com/PMBio/cardelino</a>), a computational method to assign single-cell transcriptome profiles to somatic clones using variant information contained in single-cell RNA-seq (scRNA-seq) data. After validating our model using simulations, we apply cardelino to matched scRNA-seq and exome sequencing data from 32 human dermal fibroblast lines</p>
+<p>We identify hundreds of differentially expressed genes between cells assigned to different clones. These genes were frequently enriched for the cell cycle and pathways related to cell proliferation, and our data point to clone gene expression phenotypes that support previous work showing non-neutral somatic evolution in nominally healthy human skin cells.</p>
 </div>
 <div id="authors" class="section level2">
 <h2>Authors</h2>
 <p>The full author list is as follows:</p>
-<p>Davis J. McCarthy<sup>1,4*</sup>, Raghd Rostom<sup>1,2,*</sup>, Yuanhua Huang<sup>1*</sup>, Daniel J. Kunz<sup>2,5,6</sup>, Petr Danecek<sup>2</sup>, Marc Jan Bonder<sup>1</sup>, Tzachi Hagai<sup>1,2</sup>, HipSci Consortium, Wenyi Wang, Daniel J. Gaffney<sup>2</sup>, Benjamin D. Simons<sup>5,6,7</sup>, Oliver Stegle<sup>1,3,#</sup>, Sarah A. Teichmann<sup>1,2,5,#</sup></p>
-<p><sup>1</sup>European Molecular Biology Laboratory, European Bioinformatics Institute, Wellcome Genome Campus, CB10 1SD Hinxton, Cambridge, UK; <sup>2</sup>Wellcome Sanger Institute, Wellcome Genome Campus, Hinxton, CB10 1SA, UK; <sup>3</sup>European Molecular Biology Laboratory, Genome Biology Unit, 69117 Heidelberg, Germany; <sup>4</sup>St Vincent’s Institute of Medical Research, Fitzroy, Victoria 3065, Australia. <sup>5</sup>Cavendish Laboratory, Department of Physics, JJ Thomson Avenue, Cambridge, CB3 0HE, UK. <sup>6</sup>The Wellcome Trust/Cancer Research UK Gurdon Institute, University of Cambridge, Cambridge, CB2 1QN, UK. <sup>7</sup>The Wellcome Trust/Medical Research Council Stem Cell Institute, University of Cambridge, Cambridge, UK.</p>
+<p>Davis J. McCarthy<sup>1,4,*</sup>, Raghd Rostom<sup>1,2,*</sup>, Yuanhua Huang<sup>1,*</sup>, Daniel J. Kunz<sup>2,5,6</sup>, Petr Danecek<sup>2</sup>, Marc Jan Bonder<sup>1</sup>, Tzachi Hagai<sup>1,2</sup>, HipSci Consortium, Wenyi Wang<sup>8</sup>, Daniel J. Gaffney<sup>2</sup>, Benjamin D. Simons<sup>5,6,7</sup>, Oliver Stegle<sup>1,3,9,#</sup>, Sarah A. Teichmann<sup>1,2,5,#</sup></p>
+<p><sup>1</sup>European Molecular Biology Laboratory, European Bioinformatics Institute, Wellcome Genome Campus, CB10 1SD Hinxton, Cambridge, UK; <sup>2</sup>Wellcome Sanger Institute, Wellcome Genome Campus, Hinxton, CB10 1SA, UK; <sup>3</sup>European Molecular Biology Laboratory, Genome Biology Unit, 69117 Heidelberg, Germany; <sup>4</sup>St Vincent’s Institute of Medical Research, Fitzroy, Victoria 3065, Australia. <sup>5</sup>Cavendish Laboratory, Department of Physics, JJ Thomson Avenue, Cambridge, CB3 0HE, UK. <sup>6</sup>The Wellcome Trust/Cancer Research UK Gurdon Institute, University of Cambridge, Cambridge, CB2 1QN, UK. <sup>7</sup>The Wellcome Trust/Medical Research Council Stem Cell Institute, University of Cambridge, Cambridge, UK. <sup>8</sup>Department of Bioinformatics and Computational Biology, The University of Texas MD Anderson Cancer Center, Houston, Texas 77030, USA. <sup>9</sup>Division of Computational Genomics and Systems Genetics, German Cancer Research Center (DKFZ), 69120, Heidelberg, Germany.</p>
 <p><sup>*</sup> These authors contributed equally to this work.</p>
 <p><sup>#</sup> Corresponding authors.</p>
 </div>

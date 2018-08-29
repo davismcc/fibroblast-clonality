@@ -375,7 +375,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-27</p>
+<p><strong>Last updated:</strong> 2018-08-29</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -399,7 +399,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/c882c5989069a373a6f53b9a153c48ff54201dc2" target="_blank">c882c59</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/128fea51caf326169a595f26a6908ed8585bce75" target="_blank">128fea5</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -410,7 +410,6 @@ Ignored files:
     Ignored:    code/.DS_Store
     Ignored:    data/raw/
     Ignored:    src/.DS_Store
-    Ignored:    src/.ipynb_checkpoints/
     Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
@@ -476,6 +475,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/128fea51caf326169a595f26a6908ed8585bce75/analysis/differential_expression.Rmd" target="_blank">128fea5</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Small bug fix
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/dc78a9541488651a4b9bcda20e016a0b849d0b94/analysis/differential_expression.Rmd" target="_blank">dc78a95</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Minor updates to analyses.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/a0561694242ae0312f6974102d22811a5e96d9ae/docs/differential_expression.html" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Addign updated docs
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -2296,6 +2346,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of cells&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-1.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_genes_vs_n_cells.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2312,6 +2392,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">coord_flip</span>()</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-2.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-2.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-2.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_boxplot.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2349,6 +2459,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">coord_flip</span>()</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-3.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-3.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-3.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_boxplot.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2363,6 +2503,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-4.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-4.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-4.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_gof_cumul_mut_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2378,6 +2548,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-5.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-5.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-5.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_vs_gof_cumul_mut_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2392,6 +2592,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: negative binomial distribution&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-6.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-6.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-6.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_gof_negbin_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2407,6 +2637,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-7.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-7.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-7.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_all.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2423,6 +2683,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_y_sqrt</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">100</span>, <span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">1500</span>, <span class="dv">2000</span>, <span class="dv">2500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-8.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-8.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-8.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_vs_n_somatic_vars_all.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2438,6 +2728,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-9.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-9.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-9.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_missense.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
@@ -2453,6 +2773,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-10.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-10.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-10.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_misnonspli.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2467,6 +2817,36 @@ df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-11.png" width="672" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of link-de-to-selection-11.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/link-de-to-selection-11.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
@@ -2514,9 +2894,23 @@ precision_simu &lt;-<span class="st"> </span><span class="kw">rep</span>(<span c
 <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(donors))) {
   idx &lt;-<span class="st"> </span>prob_all[, i] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>
   precision_simu[i] &lt;-<span class="st"> </span><span class="kw">mean</span>(assign_<span class="dv">0</span>[idx, i] <span class="op">==</span><span class="st"> </span>assign_<span class="dv">1</span>[idx, i])
+}</code></pre></div>
+<p>Read results from real data as well and form a data frame for plotting.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">all_files &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;cardelino_results.&quot;</span>, donors, 
+                    <span class="st">&quot;.filt_lenient.cell_coverage_sites.rds&quot;</span>)
+n_sites &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(donors))
+n_clone &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(donors))
+recall_all &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(donors))
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">length</span>(all_files))) {
+  afile &lt;-<span class="st"> </span>all_files[i]
+  carde_dat &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">file.path</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;cell_assignment&quot;</span>, afile))
+  n_sites[i] &lt;-<span class="st"> </span><span class="kw">nrow</span>(carde_dat<span class="op">$</span>D)
+  n_clone[i] &lt;-<span class="st"> </span><span class="kw">ncol</span>(carde_dat<span class="op">$</span>prob_mat)
+  recall_all[i] &lt;-<span class="st"> </span><span class="kw">mean</span>(<span class="kw">get_prob_value</span>(carde_dat<span class="op">$</span>prob_mat, <span class="dt">mode =</span> <span class="st">&quot;best&quot;</span>) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>)
 }
 
-df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">line =</span> donors, <span class="dt">recall_simu =</span> <span class="kw">colMeans</span>(prob_all <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>),
+df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">line =</span> donors, <span class="dt">n_sites =</span> n_sites, <span class="dt">n_clone =</span> n_clone, 
+                 <span class="dt">recall_real =</span> recall_all, <span class="dt">recall_simu =</span> <span class="kw">colMeans</span>(prob_all <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>),
                  <span class="dt">precision_simu =</span> precision_simu)</code></pre></div>
 <p>We can now look at the relationship between the number of DE genes detected per line and the assignment accuracy and assignment rate per line.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df &lt;-<span class="st"> </span><span class="kw">inner_join</span>(df, dplyr<span class="op">::</span><span class="kw">mutate</span>(df_nbglm_nde, <span class="dt">line =</span> donor))
@@ -2555,6 +2949,150 @@ p3 &lt;-<span class="st"> </span><span class="kw">plot_grid</span>(p1, p2, <span
 
 p3</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/plot-de-assignment-acc-1.png" width="624" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plot-de-assignment-acc-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/a0561694242ae0312f6974102d22811a5e96d9ae/docs/figure/differential_expression.Rmd/plot-de-assignment-acc-1.png" target="_blank">a056169</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
+</div>
+<div id="linking-de-to-multiple-explanatory-factors" class="section level2">
+<h2>Linking DE to multiple explanatory factors</h2>
+<p>Let us fit a NB GLM to regress number of DE genes observed per line against number of cells, goodness of fit of selection models, number of somatic variants, assignment accuracy (from simulations) and assignment rate (observed) per line.</p>
+<p>First we can look at fitting different combinations of these explanatory variables and do model selection using AIC (Akaike Information Criterion).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span>n_cells <span class="op">+</span><span class="st"> </span>rsq_negbinfit <span class="op">+</span><span class="st"> </span>rsq_ntrtestr <span class="op">+</span><span class="st"> </span>nvars_all
+  <span class="op">+</span><span class="st"> </span>recall_real <span class="op">+</span><span class="st"> </span>precision_simu, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          53.0      30  -207.  431.  442.     37.4          24</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>rsq_negbinfit <span class="op">+</span><span class="st"> </span>rsq_ntrtestr <span class="op">+</span><span class="st"> </span>nvars_all
+  <span class="op">+</span><span class="st"> </span>recall_real <span class="op">+</span><span class="st"> </span>precision_simu, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          57.3      30  -206.  428.  439.     37.3          24</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">sqrt</span>(n_cells) <span class="op">+</span><span class="st"> </span>rsq_negbinfit <span class="op">+</span><span class="st"> </span>rsq_ntrtestr <span class="op">+</span><span class="st"> </span>nvars_all
+  <span class="op">+</span><span class="st"> </span>recall_real <span class="op">+</span><span class="st"> </span>precision_simu, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          54.8      30  -207.  430.  441.     37.4          24</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>rsq_negbinfit <span class="op">+</span><span class="st"> </span>rsq_ntrtestr <span class="op">+</span><span class="st"> </span><span class="kw">sqrt</span>(nvars_all)
+  <span class="op">+</span><span class="st"> </span>recall_real <span class="op">+</span><span class="st"> </span>precision_simu, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          57.2      30  -206.  428.  439.     37.3          24</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>rsq_negbinfit <span class="op">+</span><span class="st"> </span>rsq_ntrtestr <span class="op">+</span><span class="st"> </span><span class="kw">log10</span>(nvars_all)
+  <span class="op">+</span><span class="st"> </span>recall_real <span class="op">+</span><span class="st"> </span>precision_simu, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          57.1      30  -206.  428.  439.     37.3          24</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>rsq_ntrtestr <span class="op">+</span><span class="st"> </span>nvars_all
+  <span class="op">+</span><span class="st"> </span>recall_real <span class="op">+</span><span class="st"> </span>precision_simu, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          55.9      30  -206.  427.  437.     37.3          25</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>rsq_ntrtestr <span class="op">+</span><span class="st"> </span>nvars_all
+  <span class="op">+</span><span class="st"> </span>recall_real, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          54.1      30  -207.  426.  435.     37.4          26</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>rsq_ntrtestr <span class="op">+</span><span class="st"> </span>nvars_all, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          53.8      30  -207.  424.  431.     37.4          27</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>rsq_negbinfit <span class="op">+</span><span class="st"> </span>nvars_all, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          54.8      30  -207.  424.  431.     37.4          27</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>nvars_all, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          53.6      30  -207.  422.  428.     37.4          28</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells), <span class="dt">data =</span> df))</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          51.3      30  -208.  422.  426.     37.5          29</code></pre>
+<p>The preferred model based on AIC values is one fitting log10-scale number of cells and number of somatic variants as predictor variables.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nbglm_nde_allfacts &lt;-<span class="st"> </span>MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st">  </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>rsq_negbinfit <span class="op">+</span><span class="st"> </span>rsq_ntrtestr <span class="op">+</span><span class="st"> </span>nvars_all
+  <span class="op">+</span><span class="st"> </span>recall_real <span class="op">+</span><span class="st"> </span>precision_simu, <span class="dt">data =</span> df)
+broom<span class="op">::</span><span class="kw">tidy</span>(nbglm_nde_allfacts)</code></pre></div>
+<pre><code># A tibble: 7 x 5
+  term           estimate std.error statistic  p.value
+  &lt;chr&gt;             &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+1 (Intercept)    -4.48      5.22       -0.857 0.391   
+2 log10(n_cells)  4.53      1.34        3.38  0.000720
+3 rsq_negbinfit   0.882     0.840       1.05  0.294   
+4 rsq_ntrtestr   -2.29      2.60       -0.879 0.380   
+5 nvars_all       0.00708   0.00723     0.980 0.327   
+6 recall_real     0.283     2.06        0.138 0.891   
+7 precision_simu  3.54      5.42        0.654 0.513   </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nbglm_nde_selectfacts &lt;-<span class="st"> </span>MASS<span class="op">::</span><span class="kw">glm.nb</span>(
+  n_de_genes <span class="op">~</span><span class="st"> </span><span class="kw">log10</span>(n_cells) <span class="op">+</span><span class="st"> </span>nvars_all, <span class="dt">data =</span> df)
+broom<span class="op">::</span><span class="kw">tidy</span>(nbglm_nde_selectfacts)</code></pre></div>
+<pre><code># A tibble: 3 x 5
+  term           estimate std.error statistic   p.value
+  &lt;chr&gt;             &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+1 (Intercept)    -3.03      2.06        -1.47 0.141    
+2 log10(n_cells)  4.91      1.25         3.93 0.0000835
+3 nvars_all       0.00889   0.00724      1.23 0.219    </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">broom<span class="op">::</span><span class="kw">glance</span>(nbglm_nde_selectfacts)</code></pre></div>
+<pre><code># A tibble: 1 x 7
+  null.deviance df.null logLik   AIC   BIC deviance df.residual
+          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+1          53.6      30  -207.  422.  428.     37.4          28</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nbglm_nde_allfacts_tbl &lt;-<span class="st"> </span><span class="kw">bind_cols</span>(
+  broom<span class="op">::</span><span class="kw">tidy</span>(nbglm_nde_selectfacts),
+  broom<span class="op">::</span><span class="kw">confint_tidy</span>(nbglm_nde_selectfacts, <span class="dt">conf.level =</span> <span class="fl">0.9</span>))
+
+
+df_nbglm_nde &lt;-<span class="st"> </span>broom<span class="op">::</span><span class="kw">augment</span>(nbglm_nde) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">left_join</span>(df_donor_info)</code></pre></div>
 </div>
 <div id="linking-pathway-results-to-selection" class="section level2">
 <h2>Linking pathway results to selection</h2>
@@ -2593,7 +3131,7 @@ p3</code></pre></div>
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-27                  
+ date     2018-08-29                  
 
  package              * version   date       source                
  AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
