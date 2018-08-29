@@ -194,7 +194,7 @@ fits %>%
   geom_abline(aes(intercept = x0, slope = x1), 
               data = dplyr::filter(fits_me, clone != "clone4"),
               colour = "firebrick", size = 1) +
-  ggrepel::geom_label_repel(aes(label = labs), fill = "gray90", size = 2.5,
+  ggrepel::geom_label_repel(aes(label = labs), fill = "gray90", size = 3.5,
                             box.padding = 0.1, label.padding = 0.15) +
   geom_point(size = 3, shape = 21) +
   xlim(0, 1) + ylim(0, 1) +
@@ -204,7 +204,7 @@ fits %>%
   scale_colour_manual(values = c("black", "firebrick"), guide = FALSE) +
   xlab("Estimated clone prevalence (Canopy)") +
   ylab("Assigned clone fraction (cardelino)") +
-  theme(axis.text = element_text(size = 9))
+  theme_cowplot(font_size = 17)
 
 ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel.png", 
        height = 4.5, width = 8.5)
@@ -212,9 +212,9 @@ ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxml
        height = 4.5, width = 8.5)
 
 ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel_wide.png", 
-       height = 4.5, width = 13)
+       height = 4.5, width = 13.5)
 ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel_wide.pdf", 
-       height = 4.5, width = 13)
+       height = 4.5, width = 13.5)
 ```
 
 

@@ -195,8 +195,8 @@ plt_scatter <- ggplot(dfrsq_filt, aes(x = rsq_negbinfit, y = rsq_ntrtestr)) +
                                  "selected" = "dodgerblue4",
                                  "undetermined" = "#CCCCCC")) +
   geom_point(aes(fill = selection), size = 3, shape = 21) +
-  geom_label_repel(aes(label = candidatelabel), color = "white", size = 3.5,
-                   fill = "black", box.padding = 0.35, point.padding = 0.5,
+  geom_label_repel(aes(label = candidatelabel), color = "black", size = 4,
+                   fill = "gray90", box.padding = 0.35, point.padding = 0.5,
                    segment.color = "grey50") +
   # theme_bw() +
   # theme(text = element_text(size = 11, face = "plain"), 
@@ -205,6 +205,7 @@ plt_scatter <- ggplot(dfrsq_filt, aes(x = rsq_negbinfit, y = rsq_ntrtestr)) +
   #       plot.title = element_text(size = 11, hjust = 0.5)) +
   labs(x = "Goodness of Fit - Negative Binomial Distribution", 
        y = "Goodness of Fit - Cumulative Mutations") +
+  theme_cowplot(font_size = 16) +
   theme(strip.background = element_blank()) +
   theme(legend.justification = c(1,0), legend.position = c(1,0)) +
   theme(legend.background = element_rect(fill = "white", linetype = 1, 

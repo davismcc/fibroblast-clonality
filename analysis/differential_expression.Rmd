@@ -1014,6 +1014,22 @@ ggplot(aes(x = rsq_negbinfit, y = .resid, fill = selection)) +
 ggsave("figures/differential_expression/n_de_resid_selection_vs_gof_negbin_model.png", 
        height = 5.5, width = 6.5)
 
+## n_de (resids) vs ave goodness of fit from both models
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = (rsq_negbinfit + rsq_ntrtestr) / 2, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_de_resid_selection_vs_gof_negbin_model.png", 
+       height = 5.5, width = 6.5)
+
+
+
 ## n_de (resids) vs mutational load (all)
 df_nbglm_nde %>%
   dplyr::mutate(selection = factor(
@@ -1089,29 +1105,58 @@ ggplot(aes(x = nvars_all, y = rsq_ntrtestr, fill = selection)) +
 ggsave("figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.png", 
        height = 6.5, width = 5.5)
 
-# 
-# fdr_thresh <- 0.1
-# df_de_sig_unst <- data_frame()
-# for (donor in names(de_res[["qlf_list"]])) {
-#     tmp <- de_res[["qlf_list"]][[donor]]$table
-#     tmp$gene <- rownames(de_res[["qlf_list"]][[donor]]$table)
-#     ihw_res <- ihw(PValue ~ logCPM, data = tmp, alpha = 0.05)
-#     tmp$FDR <- adj_pvalues(ihw_res)
-#     tmp <- tmp[tmp$FDR < fdr_thresh,]
-#     if (nrow(tmp) > 0.5) {
-#         tmp[["donor"]] <- donor
-#         df_de_sig_unst <- bind_rows(df_de_sig_unst, tmp)
-#     }
-# }
-# 
-# 
-# df_donor_n_de <- df_de_sig_unst %>% 
-#     group_by(gene) %>% 
-#     dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
-#     group_by(donor) %>%
-#     dplyr::summarise(count = n())
+```
+
+We can also check the relationship between the number of somatic variants and
+evidence for selection as immediately above, but fliping the relationship.
+
+```{r nvars-vs-gof-selection}
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = rsq_ntrtestr, y = nvars_all, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab("Goodness of fit: cumulative mutations ") +
+  ylab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_y_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression/n_somatic_vars_vs_gof_cumul_mut_model.png", 
+       height = 6.5, width = 5.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = rsq_negbinfit, y = nvars_all, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab("Goodness of fit: negative binomial ") +
+  ylab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_y_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression/n_somatic_vars_vs_gof_cumul_mut_model.png", 
+       height = 6.5, width = 5.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = (rsq_negbinfit + rsq_ntrtestr) / 2, y = nvars_all, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  ylab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_y_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression/n_somatic_vars_vs_ave_gof_two_models.png", 
+       height = 6.5, width = 5.5)
+
 
 ```
+
 
 
 ## Linking DE to assignment accuracy
