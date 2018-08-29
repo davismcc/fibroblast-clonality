@@ -321,6 +321,9 @@ ggplot(aes(x = n_donors, y = n_genes)) +
 ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm_skinny.png", 
        height = 5.5, width = 6.5)
 
+ggsave("figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm_veryskinny.png", 
+       height = 7.5, width = 6.5)
+
 ```
 
 Look at recurrently DE genes.
@@ -777,6 +780,10 @@ pp_filt
 ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.png", plot = pp_filt, height = 5, width = 12)
 ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.pdf", plot = pp_filt, height = 5, width = 12)
 ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.svg", plot = pp_filt, height = 5, width = 12)
+
+ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts_wide.png", plot = pp_filt, height = 5, width = 16)
+ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts_wide.pdf", plot = pp_filt, height = 5, width = 16)
+ggsave("figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts_wide.svg", plot = pp_filt, height = 5, width = 16)
 ```
 
 
@@ -1025,8 +1032,21 @@ ggplot(aes(x = (rsq_negbinfit + rsq_ntrtestr) / 2, y = .resid, fill = selection)
   xlab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
   scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
 
-ggsave("figures/differential_expression/n_de_resid_selection_vs_gof_negbin_model.png", 
+ggsave("figures/differential_expression/n_de_resid_selection_vs_ave_gof_2_models.png", 
        height = 5.5, width = 6.5)
+
+## n_de vs ave goodness of fit from both models
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = (rsq_negbinfit + rsq_ntrtestr) / 2, y = n_de_genes, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  scale_y_sqrt() +
+  ylab("Number of DE genes") +
+  xlab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
 
 
 
