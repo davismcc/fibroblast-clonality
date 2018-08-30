@@ -81,6 +81,7 @@ fits_me <- df_prev %>%
 fits_me_1grp <- df_prev %>%
   do(le_lin_fit(.))
 
+summary(fits_1grp$fit[1][[1]])
 ```
 
 ## Plot clone prevalences

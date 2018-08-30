@@ -1173,11 +1173,85 @@ ggplot(aes(x = (rsq_negbinfit + rsq_ntrtestr) / 2, y = nvars_all,
 
 ggsave("figures/differential_expression/n_somatic_vars_vs_ave_gof_two_models.png", 
        height = 6.5, width = 5.5)
-
-
 ```
 
+```{r nde-plots-grid-gof-cummut, fig.height=5, fig.width=12}
+p1 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = rsq_ntrtestr, y = .resid, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Goodness of fit: cumulative mutations ") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
 
+p2 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = rsq_ntrtestr, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  ylab("Goodness of fit: cumulative mutations ") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+p3 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = .resid,
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+plot_grid(p1, p2, p3, nrow = 1, labels = "auto")
+```
+
+```{r nde-plots-grid-gof-ave, fig.height=5, fig.width=12}
+p1 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = (rsq_ntrtestr + rsq_negbinfit) / 2, y = .resid, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+p2 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = (rsq_ntrtestr + rsq_negbinfit) / 2, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  ylab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+p3 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = .resid,
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+plot_grid(p1, p2, p3, nrow = 1, labels = "auto")
+```
 
 ## Linking DE to assignment accuracy
 

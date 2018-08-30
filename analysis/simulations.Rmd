@@ -15,6 +15,7 @@ library(cardelino)
 library(viridis)
 library(cowplot)
 library(latex2exp)
+library(ggrepel)
 lines <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
             "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
             "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
@@ -536,7 +537,7 @@ ggsave("figures/simulations/assign_rate_obs_v_sim_wide.png",
 ggsave("figures/simulations/assign_rate_obs_v_sim_wide.pdf", 
        height = 4.5, width = 6.5)
 
-
+summary(lm(recall_real ~ recall_simu, data = df))
 ```
 
 ## Plot simulation precision-recall curve

@@ -203,8 +203,8 @@ plt_scatter <- ggplot(dfrsq_filt, aes(x = rsq_negbinfit, y = rsq_ntrtestr)) +
   #       axis.text = element_text(size = 11, face = "plain"),
   #       axis.title = element_text(size = 12, face = "plain"),
   #       plot.title = element_text(size = 11, hjust = 0.5)) +
-  labs(x = "Goodness of Fit - Negative Binomial Distribution", 
-       y = "Goodness of Fit - Cumulative Mutations") +
+  labs(x = "Goodness of fit - negative binomial distribution", 
+       y = "Goodness of fit - cumulative mutations") +
   theme_cowplot(font_size = 16) +
   theme(strip.background = element_blank()) +
   theme(legend.justification = c(1,0), legend.position = c(1,0)) +
@@ -268,7 +268,7 @@ for (j in 1:96) {
   sig_triNs[j] <- triN_sigfit
 }
 
-for(i in mutation_donors) {
+for (i in mutation_donors) {
   colnames(mut_triNs[[i]]) <- sig_triNs
 }
 
@@ -558,16 +558,16 @@ age_plot_filt <- ggplot(
   labs(x = "", y = "Donor", fill = "") + 
   scale_fill_manual(values = rev(c(magma(8)[-c(1,8)])))  +
   guides(fill = guide_legend(nrow = 3,byrow = TRUE)) +
-  theme(axis.text.x = element_text(size = 28, face = "bold"), 
+  theme(axis.text.x = element_text(size = 32, face = "plain"), 
         axis.line = element_blank(), 
         legend.position = "top", legend.direction = "horizontal", 
-        legend.text = element_text(size = 24, face = "bold"), 
+        legend.text = element_text(size = 28, face = "plain"), 
         legend.key.size = unit(0.3,"in"),
         axis.ticks.x = element_blank(),
         legend.margin = margin(unit(0.01, "cm")),
-        axis.text.y = element_text(size = 28, face = "bold"), 
-        axis.title.y = element_text(size = 28, face = "bold"), 
-        axis.title.x = element_text(size = 28, face = "bold"))
+        axis.text.y = element_text(size = 30, face = "plain"), 
+        axis.title.y = element_text(size = 32, face = "plain"), 
+        axis.title.x = element_text(size = 32, face = "plain"))
 
 # Plot number of mutations
 selected_vars <- c("donor_short", "num_mutations")
@@ -578,7 +578,7 @@ num_mut_plot_filt <- ggplot(
   aes(x = value, y = factor(donor_short, levels = rev(donor_filt_order)))) + 
   geom_point(size = 4, alpha = 0.7) + 
   scale_shape_manual(values = c(4, 19)) + 
-  scale_x_log10(breaks=c(50, 100, 500)) +
+  scale_x_log10(breaks = c(50, 100, 500)) +
   theme_bw(16) + 
   ggtitle(" ") + 
   labs(x = "Number of mutations", y = "") + 
@@ -586,9 +586,9 @@ num_mut_plot_filt <- ggplot(
         axis.ticks.y = element_blank(), 
         axis.line = element_blank(), 
         legend.position = "top", 
-        axis.text.x = element_text(size = 28, face = "bold"), 
-        title = element_text(colour="black",size = 26, face = "bold"), 
-        axis.title.x = element_text(size = 28, face = "bold"))
+        axis.text.x = element_text(size = 32, face = "plain"), 
+        title = element_text(colour="black",size = 30, face = "plain"), 
+        axis.title.x = element_text(size = 32, face = "plain"))
 
 # Plot signature 7 
 donor_info_filt_melt <- reshape2::melt(
@@ -609,9 +609,9 @@ sig_decomp_plot_filt <- ggplot(
   theme(axis.text.y = element_blank(), 
         axis.ticks.y = element_blank(), 
         axis.line = element_blank(), 
-        axis.text.x = element_text(size = 28, face = "bold"),
-        title = element_text(colour = "black", size = 26, face = "bold"),
-        axis.title.x = element_text(size = 28, face = "bold")) +
+        axis.text.x = element_text(size = 32, face = "plain"),
+        title = element_text(colour = "black", size = 30, face = "plain"),
+        axis.title.x = element_text(size = 32, face = "plain")) +
   guides(fill = FALSE)
 
 # Plot total number of mutations per clone
@@ -633,12 +633,12 @@ num_clones_plot_filt <- ggplot(
         axis.line = element_blank(), 
         legend.position = "top",
         legend.key.size = unit(0.5,"in"), 
-        axis.title.x = element_text(size = 28, face = "bold"),
-        axis.text.x = element_text(size = 28, face = "bold"),
+        axis.title.x = element_text(size = 32, face = "plain"),
+        axis.text.x = element_text(size = 32, face = "plain"),
         axis.text.y = element_blank(), 
         legend.justification = "center", 
-        legend.text = element_text(size = 26, face = "bold"), 
-        legend.title = element_text(size = 26, face = "bold"))
+        legend.text = element_text(size = 30, face = "plain"), 
+        legend.title = element_text(size = 30, face = "plain"))
 
 ## Combine above plots into Fig 2a
 fig_2a <- cowplot::plot_grid(age_plot_filt, num_mut_plot_filt,
