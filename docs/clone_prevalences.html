@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-29</p>
+<p><strong>Last updated:</strong> 2018-08-30</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/128fea51caf326169a595f26a6908ed8585bce75" target="_blank">128fea5</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/1310c939b2a3803d152ab0c3f885b905e7286dd4" target="_blank">1310c93</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -467,6 +467,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/1310c939b2a3803d152ab0c3f885b905e7286dd4/analysis/clone_prevalences.Rmd" target="_blank">1310c93</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+Tweaking plots
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/846dec4503c53c25d2e0b662ea3bfab57f083a26/analysis/clone_prevalences.Rmd" target="_blank">846dec4</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+Some small tweaks/additions to analyses
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/ca3438f9274dbc7adf4aacc25b0fb017bc2d41fe/docs/clone_prevalences.html" target="_blank">ca3438f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -845,7 +896,27 @@ fits_me &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">do</span>(<span class="kw">le_lin_fit</span>(.))
 
 fits_me_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">do</span>(<span class="kw">le_lin_fit</span>(.))</code></pre></div>
+<span class="st">  </span><span class="kw">do</span>(<span class="kw">le_lin_fit</span>(.))
+
+<span class="kw">summary</span>(fits_1grp<span class="op">$</span>fit[<span class="dv">1</span>][[<span class="dv">1</span>]])</code></pre></div>
+<pre><code>
+Call:
+lm(formula = prev_cardelino ~ prev_canopy, data = ., weights = prop_assigned)
+
+Weighted Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.34834 -0.09832  0.01523  0.07408  0.42785 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  0.09599    0.02566   3.741 0.000315 ***
+prev_canopy  0.71830    0.05903  12.169  &lt; 2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 0.1423 on 94 degrees of freedom
+Multiple R-squared:  0.6117,    Adjusted R-squared:  0.6076 
+F-statistic: 148.1 on 1 and 94 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 <div id="plot-clone-prevalences" class="section level2">
 <h2>Plot clone prevalences</h2>
@@ -1028,7 +1099,7 @@ davismcc
 <span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), 
               <span class="dt">data =</span> dplyr<span class="op">::</span><span class="kw">filter</span>(fits_me, clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>),
               <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span>
-<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> labs), <span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>, <span class="dt">size =</span> <span class="fl">2.5</span>,
+<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> labs), <span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>, <span class="dt">size =</span> <span class="fl">3.5</span>,
                             <span class="dt">box.padding =</span> <span class="fl">0.1</span>, <span class="dt">label.padding =</span> <span class="fl">0.15</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span>
@@ -1038,18 +1109,48 @@ davismcc
 <span class="st">  </span><span class="kw">scale_colour_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;black&quot;</span>, <span class="st">&quot;firebrick&quot;</span>), <span class="dt">guide =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>))</code></pre></div>
+<span class="st">  </span><span class="kw">theme_cowplot</span>(<span class="dt">font_size =</span> <span class="dv">17</span>)</code></pre></div>
 <pre><code>Joining, by = c(&quot;clone&quot;, &quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
 <p><img src="figure/clone_prevalences.Rmd/plot-prev-facet-clone-3clones-joxm-1.png" width="816" style="display: block; margin: auto;" /></p>
+<details> <summary><em>Expand here to see past versions of plot-prev-facet-clone-3clones-joxm-1.png:</em></summary>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/ca3438f9274dbc7adf4aacc25b0fb017bc2d41fe/docs/figure/clone_prevalences.Rmd/plot-prev-facet-clone-3clones-joxm-1.png" target="_blank">ca3438f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+</tr>
+</tbody>
+</table>
+<p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel.pdf&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
 
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel_wide.png&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="dv">13</span>)
+       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">13.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_joxmlabel_wide.pdf&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="dv">13</span>)</code></pre></div>
+       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">13.5</span>)</code></pre></div>
 <p>Also look at what happens if we filter out lines that have fewer than 75% of cells assigned (25 lines).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_prev <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>, prop_assigned <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.75</span>) <span class="op">%&gt;%</span>
@@ -1111,7 +1212,7 @@ davismcc
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-29                  </code></pre>
+ date     2018-08-30                  </code></pre>
 <pre><code>Packages -----------------------------------------------------------------</code></pre>
 <pre><code> package     * version date       source        
  assertthat    0.2.0   2017-04-11 CRAN (R 3.5.0)
@@ -1163,7 +1264,7 @@ davismcc
  purrr       * 0.2.5   2018-05-29 CRAN (R 3.5.0)
  R.methodsS3   1.7.1   2016-02-16 CRAN (R 3.5.0)
  R.oo          1.22.0  2018-04-22 CRAN (R 3.5.0)
- R.utils       2.6.0   2017-11-05 CRAN (R 3.5.0)
+ R.utils       2.7.0   2018-08-27 CRAN (R 3.5.0)
  R6            2.2.2   2017-06-17 CRAN (R 3.5.0)
  Rcpp          0.12.18 2018-07-23 CRAN (R 3.5.0)
  readr       * 1.1.1   2017-05-16 CRAN (R 3.5.0)

@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-29</p>
+<p><strong>Last updated:</strong> 2018-08-31</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/128fea51caf326169a595f26a6908ed8585bce75" target="_blank">128fea5</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/1310c939b2a3803d152ab0c3f885b905e7286dd4" target="_blank">1310c93</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -467,6 +467,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/1310c939b2a3803d152ab0c3f885b905e7286dd4/analysis/simulations.Rmd" target="_blank">1310c93</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+Tweaking plots
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/846dec4503c53c25d2e0b662ea3bfab57f083a26/analysis/simulations.Rmd" target="_blank">846dec4</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+Some small tweaks/additions to analyses
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/ca3438f9274dbc7adf4aacc25b0fb017bc2d41fe/docs/simulations.html" target="_blank">ca3438f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -669,6 +720,7 @@ Adding data pre-processing workflow and updating analyses.
 <span class="kw">library</span>(viridis)
 <span class="kw">library</span>(cowplot)
 <span class="kw">library</span>(latex2exp)
+<span class="kw">library</span>(ggrepel)
 lines &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;euts&quot;</span>, <span class="st">&quot;fawm&quot;</span>, <span class="st">&quot;feec&quot;</span>, <span class="st">&quot;fikt&quot;</span>, <span class="st">&quot;garx&quot;</span>, <span class="st">&quot;gesg&quot;</span>, <span class="st">&quot;heja&quot;</span>, <span class="st">&quot;hipn&quot;</span>, 
             <span class="st">&quot;ieki&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;kuco&quot;</span>, <span class="st">&quot;laey&quot;</span>, <span class="st">&quot;lexy&quot;</span>, <span class="st">&quot;naju&quot;</span>, <span class="st">&quot;nusw&quot;</span>, <span class="st">&quot;oaaz&quot;</span>, 
             <span class="st">&quot;oilg&quot;</span>, <span class="st">&quot;pipw&quot;</span>, <span class="st">&quot;puie&quot;</span>, <span class="st">&quot;qayj&quot;</span>, <span class="st">&quot;qolg&quot;</span>, <span class="st">&quot;qonc&quot;</span>, <span class="st">&quot;rozh&quot;</span>, <span class="st">&quot;sehl&quot;</span>, 
@@ -1247,6 +1299,7 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
 <div id="plot-observed-vs-simulated-assignment-rates-recall" class="section level2">
 <h2>Plot observed vs simulated assignment rates (recall)</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">labs =</span> <span class="kw">ifelse</span>(line <span class="op">==</span><span class="st"> &quot;joxm&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;&quot;</span>)) <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">sites_per_clone =</span> <span class="kw">cut</span>(n_sites <span class="op">/</span><span class="st"> </span><span class="kw">pmax</span>(n_clone <span class="op">-</span><span class="st"> </span><span class="dv">1</span>, <span class="dv">1</span>), 
                                       <span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">3</span>, <span class="dv">8</span>, <span class="dv">15</span>, <span class="dv">25</span>, <span class="dv">60</span>))) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ggplot</span>(
@@ -1254,13 +1307,16 @@ df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class=
              <span class="dt">fill =</span> sites_per_clone)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> labs), <span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>, <span class="dt">size =</span> <span class="dv">4</span>,
+                   <span class="dt">nudge_x =</span> <span class="fl">0.05</span>, <span class="dt">nudge_y =</span> <span class="op">-</span><span class="fl">0.1</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">name =</span> <span class="st">&quot;mean</span><span class="ch">\n</span><span class="st"># variants</span><span class="ch">\n</span><span class="st">per clonal</span><span class="ch">\n</span><span class="st">branch&quot;</span>, 
                     <span class="dt">values =</span> <span class="kw">magma</span>(<span class="dv">6</span>)[<span class="op">-</span><span class="dv">1</span>]) <span class="op">+</span>
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">colour =</span> <span class="ot">FALSE</span>, <span class="dt">group =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Assignment rate: simulated&quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assignment rate: observed&quot;</span>)</code></pre></div>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assignment rate: observed&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_cowplot</span>(<span class="dt">font_size =</span> <span class="dv">16</span>)</code></pre></div>
 <p><img src="figure/simulations.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
 <details> <summary><em>Expand here to see past versions of unnamed-chunk-10-1.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
@@ -1300,7 +1356,27 @@ davismcc
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/assign_rate_obs_v_sim_wide.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/simulations/assign_rate_obs_v_sim_wide.pdf&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)</code></pre></div>
+       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
+
+<span class="kw">summary</span>(<span class="kw">lm</span>(recall_real <span class="op">~</span><span class="st"> </span>recall_simu, <span class="dt">data =</span> df))</code></pre></div>
+<pre><code>
+Call:
+lm(formula = recall_real ~ recall_simu, data = df)
+
+Residuals:
+      Min        1Q    Median        3Q       Max 
+-0.177532 -0.005110  0.008029  0.010426  0.160930 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  0.02246    0.04634   0.485    0.631    
+recall_simu  0.96951    0.05262  18.424   &lt;2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 0.06609 on 30 degrees of freedom
+Multiple R-squared:  0.9188,    Adjusted R-squared:  0.9161 
+F-statistic: 339.4 on 1 and 30 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 <div id="plot-simulation-precision-recall-curve" class="section level2">
 <h2>Plot simulation precision-recall curve</h2>
@@ -1377,7 +1453,7 @@ davismcc
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-29                  
+ date     2018-08-31                  
 
  package              * version   date       source        
  AnnotationDbi          1.42.1    2018-05-08 Bioconductor  
@@ -1419,7 +1495,8 @@ davismcc
  GenomicFeatures        1.32.2    2018-08-13 Bioconductor  
  GenomicRanges          1.32.6    2018-07-20 Bioconductor  
  ggplot2              * 3.0.0     2018-07-03 CRAN (R 3.5.0)
- ggpubr               * 0.1.7     2018-06-23 CRAN (R 3.5.0)
+ ggpubr               * 0.1.8     2018-08-30 CRAN (R 3.5.1)
+ ggrepel              * 0.8.0     2018-05-09 CRAN (R 3.5.0)
  ggtree                 1.12.7    2018-08-07 Bioconductor  
  git2r                  0.23.0    2018-07-17 CRAN (R 3.5.0)
  glue                   1.3.0     2018-07-17 CRAN (R 3.5.0)
@@ -1458,7 +1535,7 @@ davismcc
  purrr                * 0.2.5     2018-05-29 CRAN (R 3.5.0)
  R.methodsS3            1.7.1     2016-02-16 CRAN (R 3.5.0)
  R.oo                   1.22.0    2018-04-22 CRAN (R 3.5.0)
- R.utils                2.6.0     2017-11-05 CRAN (R 3.5.0)
+ R.utils                2.7.0     2018-08-27 CRAN (R 3.5.0)
  R6                     2.2.2     2017-06-17 CRAN (R 3.5.0)
  RColorBrewer           1.1-2     2014-12-07 CRAN (R 3.5.0)
  Rcpp                   0.12.18   2018-07-23 CRAN (R 3.5.0)

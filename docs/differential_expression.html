@@ -375,7 +375,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-29</p>
+<p><strong>Last updated:</strong> 2018-08-30</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -399,7 +399,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/128fea51caf326169a595f26a6908ed8585bce75" target="_blank">128fea5</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/1310c939b2a3803d152ab0c3f885b905e7286dd4" target="_blank">1310c93</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -475,6 +475,74 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/1310c939b2a3803d152ab0c3f885b905e7286dd4/analysis/differential_expression.Rmd" target="_blank">1310c93</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+Tweaking plots
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/acc57562af6a1d2ebb6e84063e1aed3c7ca51245/analysis/differential_expression.Rmd" target="_blank">acc5756</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+Latest tweaks.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/846dec4503c53c25d2e0b662ea3bfab57f083a26/analysis/differential_expression.Rmd" target="_blank">846dec4</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+Some small tweaks/additions to analyses
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/ca3438f9274dbc7adf4aacc25b0fb017bc2d41fe/docs/differential_expression.html" target="_blank">ca3438f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -1273,7 +1341,10 @@ davismcc
 </table>
 <p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm_skinny.png&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)</code></pre></div>
+       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm_veryskinny.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">7.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)</code></pre></div>
 <p>Look at recurrently DE genes.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_gene_n_de &lt;-<span class="st"> </span>df_de_sig_unst <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">    </span><span class="kw">group_by</span>(gene) <span class="op">%&gt;%</span><span class="st"> </span>
@@ -2076,7 +2147,11 @@ davismcc
 <p></details></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.png&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">12</span>)
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.pdf&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">12</span>)
-<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.svg&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">12</span>)</code></pre></div>
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts.svg&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">12</span>)
+
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts_wide.png&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">16</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts_wide.pdf&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">16</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/top_genesets_H_direction_heatmap_filt_contrasts_wide.svg&quot;</span>, <span class="dt">plot =</span> pp_filt, <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">16</span>)</code></pre></div>
 </div>
 <div id="correlation-of-gene-set-results-and-genes-contained" class="section level2">
 <h2>Correlation of gene set results and genes contained</h2>
@@ -2625,17 +2700,16 @@ davismcc
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_gof_negbin_model.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
-## n_de (resids) vs mutational load (all)
+## n_de (resids) vs ave goodness of fit from both models
 df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
     selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
-<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> .resid, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> (rsq_negbinfit <span class="op">+</span><span class="st"> </span>rsq_ntrtestr) <span class="op">/</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">y =</span> .resid, <span class="dt">fill =</span> selection)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic variants&quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Ave. goodness of fit:</span><span class="ch">\n</span><span class="st"> negative binomial &amp; cumulative mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-7.png" width="672" style="display: block; margin: auto;" /></p>
 <details> <summary><em>Expand here to see past versions of link-de-to-selection-7.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
@@ -2667,21 +2741,21 @@ davismcc
 </tbody>
 </table>
 <p></details></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_all.png&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_ave_gof_2_models.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
-## n_de (sqrt scale) vs mutational load (all)
+## n_de vs ave goodness of fit from both models
 df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
     selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
-<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> n_de_genes, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> (rsq_negbinfit <span class="op">+</span><span class="st"> </span>rsq_ntrtestr) <span class="op">/</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">y =</span> n_de_genes, 
+           <span class="dt">fill =</span> selection)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_sqrt</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes&quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic variants&quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">scale_y_sqrt</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">100</span>, <span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">1500</span>, <span class="dv">2000</span>, <span class="dv">2500</span>))</code></pre></div>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Ave. goodness of fit:</span><span class="ch">\n</span><span class="st"> negative binomial &amp; cumulative mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-8.png" width="672" style="display: block; margin: auto;" /></p>
 <details> <summary><em>Expand here to see past versions of link-de-to-selection-8.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
@@ -2713,18 +2787,15 @@ davismcc
 </tbody>
 </table>
 <p></details></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_vs_n_somatic_vars_all.png&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
-
-## n_de (resids) vs mutational load (missense)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## n_de (resids) vs mutational load (all)
 df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
     selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
-<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> missense, <span class="dt">y =</span> .resid, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> .resid, <span class="dt">fill =</span> selection)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic missense variants&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic variants&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-9.png" width="672" style="display: block; margin: auto;" /></p>
@@ -2758,20 +2829,21 @@ davismcc
 </tbody>
 </table>
 <p></details></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_missense.png&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_all.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
-## n_de (resids) vs mutational load (missense, nonsense, splicing)
+## n_de (sqrt scale) vs mutational load (all)
 df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
     selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
-<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_misnonspli, <span class="dt">y =</span> .resid, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> n_de_genes, <span class="dt">fill =</span> selection)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of missense, nonsense &amp; splicing variants&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic variants&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_sqrt</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">100</span>, <span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">1500</span>, <span class="dv">2000</span>, <span class="dv">2500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-10.png" width="672" style="display: block; margin: auto;" /></p>
 <details> <summary><em>Expand here to see past versions of link-de-to-selection-10.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
@@ -2803,17 +2875,18 @@ davismcc
 </tbody>
 </table>
 <p></details></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_misnonspli.png&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_sqrt_selection_vs_n_somatic_vars_all.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
 
+## n_de (resids) vs mutational load (missense)
 df_nbglm_nde <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
     selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
-<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> rsq_ntrtestr, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> missense, <span class="dt">y =</span> .resid, <span class="dt">fill =</span> selection)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations &quot;</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic variants&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic missense variants&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
 <p><img src="figure/differential_expression.Rmd/link-de-to-selection-11.png" width="672" style="display: block; margin: auto;" /></p>
@@ -2847,30 +2920,154 @@ davismcc
 </tbody>
 </table>
 <p></details></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.png&quot;</span>, 
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_missense.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">6.5</span>)
+
+## n_de (resids) vs mutational load (missense, nonsense, splicing)
+df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_misnonspli, <span class="dt">y =</span> .resid, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of missense, nonsense &amp; splicing variants&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-12.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_de_resid_selection_vs_n_somatic_vars_misnonspli.png&quot;</span>, 
        <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
 
-<span class="co"># </span>
-<span class="co"># fdr_thresh &lt;- 0.1</span>
-<span class="co"># df_de_sig_unst &lt;- data_frame()</span>
-<span class="co"># for (donor in names(de_res[[&quot;qlf_list&quot;]])) {</span>
-<span class="co">#     tmp &lt;- de_res[[&quot;qlf_list&quot;]][[donor]]$table</span>
-<span class="co">#     tmp$gene &lt;- rownames(de_res[[&quot;qlf_list&quot;]][[donor]]$table)</span>
-<span class="co">#     ihw_res &lt;- ihw(PValue ~ logCPM, data = tmp, alpha = 0.05)</span>
-<span class="co">#     tmp$FDR &lt;- adj_pvalues(ihw_res)</span>
-<span class="co">#     tmp &lt;- tmp[tmp$FDR &lt; fdr_thresh,]</span>
-<span class="co">#     if (nrow(tmp) &gt; 0.5) {</span>
-<span class="co">#         tmp[[&quot;donor&quot;]] &lt;- donor</span>
-<span class="co">#         df_de_sig_unst &lt;- bind_rows(df_de_sig_unst, tmp)</span>
-<span class="co">#     }</span>
-<span class="co"># }</span>
-<span class="co"># </span>
-<span class="co"># </span>
-<span class="co"># df_donor_n_de &lt;- df_de_sig_unst %&gt;% </span>
-<span class="co">#     group_by(gene) %&gt;% </span>
-<span class="co">#     dplyr::mutate(id = paste0(donor, gene)) %&gt;% distinct(id, .keep_all = TRUE) %&gt;%</span>
-<span class="co">#     group_by(donor) %&gt;%</span>
-<span class="co">#     dplyr::summarise(count = n())</span></code></pre></div>
+df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> rsq_ntrtestr, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations &quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Number of somatic variants&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/link-de-to-selection-13.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)</code></pre></div>
+<p>We can also check the relationship between the number of somatic variants and evidence for selection as immediately above, but fliping the relationship.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> rsq_ntrtestr, <span class="dt">y =</span> nvars_all, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations &quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="kw">bquote</span>(<span class="st">&quot;Number of somatic variants (log&quot;</span>[<span class="dv">10</span>]<span class="op">~</span><span class="st"> &quot;scale)&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/nvars-vs-gof-selection-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_somatic_vars_vs_gof_cumul_mut_model.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
+
+df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> rsq_negbinfit, <span class="dt">y =</span> nvars_all, <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: negative binomial &quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="kw">bquote</span>(<span class="st">&quot;Number of somatic variants (log&quot;</span>[<span class="dv">10</span>]<span class="op">~</span><span class="st"> &quot;scale)&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/nvars-vs-gof-selection-2.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_somatic_vars_vs_gof_cumul_mut_model.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)
+
+df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> (rsq_negbinfit <span class="op">+</span><span class="st"> </span>rsq_ntrtestr) <span class="op">/</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">y =</span> nvars_all, 
+           <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Ave. goodness of fit:</span><span class="ch">\n</span><span class="st"> negative binomial &amp; cumulative mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="kw">bquote</span>(<span class="st">&quot;Number of somatic variants (log&quot;</span>[<span class="dv">10</span>]<span class="op">~</span><span class="st"> &quot;scale)&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/nvars-vs-gof-selection-3.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/differential_expression/n_somatic_vars_vs_ave_gof_two_models.png&quot;</span>, 
+       <span class="dt">height =</span> <span class="fl">6.5</span>, <span class="dt">width =</span> <span class="fl">5.5</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p1 &lt;-<span class="st"> </span>df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> rsq_ntrtestr, <span class="dt">y =</span> .resid, 
+           <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations &quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))
+
+p2 &lt;-<span class="st"> </span>df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> rsq_ntrtestr, 
+           <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="kw">bquote</span>(<span class="st">&quot;Number of somatic variants (log&quot;</span>[<span class="dv">10</span>]<span class="op">~</span><span class="st"> &quot;scale)&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Goodness of fit: cumulative mutations &quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))
+
+p3 &lt;-<span class="st"> </span>df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> .resid,
+           <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="kw">bquote</span>(<span class="st">&quot;Number of somatic variants (log&quot;</span>[<span class="dv">10</span>]<span class="op">~</span><span class="st"> &quot;scale)&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))
+
+<span class="kw">plot_grid</span>(p1, p2, p3, <span class="dt">nrow =</span> <span class="dv">1</span>, <span class="dt">labels =</span> <span class="st">&quot;auto&quot;</span>)</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/nde-plots-grid-gof-cummut-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p1 &lt;-<span class="st"> </span>df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> (rsq_ntrtestr <span class="op">+</span><span class="st"> </span>rsq_negbinfit) <span class="op">/</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">y =</span> .resid, 
+           <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Ave. goodness of fit:</span><span class="ch">\n</span><span class="st"> negative binomial &amp; cumulative mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>))
+
+p2 &lt;-<span class="st"> </span>df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> (rsq_ntrtestr <span class="op">+</span><span class="st"> </span>rsq_negbinfit) <span class="op">/</span><span class="st"> </span><span class="dv">2</span>, 
+           <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="kw">bquote</span>(<span class="st">&quot;Number of somatic variants (log&quot;</span>[<span class="dv">10</span>]<span class="op">~</span><span class="st"> &quot;scale)&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Ave. goodness of fit:</span><span class="ch">\n</span><span class="st"> negative binomial &amp; cumulative mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))
+
+p3 &lt;-<span class="st"> </span>df_nbglm_nde <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">selection =</span> <span class="kw">factor</span>(
+    selection, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;undetermined&quot;</span>, <span class="st">&quot;selected&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> nvars_all, <span class="dt">y =</span> .resid,
+           <span class="dt">fill =</span> selection)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">level =</span> <span class="fl">0.9</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Number of DE genes (residual from NB GLM)&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="kw">bquote</span>(<span class="st">&quot;Number of somatic variants (log&quot;</span>[<span class="dv">10</span>]<span class="op">~</span><span class="st"> &quot;scale)&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;dodgerblue&quot;</span>, <span class="st">&quot;#CCCCCC&quot;</span>, <span class="st">&quot;dodgerblue4&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>))
+
+<span class="kw">plot_grid</span>(p1, p2, p3, <span class="dt">nrow =</span> <span class="dv">1</span>, <span class="dt">labels =</span> <span class="st">&quot;auto&quot;</span>)</code></pre></div>
+<p><img src="figure/differential_expression.Rmd/nde-plots-grid-gof-ave-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
 <div id="linking-de-to-assignment-accuracy" class="section level2">
 <h2>Linking DE to assignment accuracy</h2>
@@ -3131,7 +3328,7 @@ df_nbglm_nde &lt;-<span class="st"> </span>broom<span class="op">::</span><span 
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-29                  
+ date     2018-08-31                  
 
  package              * version   date       source                
  AnnotationDbi        * 1.42.1    2018-05-08 Bioconductor          
@@ -3236,7 +3433,7 @@ df_nbglm_nde &lt;-<span class="st"> </span>broom<span class="op">::</span><span 
  purrr                * 0.2.5     2018-05-29 CRAN (R 3.5.0)        
  R.methodsS3            1.7.1     2016-02-16 CRAN (R 3.5.0)        
  R.oo                   1.22.0    2018-04-22 CRAN (R 3.5.0)        
- R.utils                2.6.0     2017-11-05 CRAN (R 3.5.0)        
+ R.utils                2.7.0     2018-08-27 CRAN (R 3.5.0)        
  R6                     2.2.2     2017-06-17 CRAN (R 3.5.0)        
  RColorBrewer         * 1.1-2     2014-12-07 CRAN (R 3.5.0)        
  Rcpp                   0.12.18   2018-07-23 CRAN (R 3.5.0)        
@@ -3293,7 +3490,7 @@ df_nbglm_nde &lt;-<span class="st"> </span>broom<span class="op">::</span><span 
  workflowr              1.1.1     2018-07-06 CRAN (R 3.5.0)        
  XML                    3.98-1.16 2018-08-19 CRAN (R 3.5.1)        
  xml2                   1.2.0     2018-01-24 CRAN (R 3.5.0)        
- xtable                 1.8-2     2016-02-05 CRAN (R 3.5.0)        
+ xtable                 1.8-3     2018-08-29 CRAN (R 3.5.1)        
  XVector                0.20.0    2018-05-01 Bioconductor          
  yaml                   2.2.0     2018-07-25 CRAN (R 3.5.1)        
  zlibbioc               1.26.0    2018-05-01 Bioconductor          </code></pre>

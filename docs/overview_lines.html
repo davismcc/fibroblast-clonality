@@ -367,7 +367,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-29</p>
+<p><strong>Last updated:</strong> 2018-08-31</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/128fea51caf326169a595f26a6908ed8585bce75" target="_blank">128fea5</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/1310c939b2a3803d152ab0c3f885b905e7286dd4" target="_blank">1310c93</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -467,6 +467,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/1310c939b2a3803d152ab0c3f885b905e7286dd4/analysis/overview_lines.Rmd" target="_blank">1310c93</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+Tweaking plots
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/846dec4503c53c25d2e0b662ea3bfab57f083a26/analysis/overview_lines.Rmd" target="_blank">846dec4</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+Some small tweaks/additions to analyses
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/ca3438f9274dbc7adf4aacc25b0fb017bc2d41fe/docs/overview_lines.html" target="_blank">ca3438f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -812,16 +863,17 @@ plt_scatter &lt;-<span class="st"> </span><span class="kw">ggplot</span>(dfrsq_f
                                  <span class="st">&quot;selected&quot;</span> =<span class="st"> &quot;dodgerblue4&quot;</span>,
                                  <span class="st">&quot;undetermined&quot;</span> =<span class="st"> &quot;#CCCCCC&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">fill =</span> selection), <span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> candidatelabel), <span class="dt">color =</span> <span class="st">&quot;white&quot;</span>, <span class="dt">size =</span> <span class="fl">3.5</span>,
-                   <span class="dt">fill =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">box.padding =</span> <span class="fl">0.35</span>, <span class="dt">point.padding =</span> <span class="fl">0.5</span>,
+<span class="st">  </span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> candidatelabel), <span class="dt">color =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">4</span>,
+                   <span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>, <span class="dt">box.padding =</span> <span class="fl">0.35</span>, <span class="dt">point.padding =</span> <span class="fl">0.5</span>,
                    <span class="dt">segment.color =</span> <span class="st">&quot;grey50&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="co"># theme_bw() +</span>
 <span class="st">  </span><span class="co"># theme(text = element_text(size = 11, face = &quot;plain&quot;), </span>
 <span class="st">  </span><span class="co">#       axis.text = element_text(size = 11, face = &quot;plain&quot;),</span>
 <span class="st">  </span><span class="co">#       axis.title = element_text(size = 12, face = &quot;plain&quot;),</span>
 <span class="st">  </span><span class="co">#       plot.title = element_text(size = 11, hjust = 0.5)) +</span>
-<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Goodness of Fit - Negative Binomial Distribution&quot;</span>, 
-       <span class="dt">y =</span> <span class="st">&quot;Goodness of Fit - Cumulative Mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Goodness of fit - negative binomial distribution&quot;</span>, 
+       <span class="dt">y =</span> <span class="st">&quot;Goodness of fit - cumulative mutations&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_cowplot</span>(<span class="dt">font_size =</span> <span class="dv">16</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">strip.background =</span> <span class="kw">element_blank</span>()) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.justification =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>), <span class="dt">legend.position =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">0</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>, <span class="dt">linetype =</span> <span class="dv">1</span>, 
@@ -856,6 +908,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/ca3438f9274dbc7adf4aacc25b0fb017bc2d41fe/docs/figure/overview_lines.Rmd/donor-mutation-selection-1.png" target="_blank">ca3438f</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-08-29
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 <a href="https://github.com/davismcc/fibroblast-clonality/blob/090c1b94750a83d2101ffaaa654dab8150e6284b/docs/figure/overview_lines.Rmd/donor-mutation-selection-1.png" target="_blank">090c1b9</a>
@@ -908,7 +971,7 @@ sig_triNs &lt;-<span class="st"> </span><span class="kw">character</span>()
   sig_triNs[j] &lt;-<span class="st"> </span>triN_sigfit
 }
 
-<span class="cf">for</span>(i <span class="cf">in</span> mutation_donors) {
+<span class="cf">for</span> (i <span class="cf">in</span> mutation_donors) {
   <span class="kw">colnames</span>(mut_triNs[[i]]) &lt;-<span class="st"> </span>sig_triNs
 }
 
@@ -2368,16 +2431,16 @@ age_plot_filt &lt;-<span class="st"> </span><span class="kw">ggplot</span>(
 <span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Donor&quot;</span>, <span class="dt">fill =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">scale_fill_manual</span>(<span class="dt">values =</span> <span class="kw">rev</span>(<span class="kw">c</span>(<span class="kw">magma</span>(<span class="dv">8</span>)[<span class="op">-</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">8</span>)])))  <span class="op">+</span>
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="kw">guide_legend</span>(<span class="dt">nrow =</span> <span class="dv">3</span>,<span class="dt">byrow =</span> <span class="ot">TRUE</span>)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">32</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>), 
         <span class="dt">axis.line =</span> <span class="kw">element_blank</span>(), 
         <span class="dt">legend.position =</span> <span class="st">&quot;top&quot;</span>, <span class="dt">legend.direction =</span> <span class="st">&quot;horizontal&quot;</span>, 
-        <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">24</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
+        <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>), 
         <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.3</span>,<span class="st">&quot;in&quot;</span>),
         <span class="dt">axis.ticks.x =</span> <span class="kw">element_blank</span>(),
         <span class="dt">legend.margin =</span> <span class="kw">margin</span>(<span class="kw">unit</span>(<span class="fl">0.01</span>, <span class="st">&quot;cm&quot;</span>)),
-        <span class="dt">axis.text.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
-        <span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
-        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>))
+        <span class="dt">axis.text.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">30</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>), 
+        <span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">32</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>), 
+        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">32</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>))
 
 <span class="co"># Plot number of mutations</span>
 selected_vars &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;donor_short&quot;</span>, <span class="st">&quot;num_mutations&quot;</span>)
@@ -2388,7 +2451,7 @@ num_mut_plot_filt &lt;-<span class="st"> </span><span class="kw">ggplot</span>(
   <span class="kw">aes</span>(<span class="dt">x =</span> value, <span class="dt">y =</span> <span class="kw">factor</span>(donor_short, <span class="dt">levels =</span> <span class="kw">rev</span>(donor_filt_order)))) <span class="op">+</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">4</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="dv">4</span>, <span class="dv">19</span>)) <span class="op">+</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks=</span><span class="kw">c</span>(<span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_log10</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">500</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme_bw</span>(<span class="dv">16</span>) <span class="op">+</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">&quot; &quot;</span>) <span class="op">+</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="st">&quot;Number of mutations&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;&quot;</span>) <span class="op">+</span><span class="st"> </span>
@@ -2396,9 +2459,9 @@ num_mut_plot_filt &lt;-<span class="st"> </span><span class="kw">ggplot</span>(
         <span class="dt">axis.ticks.y =</span> <span class="kw">element_blank</span>(), 
         <span class="dt">axis.line =</span> <span class="kw">element_blank</span>(), 
         <span class="dt">legend.position =</span> <span class="st">&quot;top&quot;</span>, 
-        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
-        <span class="dt">title =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">&quot;black&quot;</span>,<span class="dt">size =</span> <span class="dv">26</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
-        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>))
+        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">32</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>), 
+        <span class="dt">title =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">&quot;black&quot;</span>,<span class="dt">size =</span> <span class="dv">30</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>), 
+        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">32</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>))
 
 <span class="co"># Plot signature 7 </span>
 donor_info_filt_melt &lt;-<span class="st"> </span>reshape2<span class="op">::</span><span class="kw">melt</span>(
@@ -2419,9 +2482,9 @@ sig_decomp_plot_filt &lt;-<span class="st"> </span><span class="kw">ggplot</span
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.y =</span> <span class="kw">element_blank</span>(), 
         <span class="dt">axis.ticks.y =</span> <span class="kw">element_blank</span>(), 
         <span class="dt">axis.line =</span> <span class="kw">element_blank</span>(), 
-        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
-        <span class="dt">title =</span> <span class="kw">element_text</span>(<span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">26</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
-        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>)) <span class="op">+</span>
+        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">32</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>),
+        <span class="dt">title =</span> <span class="kw">element_text</span>(<span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">size =</span> <span class="dv">30</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>),
+        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">32</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">guides</span>(<span class="dt">fill =</span> <span class="ot">FALSE</span>)
 
 <span class="co"># Plot total number of mutations per clone</span>
@@ -2443,12 +2506,12 @@ num_clones_plot_filt &lt;-<span class="st"> </span><span class="kw">ggplot</span
         <span class="dt">axis.line =</span> <span class="kw">element_blank</span>(), 
         <span class="dt">legend.position =</span> <span class="st">&quot;top&quot;</span>,
         <span class="dt">legend.key.size =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>,<span class="st">&quot;in&quot;</span>), 
-        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
-        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">28</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>),
+        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">32</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>),
+        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">32</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>),
         <span class="dt">axis.text.y =</span> <span class="kw">element_blank</span>(), 
         <span class="dt">legend.justification =</span> <span class="st">&quot;center&quot;</span>, 
-        <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">26</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>), 
-        <span class="dt">legend.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">26</span>, <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>))
+        <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">30</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>), 
+        <span class="dt">legend.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">30</span>, <span class="dt">face =</span> <span class="st">&quot;plain&quot;</span>))
 
 ## Combine above plots into Fig 2a
 fig_2a &lt;-<span class="st"> </span>cowplot<span class="op">::</span><span class="kw">plot_grid</span>(age_plot_filt, num_mut_plot_filt,
@@ -2570,7 +2633,7 @@ davismcc
  language (EN)                        
  collate  en_GB.UTF-8                 
  tz       Europe/London               
- date     2018-08-29                  
+ date     2018-08-31                  
 
  package                     * version   date      
  AnnotationDbi               * 1.42.1    2018-05-08
@@ -2664,7 +2727,7 @@ davismcc
  purrr                         0.2.5     2018-05-29
  R.methodsS3                   1.7.1     2016-02-16
  R.oo                          1.22.0    2018-04-22
- R.utils                       2.6.0     2017-11-05
+ R.utils                       2.7.0     2018-08-27
  R6                            2.2.2     2017-06-17
  RColorBrewer                  1.1-2     2014-12-07
  Rcpp                        * 0.12.18   2018-07-23
@@ -2709,7 +2772,7 @@ davismcc
  withr                         2.1.2     2018-03-15
  workflowr                     1.1.1     2018-07-06
  XML                           3.98-1.16 2018-08-19
- xtable                        1.8-2     2016-02-05
+ xtable                        1.8-3     2018-08-29
  XVector                       0.20.0    2018-05-01
  yaml                          2.2.0     2018-07-25
  zlibbioc                      1.26.0    2018-05-01
@@ -2850,7 +2913,7 @@ davismcc
  CRAN (R 3.5.0)               
  CRAN (R 3.5.0)               
  CRAN (R 3.5.1)               
- CRAN (R 3.5.0)               
+ CRAN (R 3.5.1)               
  Bioconductor                 
  CRAN (R 3.5.1)               
  Bioconductor                 </code></pre>
