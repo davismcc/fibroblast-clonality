@@ -566,8 +566,8 @@ age_plot_filt <- ggplot(
         axis.ticks.x = element_blank(),
         legend.margin = margin(unit(0.01, "cm")),
         axis.text.y = element_text(size = 30, face = "plain"), 
-        axis.title.y = element_text(size = 32, face = "plain"), 
-        axis.title.x = element_text(size = 32, face = "plain"))
+        axis.title.y = element_text(size = 36, face = "plain"), 
+        axis.title.x = element_text(size = 36, face = "plain"))
 
 # Plot number of mutations
 selected_vars <- c("donor_short", "num_mutations")
@@ -588,7 +588,7 @@ num_mut_plot_filt <- ggplot(
         legend.position = "top", 
         axis.text.x = element_text(size = 32, face = "plain"), 
         title = element_text(colour="black",size = 30, face = "plain"), 
-        axis.title.x = element_text(size = 32, face = "plain"))
+        axis.title.x = element_text(size = 36, face = "plain"))
 
 # Plot signature 7 
 donor_info_filt_melt <- reshape2::melt(
@@ -611,7 +611,7 @@ sig_decomp_plot_filt <- ggplot(
         axis.line = element_blank(), 
         axis.text.x = element_text(size = 32, face = "plain"),
         title = element_text(colour = "black", size = 30, face = "plain"),
-        axis.title.x = element_text(size = 32, face = "plain")) +
+        axis.title.x = element_text(size = 36, face = "plain")) +
   guides(fill = FALSE)
 
 # Plot total number of mutations per clone
@@ -633,7 +633,7 @@ num_clones_plot_filt <- ggplot(
         axis.line = element_blank(), 
         legend.position = "top",
         legend.key.size = unit(0.5,"in"), 
-        axis.title.x = element_text(size = 32, face = "plain"),
+        axis.title.x = element_text(size = 36, face = "plain"),
         axis.text.x = element_text(size = 32, face = "plain"),
         axis.text.y = element_blank(), 
         legend.justification = "center", 
