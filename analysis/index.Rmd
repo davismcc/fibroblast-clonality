@@ -17,7 +17,7 @@ single-cell RNA-sequencing data.
 
 * A novel approach for integrating DNA-seq and single-cell RNA-seq data to 
 reconstruct clonal substructure and single-cell transcriptomes.
-* A new computational method, [cardelino](github.com/PMBio/cardelino), to map 
+* A new computational method, [cardelino](https://github.com/PMBio/cardelino), to map 
 single-cell RNA-seq profiles to clones.
 * Evidence for non-neutral evolution of clonal populations in human fibroblasts.
 * Proliferation and cell cycle pathways are commonly distorted in mutated clonal
@@ -34,8 +34,8 @@ the data pre-processing in an automated way. However, we provide the source code
 for the [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflow for 
 data pre-processing in this repository. Docker images providing the computing 
 environment and software used are publicly available, split into an image for 
-command line [bioinformatics tools](hub.docker.com/r/davismcc/fibroblast-clonality/)
-and an [R installation](hub.docker.com/r/davismcc/r-singlecell-img/) with 
+command line [bioinformatics tools](https://hub.docker.com/r/davismcc/fibroblast-clonality/)
+and an [R installation](https://hub.docker.com/r/davismcc/r-singlecell-img/) with 
 necessary packages installed. 
 
 If you would like to pre-process the data from raw reads to results as we have, 
@@ -73,10 +73,10 @@ The results presented in the paper were produced with these analyses.
 This is a complicated project, and reproducing all of the results presented, especially from raw data is highly non-trivial. Nevertheless, we have made all data available so that everything is entirely reproducible.
 
 Single-cell RNA-seq data have been deposited in the 
-[ArrayExpress](www.ebi.ac.uk/arrayexpress) database at EMBL-EBI under accession 
+[ArrayExpress](https://www.ebi.ac.uk/arrayexpress) database at EMBL-EBI under accession 
 number [E-MTAB-7167](https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-7167).
 Whole-exome sequencing data is available through the 
-[HipSci portal](www.hipsci.org). Processed data and large results files are 
+[HipSci portal](http://www.hipsci.org). Processed data and large results files are 
 available from [Zenodo](http://doi.org/10.5281/zenodo.1403510) with DOI 10.5281/zenodo.1403510. 
 
 To set up the project to reproduce our analyses, first clone the [source code repository](https://github.com/davismcc/fibroblast-clonality) from GitHub. Next, download all of the reference, metadata and results files and add them to the (cloned) project folder with the following structure:
