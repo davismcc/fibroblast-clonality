@@ -223,7 +223,7 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-09-02</p>
+<p><strong>Last updated:</strong> 2018-11-09</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -232,7 +232,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/f5a463100f4795ec78443584fee5abb57019897c" target="_blank">f5a4631</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/f98a31eb093ba85b2bd87e908c00fba79eb1c8db" target="_blank">f98a31e</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -308,6 +308,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/218d792394ae2456c45005f34e08e5eb74b1f262/analysis/index.Rmd" target="_blank">218d792</a>
+</td>
+<td style="text-align:left;">
+John Blischak
+</td>
+<td style="text-align:left;">
+2018-09-11
+</td>
+<td style="text-align:left;">
+Fix some links on homepage.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/0540cdbc554ab43e0ff60557b7ceb82fb13f3d75/docs/index.html" target="_blank">0540cdb</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-09-02
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -659,7 +693,7 @@ Start workflowr project.
 <p><strong>Key findings:</strong></p>
 <ul>
 <li>A novel approach for integrating DNA-seq and single-cell RNA-seq data to reconstruct clonal substructure and single-cell transcriptomes.</li>
-<li>A new computational method, <a href="github.com/PMBio/cardelino">cardelino</a>, to map single-cell RNA-seq profiles to clones.</li>
+<li>A new computational method, <a href="https://github.com/PMBio/cardelino">cardelino</a>, to map single-cell RNA-seq profiles to clones.</li>
 <li>Evidence for non-neutral evolution of clonal populations in human fibroblasts.</li>
 <li>Proliferation and cell cycle pathways are commonly distorted in mutated clonal populations, with implications for cancer and ageing.</li>
 </ul>
@@ -667,7 +701,7 @@ Start workflowr project.
 </div>
 <div id="data-pre-processing" class="section level2">
 <h2>Data pre-processing</h2>
-<p>The data pre-processing for this project from the raw data described above is complicated and computationally expensive, so this repository does not reproduce the data pre-processing in an automated way. However, we provide the source code for the <a href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a> workflow for data pre-processing in this repository. Docker images providing the computing environment and software used are publicly available, split into an image for command line <a href="hub.docker.com/r/davismcc/fibroblast-clonality/">bioinformatics tools</a> and an <a href="hub.docker.com/r/davismcc/r-singlecell-img/">R installation</a> with necessary packages installed.</p>
+<p>The data pre-processing for this project from the raw data described above is complicated and computationally expensive, so this repository does not reproduce the data pre-processing in an automated way. However, we provide the source code for the <a href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a> workflow for data pre-processing in this repository. Docker images providing the computing environment and software used are publicly available, split into an image for command line <a href="https://hub.docker.com/r/davismcc/fibroblast-clonality/">bioinformatics tools</a> and an <a href="https://hub.docker.com/r/davismcc/r-singlecell-img/">R installation</a> with necessary packages installed.</p>
 <p>If you would like to pre-process the data from raw reads to results as we have, please consult our description of <a href="data_preprocessing.html">how to run</a> the workflow.</p>
 </div>
 <div id="analyses" class="section level2">
@@ -688,7 +722,7 @@ Start workflowr project.
 <div id="data-availability" class="section level2">
 <h2>Data availability</h2>
 <p>This is a complicated project, and reproducing all of the results presented, especially from raw data is highly non-trivial. Nevertheless, we have made all data available so that everything is entirely reproducible.</p>
-<p>Single-cell RNA-seq data have been deposited in the <a href="www.ebi.ac.uk/arrayexpress">ArrayExpress</a> database at EMBL-EBI under accession number <a href="https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-7167">E-MTAB-7167</a>. Whole-exome sequencing data is available through the <a href="www.hipsci.org">HipSci portal</a>. Processed data and large results files are available from <a href="http://doi.org/10.5281/zenodo.1403510">Zenodo</a> with DOI 10.5281/zenodo.1403510.</p>
+<p>Single-cell RNA-seq data have been deposited in the <a href="https://www.ebi.ac.uk/arrayexpress">ArrayExpress</a> database at EMBL-EBI under accession number <a href="https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-7167">E-MTAB-7167</a>. Whole-exome sequencing data is available through the <a href="http://www.hipsci.org">HipSci portal</a>. Processed data and large results files are available from <a href="http://doi.org/10.5281/zenodo.1403510">Zenodo</a> with DOI 10.5281/zenodo.1403510.</p>
 <p>To set up the project to reproduce our analyses, first clone the <a href="https://github.com/davismcc/fibroblast-clonality">source code repository</a> from GitHub. Next, download all of the reference, metadata and results files and add them to the (cloned) project folder with the following structure:</p>
 <pre><code>.
 ├── data
