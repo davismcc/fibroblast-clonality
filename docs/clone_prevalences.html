@@ -391,7 +391,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/f98a31eb093ba85b2bd87e908c00fba79eb1c8db" target="_blank">f98a31e</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/0e164bac97d5ebfd0441fd5e8d9ad7637e5491de" target="_blank">0e164ba</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -400,11 +400,14 @@ Ignored files:
     Ignored:    .Rproj.user/
     Ignored:    .vscode/
     Ignored:    code/.DS_Store
+    Ignored:    data/.DS_Store
     Ignored:    data/raw/
     Ignored:    src/.DS_Store
     Ignored:    src/Rmd/.Rhistory
 
 Untracked files:
+    Untracked:  .dropbox
+    Untracked:  Icon
     Untracked:  Snakefile_clonality
     Untracked:  Snakefile_somatic_calling
     Untracked:  code/analysis_for_garx.Rmd
@@ -467,6 +470,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/0e164bac97d5ebfd0441fd5e8d9ad7637e5491de/analysis/clone_prevalences.Rmd" target="_blank">0e164ba</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-11-09
+</td>
+<td style="text-align:left;">
+Updating analyses to rejig some figures.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/davismcc/fibroblast-clonality/8729e022b6ba38c1b948735439f39be0977dcd35/docs/clone_prevalences.html" target="_blank">8729e02</a>
+</td>
+<td style="text-align:left;">
+davismcc
+</td>
+<td style="text-align:left;">
+2018-11-09
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 html
@@ -1065,7 +1102,7 @@ davismcc
 <span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone.pdf&quot;</span>, 
        <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">9</span>)</code></pre></div>
 <p>Since there are so few lines with four clones we can also make a version of the figure above with just clone1, clone2 and clone3 and fitted a weighted regression line, with points weighted by the fraction of cells assigned for the line.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fits <span class="op">%&gt;%</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span>fits <span class="op">%&gt;%</span>
 <span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">inner_join</span>(., df_prev) <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>) <span class="op">%&gt;%</span>
@@ -1085,6 +1122,13 @@ davismcc
 <span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>))</code></pre></div>
 <pre><code>Joining, by = c(&quot;clone&quot;, &quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.png&quot;</span>, 
+       <span class="dt">plot =</span> p,
+       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf&quot;</span>,
+       <span class="dt">plot =</span> p,
+       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
+p</code></pre></div>
 <p><img src="figure/clone_prevalences.Rmd/plot-prev-facet-clone-3clones-1.png" width="816" style="display: block; margin: auto;" /></p>
 <details> <summary><em>Expand here to see past versions of plot-prev-facet-clone-3clones-1.png:</em></summary>
 <table style="border-collapse:separate; border-spacing:5px;">
@@ -1116,10 +1160,14 @@ davismcc
 </tbody>
 </table>
 <p></details></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.png&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
-<span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf&quot;</span>, 
-       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_skinny.png&quot;</span>, 
+       <span class="dt">plot =</span> p <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,
+                        <span class="dt">legend.key.width =</span> <span class="kw">unit</span>(<span class="fl">0.95</span>, <span class="st">&quot;in&quot;</span>)),
+       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)
+<span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_skinny.pdf&quot;</span>,
+       <span class="dt">plot =</span> p <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;bottom&quot;</span>, 
+                        <span class="dt">legend.key.width =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;in&quot;</span>)),
+       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)</code></pre></div>
 <p>Let us also make a version of the plot above with the line <em>joxm</em> highlighted as this line is used as an example in the paper.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fits <span class="op">%&gt;%</span>
 <span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span>
