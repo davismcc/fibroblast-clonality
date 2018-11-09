@@ -152,7 +152,7 @@ regression line, with points weighted by the fraction of cells assigned for the
 line.
 
 ```{r plot-prev-facet-clone-3clones, fig.height = 4.5, fig.width=8.5}
-fits %>%
+p <- fits %>%
   broom::augment(fit) %>% 
   inner_join(., df_prev) %>%
   dplyr::filter(clone != "clone4") %>%
@@ -173,9 +173,21 @@ fits %>%
   theme(axis.text = element_text(size = 9))
 
 ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.png", 
+       plot = p,
        height = 4.5, width = 8.5)
-ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf", 
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4.pdf",
+       plot = p,
        height = 4.5, width = 8.5)
+p
+
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_skinny.png", 
+       plot = p + theme(legend.position = "bottom",
+                        legend.key.width = unit(0.95, "in")),
+       height = 5.5, width = 8.5)
+ggsave("figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_skinny.pdf",
+       plot = p + theme(legend.position = "bottom", 
+                        legend.key.width = unit(0.5, "in")),
+       height = 5.5, width = 8.5)
 
 ```
 

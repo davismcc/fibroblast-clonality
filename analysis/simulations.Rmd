@@ -507,7 +507,7 @@ df <- data.frame(line = lines, n_sites = n_sites, n_clone = n_clone,
 
 
 ```{r}
-df %>%
+p <- df %>%
   dplyr::mutate(labs = ifelse(line == "joxm", "joxm", "")) %>%
   dplyr::mutate(sites_per_clone = cut(n_sites / pmax(n_clone - 1, 1), 
                                       breaks = c(0, 3, 8, 15, 25, 60))) %>%
@@ -527,15 +527,23 @@ df %>%
   ylab("Assignment rate: observed") +
   theme_cowplot(font_size = 16)
 
-ggsave("figures/simulations/assign_rate_obs_v_sim.png", 
+ggsave("figures/simulations/assign_rate_obs_v_sim.png", plot = p,
        height = 4.5, width = 5)
-ggsave("figures/simulations/assign_rate_obs_v_sim.pdf", 
+ggsave("figures/simulations/assign_rate_obs_v_sim.pdf", plot = p,
        height = 4.5, width = 5)
 
-ggsave("figures/simulations/assign_rate_obs_v_sim_wide.png", 
+ggsave("figures/simulations/assign_rate_obs_v_sim_wide.png", plot = p,
        height = 4.5, width = 6.5)
-ggsave("figures/simulations/assign_rate_obs_v_sim_wide.pdf", 
+ggsave("figures/simulations/assign_rate_obs_v_sim_wide.pdf", plot = p,
        height = 4.5, width = 6.5)
+p
+
+ggsave("figures/simulations/assign_rate_obs_v_sim_skinny.png", 
+       plot = p + theme(legend.position = "bottom"),
+       height = 5.5, width = 5)
+ggsave("figures/simulations/assign_rate_obs_v_sim_skinny.pdf", 
+       plot = p + theme(legend.position = "bottom"),
+       height = 5.5, width = 5)
 
 summary(lm(recall_real ~ recall_simu, data = df))
 ```
