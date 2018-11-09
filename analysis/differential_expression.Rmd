@@ -889,7 +889,9 @@ ggsave("figures/differential_expression/top_genesets_H_corrplot_with_nsig_donor.
 
 ## Linking DE to selection
 
-```{r link-de-to-selection}
+### Selection defined using Williams et al 2016 and negative binomial models
+
+```{r link-de-to-selection-old-models}
 df_donor_info <- read.table("data/donor_info_070818.txt")
 df_donor_info <- as_data_frame(df_donor_info)
 df_donor_info$donor <- df_donor_info$donor_short
@@ -1128,7 +1130,7 @@ ggsave("figures/differential_expression/gof_cumul_mut_model_vs_n_somatic_vars.pn
 ```
 
 We can also check the relationship between the number of somatic variants and
-evidence for selection as immediately above, but fliping the relationship.
+evidence for selection as immediately above, but flipping the relationship.
 
 ```{r nvars-vs-gof-selection}
 df_nbglm_nde %>%
@@ -1252,6 +1254,138 @@ ggplot(aes(x = nvars_all, y = .resid,
 
 plot_grid(p1, p2, p3, nrow = 1, labels = "auto")
 ```
+
+### Selection defined using Williams et al 2018 models
+
+The Williams et al 2018 model provides as output a "probability of selection". 
+We define lines with a probability of selection greater than 0.7 as "selected", 
+those with probability of selection less than 0.3 as "neutral" and the remaining
+lines as "undetermined".
+
+```{r load-williams2018-classifications}
+df_williams2018 <- read_csv("data/selection/p1-selection.csv")
+colnames(df_williams2018) <- c("donor", "prob_select_williams2018", 
+                               "selection_williams2018")
+df_williams2018
+```
+
+```{r link-de-to-selection-williams2018-model}
+df_nbglm_nde <- left_join(df_nbglm_nde, df_williams2018)
+
+## selection, n_de resid boxplot
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = selection, y = .resid)) +
+  geom_violin(aes(fill = selection), alpha = 0.7) +
+  geom_boxplot(outlier.alpha = 0, width = 0.2) +
+  ggbeeswarm::geom_quasirandom(aes(fill = selection), size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Inferred selection status (Willams 2018 model)") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  coord_flip()
+
+ggsave("figures/differential_expression/n_de_resid_selection_williams2018_boxplot.png", 
+       height = 4.5, width = 6.5)
+
+summary(lm(.resid ~ selection_williams2018, data = df_nbglm_nde))
+
+## selection, n_de (sqrt scale) boxplot
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = selection, y = n_de_genes)) +
+  geom_violin(aes(fill = selection), alpha = 0.7) +
+  geom_boxplot(outlier.alpha = 0, width = 0.2) +
+  ggbeeswarm::geom_quasirandom(aes(fill = selection), size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Inferred selection status (Williams 2018 model") +
+  scale_y_sqrt(breaks = c(0, 100, 500, 1000, 1500, 2000, 2500)) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  coord_flip()
+
+ggsave("figures/differential_expression/n_de_sqrt_selection_williams2018_boxplot.png", 
+       height = 5.5, width = 6.5)
+
+## n_de (resids) vs goodness of fit cumul. mutation model
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = prob_select_williams2018, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Probability of selection (Williams 2018 model)") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_de_resid_vs_prob_selection_williams2018_model.png", 
+       height = 6.5, width = 5.5)
+
+
+## n_de (sqrt scale) vs goodness of fit cumul. mutation model
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = prob_select_williams2018, y = n_de_genes, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Probability of selection (Williams 2018 model)") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_de_sqrt_vs_prob_selection_williams2018_model.png", 
+       height = 6.5, width = 5.5)
+
+
+
+## n_de (resids) vs mutational load (all)
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Number of somatic variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression/n_de_resid_selection_williams2018_vs_n_somatic_vars_all.png", 
+       height = 6.5, width = 5.5)
+
+## n_de (sqrt scale) vs mutational load (all)
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = n_de_genes, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Number of somatic variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500)) +
+  scale_y_sqrt(breaks = c(10, 100, 500, 1000, 1500, 2000, 2500))
+
+ggsave("figures/differential_expression/n_de_sqrt_selection_vs_n_somatic_vars_all.png", 
+       height = 5.5, width = 6.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = prob_select_williams2018, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Probability of selection (Williams 2018 model)") +
+  xlab("Number of somatic variants") +
+  coord_cartesian(ylim = c(0, 1)) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression/prob_select_williams2018_model_vs_n_somatic_vars.png", 
+       height = 6.5, width = 5.5)
+
+```
+
 
 ## Linking DE to assignment accuracy
 
