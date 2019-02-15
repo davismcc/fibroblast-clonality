@@ -1,0 +1,213 @@
+---
+title: "Overlap of somatic mutations with CNV regions"
+author: "Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+## Introduction
+
+In this analysis, we look at the overlap of somatic mutations and copy number
+variant regions in the fibroblast cells lines to check if CNVs in the cell lines
+could affect inference.
+
+Filtered CNV regions were produced by Gerda Kildisiute of the Wellcome Sanger 
+Institute. who called and filtered these regions as described in the HipSci 
+Flagship Paper ([Kilpinen et al, 2017](https://www.nature.com/articles/nature22403)).
+
+## Load libraries
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+dir.create("figures/mutated_genes", showWarnings = FALSE, recursive = TRUE)
+library(tidyverse)
+library(knitr)
+library(GenomicRanges)
+library(RColorBrewer)
+library(ggrepel)
+library(org.Hs.eg.db)
+library(superheat)
+library(viridis)
+library(IHW)
+library(cowplot)
+```
+
+## Read copy-number aberration data
+
+First, read in deletion regions for each of the fibroblast lines. We format 
+these regions into `GenomicRanges` objects for easy overlap with somatic 
+mutation sites.
+
+
+```{r read-del-regions}
+deletions_df <- read_tsv("data/cnv/filtered_deletions.txt",
+                          skip = 1,
+                          col_names = c("ID", "Chromosome", "Start", "End", 
+                                        "Copy_Number_state", "Quality", "nSites", 
+                                        "nHETs"),
+                          col_types = "cciiidii")
+deletions_df <- mutate(deletions_df, 
+                       line = gsub("summary.", "", gsub(".tabRG", "", ID)))
+deletions_df
+deletions_list <- vector("list", length(unique(deletions_df[["line"]])))
+names(deletions_list) <- unique(deletions_df[["line"]])
+for (ln in unique(deletions_df[["line"]])) {
+  deletions_list[[ln]] <- makeGRangesFromDataFrame(
+    filter(deletions_df, line == ln),
+    start.field = "Start",
+    end.field = "End",
+    keep.extra.columns = TRUE
+  )
+  seqlevelsStyle(deletions_list[[ln]]) <- "Ensembl"
+}
+deletions_gr_list <- GRangesList(list = deletions_list)
+```
+
+Next, we read in insertion regions, again formatting these regions into 
+`GenomicRanges` objects.
+
+```{r read-ins-regions}
+insertions_df <- read_tsv("data/cnv/filtered_insertions.txt",
+                          skip = 1,
+                          col_names = c("ID", "Chromosome", "Start", "End", 
+                                        "Copy_Number_state", "Quality", "nSites", 
+                                        "nHETs"),
+                          col_types = "cciiidii")
+insertions_df <- mutate(insertions_df, 
+                       line = gsub("summary.", "", gsub(".tabRG", "", ID)))
+insertions_df
+insertions_list <- vector("list", length(unique(insertions_df[["line"]])))
+names(insertions_list) <- unique(insertions_df[["line"]])
+for (ln in unique(insertions_df[["line"]])) {
+  insertions_list[[ln]] <- makeGRangesFromDataFrame(
+    filter(insertions_df, line == ln),
+    start.field = "Start",
+    end.field = "End",
+    keep.extra.columns = TRUE
+  )
+  seqlevelsStyle(insertions_list[[ln]]) <- "Ensembl"
+}
+insertions_gr_list <- GRangesList(list = insertions_list)
+```
+
+
+## Analysis of sites used for Canopy and downstream analyses
+
+For the data analysis presented in the paper we used a leniently filtered set 
+of somatic variants that, for each fibroblast line, had at least one cell with 
+non-zero read coverage. This "lenient, cell-coverage" ser of variants was used
+for Canopy tree inference, cell-clone assignment and downstream analysis in the 
+paper.
+
+Here, we read in the leniently-filtered cell-coverage sites that were used in 
+the paper and ee'll focus on the set of 32 lines (donors) that were analysed in 
+the paper.
+
+```{r}
+donors <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
+            "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
+            "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
+            "ualf", "vass", "vils", "vuna", "wahn", "wetu", "xugn", "zoxy")
+exome_ccsites_list <- list()
+for (donor in donors) {
+  sites <- read_tsv(file.path("data/exome-point-mutations/",
+                              paste0("high-vs-low-exomes.v62.ft.filt_lenient-", 
+                                     donor, ".txt.gz")),
+                    col_types = "ciccdcciiiiccccccccddcdcll", comment = "#",
+                    col_names = TRUE)
+  sites <- dplyr::select(sites,
+                         -c(clinsing, SIFT_Pdel, PolyPhen_Pdel, gene_name,
+                            bcftools_csq))
+  sites <- dplyr::mutate(
+    sites, 
+    chrom = paste0("chr", gsub("chr", "", chrom)),
+    var_id = paste0(chrom, ":", pos, "_", ref, "_", alt))
+  ## deduplicate sites list
+  sites <- sites[!duplicated(sites[["var_id"]]),]
+  sites <- dplyr::mutate(sites, end_pos = pos)
+  exome_ccsites_list[[donor]] <- makeGRangesFromDataFrame(
+          sites,
+          start.field = "pos",
+          end.field = "end_pos",
+          keep.extra.columns = TRUE)
+  seqlevelsStyle(exome_ccsites_list[[donor]]) <- "Ensembl"
+}
+exome_ccsites_gr_list <- GRangesList(exome_ccsites_list)
+```
+
+### Overlap cell-coverage exome sites with deletion regions.
+
+To determine the extent to which somatic mutation sites fall in CNV deletion 
+regions, we overlap the somatic sites with the deletion regions, as setup above.
+
+The table output below shows that across all 32 fibroblast lines there is one 
+single somatic SNV that falls in a deletion region.
+
+```{r, results = 'asis'}
+overlaps_cc_del_list <- list()
+lines_cc_no_del_regions <- c()
+deletions_gr_list_shortnames <- deletions_gr_list
+names(deletions_gr_list_shortnames) <- gsub("HPSI.*pf-", "", 
+                                            names(deletions_gr_list))
+for (ln in names(exome_ccsites_gr_list)) {
+  if (ln %in% names(deletions_gr_list_shortnames))
+    overlaps_cc_del_list[[ln]] <- findOverlaps(exome_ccsites_gr_list[[ln]], 
+                                               deletions_gr_list_shortnames[[ln]])
+  else 
+    overlaps_cc_del_list[[ln]] <- findOverlaps(exome_ccsites_gr_list[[ln]], 
+                                               GRanges())
+}
+overlaps_cc_del_df <- tibble(
+  line = names(overlaps_cc_del_list),
+  nSNVs_in_del_region = sapply(overlaps_cc_del_list, length),
+  nSNVs = sapply(overlaps_cc_del_list, queryLength),
+  n_del_region = sapply(overlaps_cc_del_list, subjectLength),
+  prop_SNVs_in_del_region = nSNVs_in_del_region / nSNVs
+)
+overlaps_cc_del_df %>% kable
+```
+
+### Overlap exome sites with insertion regions.
+
+To determine the extent to which somatic mutation sites fall in CNV insertion 
+regions, we overlap the somatic sites with the insertion regions, as setup above.
+
+The table output below shows that across all 32 fibroblast lines there are no 
+somatic SNVs that falls in a deletion region.
+
+```{r, results = 'asis'}
+overlaps_cc_ins_list <- list()
+lines_cc_no_ins_regions <- c()
+insertions_gr_list_shortnames <- insertions_gr_list
+names(insertions_gr_list_shortnames) <- gsub("HPSI.*pf-", "", 
+                                            names(insertions_gr_list))
+for (ln in names(exome_ccsites_gr_list)) {
+  if (ln %in% names(insertions_gr_list_shortnames))
+    overlaps_cc_ins_list[[ln]] <- findOverlaps(exome_ccsites_gr_list[[ln]], 
+                                            insertions_gr_list_shortnames[[ln]])
+  else 
+    overlaps_cc_ins_list[[ln]] <- findOverlaps(exome_ccsites_gr_list[[ln]], 
+                                               GRanges())
+}
+overlaps_cc_ins_df <- tibble(
+  line = names(overlaps_cc_ins_list),
+  nSNVs_in_ins_region = sapply(overlaps_cc_ins_list, length),
+  nSNVs = sapply(overlaps_cc_ins_list, queryLength),
+  n_ins_region = sapply(overlaps_cc_ins_list, subjectLength),
+  prop_SNVs_in_ins_region = nSNVs_in_ins_region / nSNVs
+)
+overlaps_cc_ins_df %>% kable
+```
+
+## Conclusions
+
+A reasonable concern in clonal tree inference with Canopy and subsequent 
+assignment of cells to clones with Cardelino is that somatic SNVs in copy-number
+aberrant regions could result in spurious tree inference and/or incorrect 
+assignment of cells to clones resulting in problems in downstream analyses.
+
+The analysis here shows that, across the 32 fibroblast lines used for this 
+study, no somatic SNVs fall in CN insertion regions and one single somatic SNV
+falls in a deletion region (in the `hipn` line). As such, we can be completely
+confident that CNVs present in the lines studied here have no effect on the 
+reported results.
+

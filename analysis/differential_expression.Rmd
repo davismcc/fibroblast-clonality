@@ -9,7 +9,7 @@ i.e. donors) at the gene and gene set levels.
 
 ## Load libraries, data and DE results
 
-```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(scater)
