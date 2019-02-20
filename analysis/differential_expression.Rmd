@@ -1395,6 +1395,29 @@ each line.
 We load the simulation results for individual lines.
 
 ```{r read-sim-results}
+get_prob_label <- function(X){
+  max_idx <- rep(0, nrow(X))
+  for (j in seq_len(nrow(X))) {
+    max_idx[j] <- which.max(X[j, ])
+  }
+  max_idx
+}
+
+get_prob_value <- function(X, mode = "best") {
+  max_val <- rep(0, nrow(X))
+  for (i in seq_len(nrow(X))) {
+    sorted_val <- sort(X[i,], decreasing = TRUE)
+    if (mode == "delta") {
+      max_val[i] <- sorted_val[1] - sorted_val[2]
+    } else if (mode == "second") {
+      max_val[i] <- sorted_val[2]
+    } else {#default mode: best
+      max_val[i] <- sorted_val[1]
+    }
+  }
+  max_val
+}
+
 all_files <- paste0(donors, ".simulate.rds")
 assign_0 <- matrix(0, nrow = 500, ncol = length(donors))
 assign_1 <- matrix(0, nrow = 500, ncol = length(donors))
@@ -1407,7 +1430,6 @@ for (i in seq_len(length(all_files))) {
   assign_1[, i] <- get_prob_label(sim_dat$prob_Gibbs)
   prob_all[, i] <- get_prob_value(sim_dat$prob_Gibbs, mode = "best")
 }
-
 
 precision_simu <- rep(0, length(donors))
 for (i in seq_len(length(donors))) {

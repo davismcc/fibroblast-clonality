@@ -97,7 +97,7 @@ of somatic variants that, for each fibroblast line, had at least one cell with
 non-zero read coverage. This "lenient, cell-coverage" ser of variants was used
 for Canopy tree inference, cell-clone assignment and downstream analysis in the 
 paper.
-
+
 Here, we read in the leniently-filtered cell-coverage sites that were used in 
 the paper and ee'll focus on the set of 32 lines (donors) that were analysed in 
 the paper.
