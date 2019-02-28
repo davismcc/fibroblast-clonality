@@ -886,6 +886,144 @@ ggsave("figures/differential_expression/top_genesets_H_corrplot_with_nsig_donor.
 ```
 
 
+## Number of DE genes, pathways and clones vs number of cells
+
+```{r nde-vs-ncels}
+## N DE genes vs Number of cells
+df_nbglm_nde %>%
+ggplot(aes(x = n_cells, y = n_de_genes)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of DE genes") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_de_genes_vs_n_cells_nogrouping.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression/n_de_genes_vs_n_cells_nogrouping.pdf", 
+       height = 6.5, width = 6.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(num_clones = paste(num_clones_total, "clones")) %>%
+ggplot(aes(x = n_cells, y = n_de_genes)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  facet_wrap(~num_clones) +
+  ylab("Number of DE genes") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_de_genes_vs_n_cells_facet_by_num_clones.png", 
+       height = 6.5, width = 9.5)
+ggsave("figures/differential_expression/n_de_genes_vs_n_cells_facet_by_num_clones.pdf", 
+       height = 6.5, width = 9.5)
+
+
+## Number of significant genesets vs number of cells
+df_nbglm_nde <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+  dplyr::filter(stat == "logFC", FDR < 0.05) %>%
+  group_by(donor) %>%
+  dplyr::mutate(id = paste0(donor, geneset)) %>% 
+  distinct(id, .keep_all = TRUE) %>%
+  summarise(n_sig_genesets = n()) %>%
+left_join(df_nbglm_nde, .)
+
+df_nbglm_nde[["n_sig_genesets"]][is.na(df_nbglm_nde[["n_sig_genesets"]])] <- 0
+
+ggplot(df_nbglm_nde, aes(x = n_cells, y = n_sig_genesets)) +
+  #geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of significant Hallmark genesets") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_sig_genesets_vs_n_cells_nogrouping.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression/n_sig_genesets_vs_n_cells_nogrouping.pdf", 
+       height = 6.5, width = 6.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(num_clones = paste(num_clones_total, "clones")) %>%
+ggplot(aes(x = n_cells, y = n_sig_genesets)) +
+  #geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  facet_wrap(~num_clones) +
+  ylab("Number of significant Hallmark genesets") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_sig_genesets_vs_n_cells_facet_by_num_clones.png", 
+       height = 6.5, width = 9.5)
+ggsave("figures/differential_expression/n_sig_genesets_vs_n_cells_facet_by_num_clones.pdf", 
+       height = 6.5, width = 9.5)
+
+## Number of clones vs number of cells
+ggplot(df_nbglm_nde, aes(x = n_cells, y = num_clones_total)) +
+  #geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of inferred clones (total)") +
+  xlab("Number of inferred cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_clones_total_vs_n_cells_nogrouping.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression/n_clones_total_vs_n_cells_nogrouping.pdf", 
+       height = 6.5, width = 6.5)
+
+ggplot(df_nbglm_nde, aes(x = n_cells, y = num_clones_with_cells)) +
+  #geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of inferred clones (with cells assigned)") +
+  xlab("Number of inferred cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_clones_with_cells_vs_n_cells_nogrouping.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression/n_clones_with_cells_vs_n_cells_nogrouping.pdf", 
+       height = 6.5, width = 6.5)
+
+## Number of DE genes vs number of clones
+df_nbglm_nde %>%
+ggplot(aes(x = num_clones_total, y = n_de_genes)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of DE genes") +
+  xlab("Number of clones") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_de_genes_vs_n_clones_total.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression/n_de_genes_vs_n_clones_total.pdf", 
+       height = 6.5, width = 6.5)
+
+## Number of sig genesets vs number of clones
+df_nbglm_nde %>%
+ggplot(aes(x = num_clones_total, y = n_sig_genesets)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of significant Hallmark genesets") +
+  xlab("Number of clones") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression/n_sig_genesets_vs_n_clones_total.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression/n_sig_genesets_vs_n_clones_total.pdf", 
+       height = 6.5, width = 6.5)
+
+```
+
 
 ## Linking DE to selection
 
@@ -944,6 +1082,7 @@ ggplot(aes(x = n_cells, y = n_de_genes, fill = selection)) +
 
 ggsave("figures/differential_expression/n_de_genes_vs_n_cells.png", 
        height = 5.5, width = 5.5)
+
 
 ## selection, n_de resid boxplot
 df_nbglm_nde %>%

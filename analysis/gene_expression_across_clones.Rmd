@@ -1,0 +1,508 @@
+---
+title: "Expression of genes across multiple clones"
+author: "Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+Here, we will lok at gene expresion across clones across all lines (
+i.e. donors). We would like to assess the evidence for "expression homogeneity"
+within clones. For example, for a given gene, is the variation in expression 
+normally distributed within clones (with small variance) but more skewed in an 
+ensemble of multiple clones?
+
+## Load libraries, data and DE results
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(scater)
+library(ggridges)
+library(GenomicRanges)
+library(RColorBrewer)
+library(edgeR)
+library(ggrepel)
+library(ggcorrplot)
+library(ggforce)
+library(superheat)
+library(viridis)
+library(cowplot)
+library(broom)
+library(cardelino)
+library(edgeR)
+library(limma)
+options(stringsAsFactors = FALSE)
+dir.create("figures/gene_expression_across_clones", showWarnings = FALSE, 
+           recursive = TRUE)
+```
+
+Load SingleCellExpression objects with data used for differential expression 
+analyses.
+
+```{r load-sce}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites"
+fls <- list.files("data/sces")
+fls <- fls[grepl(params$callset, fls)]
+donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+
+sce_unst_list <- list()
+for (don in donors) {
+    sce_unst_list[[don]] <- readRDS(file.path("data/sces", 
+        paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), "cells.\n"))
+}
+```
+
+Load the differential expression results.
+
+```{r load-de}
+load(file.path("data/human_c6_v5p2.rdata"))
+load(file.path("data/human_H_v5p2.rdata"))
+load(file.path("data/human_c2_v5p2.rdata"))
+
+de_res <- readRDS(paste0("data/de_analysis_FTv62/",
+                         params$callset, 
+                         ".de_results_unstimulated_cells.rds"))
+```
+
+## Gene expression distribtions across clones
+
+We begin by looking at some example genes and donors.
+
+### joxm
+
+We use the line _joxm_ as an example in the manuscript, so let's start with 
+this line to look at some example genes.
+
+```{r joxm}
+joxm_de_genes <- rownames(topTags(de_res$qlf_list$joxm))
+topTags(de_res$qlf_list$joxm)
+```
+
+Let us look at the distribution of (log-scale) expression values across clones
+for these top 10 DE genes for _joxm_.
+
+```{r joxm-plot-dist, fig.height=9, fig.width=7}
+plotExpression(sce_unst_list[["joxm"]], joxm_de_genes,
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone")
+```
+
+Several of the top DE genes have extremely low expression in one or more clones,
+so let us instead filter to genes that have reasonably high overall expression.
+
+
+```{r joxm-plot-dist-highexprs-genes, fig.height=9, fig.width=7}
+joxm_de_highexprs <- de_res$qlf_list$joxm$table %>%
+  dplyr::mutate(gene = rownames(.)) %>%
+  dplyr::filter(logCPM > 5, PValue < 1e-04) %>%
+  dplyr::arrange(PValue)
+joxm_de_highexprs
+
+plotExpression(sce_unst_list[["joxm"]], joxm_de_highexprs[["gene"]],
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone") +
+  scale_fill_manual(values = c("firebrick3", "coral2", "goldenrod3", "white"),
+                    name = "clone")
+
+plotExpression(sce_unst_list[["joxm"]], joxm_de_highexprs[["gene"]],
+              colour_by = "assigned") +
+  xlab("Clone") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5))
+```
+
+
+Let us next look at the inter-clone variance compared to the variance of 
+expression for these genes if we ignore the clone groups.
+
+```{r}
+joxm_de_highexprs_mat <- logcounts(sce_unst_list[["joxm"]])[joxm_de_highexprs[["gene"]],]
+joxm_de_highexprs_df <- as.data.frame(joxm_de_highexprs_mat) %>%
+  dplyr::mutate(gene = rownames(.)) %>%
+  tidyr::gather(key = "cell", value = "logcount", -gene)
+
+joxm_de_highexprs_df <- left_join(
+  joxm_de_highexprs_df, 
+  tibble(cell = colnames(sce_unst_list[["joxm"]]),
+         clone = sce_unst_list[["joxm"]]$assigned))
+
+joxm_de_highexprs_clonevar <- joxm_de_highexprs_df %>%
+  group_by(clone, gene) %>%
+  summarise(exprs_variance = var(logcount))
+
+joxm_de_highexprs_allvar <- joxm_de_highexprs_df %>%
+  group_by(gene) %>%
+  summarise(all_cells = var(logcount))
+
+inner_join(tidyr::spread(joxm_de_highexprs_clonevar, clone, exprs_variance),
+           joxm_de_highexprs_allvar) %>%
+  gather(key = "population", value = "variance", -gene) %>%
+  dplyr::filter(population != "unassigned") %>%
+ggplot(aes(x = variance, y = gene, color = population)) +
+  geom_point(size = 3) +
+  scale_colour_manual(values = c("gray60", "firebrick3", "coral2", "goldenrod3")) +
+  theme_bw()
+```
+
+It's an appealing idea to try to understand if expression is "more homogeneous" 
+within clones than between clones. Intuitively, one might think that computing
+the variance for cells in each clone and comparing it to the variance of 
+expression across all cells, ignoring which clone they are assigned to. However,
+the nature of single-cell RNA-seq means that this intuitive approach has some
+complications.
+
+Some genes exhibit non-zero expression in most cells. For such genes, gene expression
+(normalised and on the log-scale) could be reasonably well approximated by 
+normal distributions. As such, for these genes it makes good sense to compare 
+per-clone variance of expression to all-cells variance. In the case of _joxm_,
+the genes "TMSB4X", "NUPR1", "LDOC1", "TIMP1", "PSG5" (aka Marquinhos),
+"COL1A1", "DDIT4", "TPM2".
+
+```{r}
+joxm_norm_distn_genes <- sort(c("ENSG00000205542_TMSB4X", "ENSG00000176046_NUPR1", 
+                           "ENSG00000182195_LDOC1", "ENSG00000102265_TIMP1", 
+                           "ENSG00000204941_PSG5", "ENSG00000108821_COL1A1", 
+                           "ENSG00000168209_DDIT4", "ENSG00000198467_TPM2"))
+
+p1 <- inner_join(tidyr::spread(joxm_de_highexprs_clonevar, clone, exprs_variance),
+           joxm_de_highexprs_allvar) %>%
+  gather(key = "population", value = "variance", -gene) %>%
+  dplyr::filter(population != "unassigned", gene %in% joxm_norm_distn_genes) %>%
+  dplyr::mutate(gene = factor(gene, levels = rev(levels(factor(gene))))) %>%
+ggplot(aes(x = variance, y = gene, fill = population)) +
+  geom_point(size = 3, colour = "gray40", pch = 21, alpha = 0.6) +
+  scale_fill_manual(values = c("gray60", "firebrick3", "coral2", "goldenrod3")) +
+  xlab("Expression variance") +
+  ylab("Gene") +
+  theme_bw()
+p1
+
+p2 <- plotExpression(sce_unst_list[["joxm"]], joxm_norm_distn_genes,
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone") +
+  scale_fill_manual(values = c("firebrick3", "coral2", "goldenrod3", "white"),
+                    name = "clone")
+p2
+
+p3 <- plot_grid(p2, p1, labels = "auto", nrow = 1)
+ggsave("figures/gene_expression_across_clones/joxm_highexprs_normdistn_genes.png", 
+       height = 7, width = 13, plot = p3)
+ggsave("figures/gene_expression_across_clones/joxm_highexprs_normdistn_genes.pdf", 
+       height = 7, width = 13, plot = p3)
+```
+
+For these (almost) uqibitously expressed genes, it is indeed the case that we 
+see a tendency towards expression homogeneity within clones - for all of these 
+genes the variance across all cells is greater than the variance within clones
+(for at least two of the three clones; clones that have many cells with zero 
+expression for as a gene as well as many cells with non-zero expression can also
+have relatively high variance).
+
+However, there is a more common set of genes with substantial expression 
+differences between clones for which this idea of increased expression 
+homogeneity within clones (as judged by per-clone variance) does not hold. This 
+set consists of what we might call "activation" genes. These genes have the 
+characteristic that the gene is effectively "off" in one or more clones (no 
+or nearly-zero expression) and "on" in one or more clones (non-zero expression 
+for an appreciable fraction of cells). For _joxm_, such activation genes include
+examples such as "PI16", "NEXN", "ZNF3850", "PDE1C", "RPL29P19", "DIO2", 
+"ANKRA2", "ATP6V1C2", "KRT19".
+
+```{r}
+joxm_activation_genes <- sort(c("ENSG00000164530_PI16","ENSG00000151789_ZNF385D", 
+                           "ENSG00000154678_PDE1C", "ENSG00000224594_RPL29P19", 
+                           "ENSG00000211448_DIO2", "ENSG00000164331_ANKRA2",
+                           "ENSG00000143882_ATP6V1C2", "ENSG00000171345_KRT19",
+                           "ENSG00000162614_NEXN" ))
+
+p4 <- inner_join(tidyr::spread(joxm_de_highexprs_clonevar, clone, exprs_variance),
+           joxm_de_highexprs_allvar) %>%
+  gather(key = "population", value = "variance", -gene) %>%
+  dplyr::filter(population != "unassigned", gene %in% joxm_activation_genes) %>%
+  dplyr::mutate(gene = factor(gene, levels = rev(levels(factor(gene))))) %>%
+ggplot(aes(x = variance, y = gene, fill = population)) +
+  geom_point(size = 3, colour = "gray40", pch = 21, alpha = 0.6) +
+  scale_fill_manual(values = c("gray60", "firebrick3", "coral2", "goldenrod3")) +
+  xlab("Expression variance") +
+  ylab("Gene") +
+  theme_bw()
+p4
+
+p5 <- plotExpression(sce_unst_list[["joxm"]], joxm_activation_genes,
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone") +
+  scale_fill_manual(values = c("firebrick3", "coral2", "goldenrod3", "white"),
+                    name = "clone")
+p5
+
+p6 <- plot_grid(p5, p4, labels = "auto", nrow = 1)
+ggsave("figures/gene_expression_across_clones/joxm_highexprs_activation_genes.png", 
+       height = 7, width = 13, plot = p6)
+ggsave("figures/gene_expression_across_clones/joxm_highexprs_activation_genes.pdf", 
+       height = 7, width = 13, plot = p6)
+
+```
+
+For these genes, the crucial expression phenotype is not increased homogeneity 
+in expression within clones versus across clones (though this can still be the
+case for certain genes and clones). Rather, the crucial phenotype is that 
+certain clones have very low or no expression for the gene (and thus very low 
+variance of expression) and some clones have at least a subset of genes with 
+substantial non-zero expression for the gene (i.e. the gene is "activated"; 
+variance can be high for such clones).
+
+### vass
+
+We can next look at _vass_.
+
+```{r vass}
+vass_de_genes <- rownames(topTags(de_res$qlf_list$vass))
+topTags(de_res$qlf_list$vass)
+```
+
+Let us look at the distribution of (log-scale) expression values across clones
+for these top 10 DE genes for _vass_.
+
+```{r vass-plot-dist, fig.height=9, fig.width=7}
+plotExpression(sce_unst_list[["vass"]], vass_de_genes,
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone")
+```
+
+Several of the top DE genes have extremely low expression in one or more clones,
+so let us instead filter to genes that have reasonably high overall expression.
+
+
+```{r vass-plot-dist-highexprs-genes, fig.height=9, fig.width=7}
+vass_de_highexprs <- de_res$qlf_list$vass$table %>%
+  dplyr::mutate(gene = rownames(.)) %>%
+  dplyr::filter(logCPM > 5, PValue < 1e-05) %>%
+  dplyr::arrange(PValue)
+vass_de_highexprs
+
+plotExpression(sce_unst_list[["vass"]], vass_de_highexprs[["gene"]],
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone") +
+  scale_fill_manual(values = c("firebrick3", "goldenrod3", "white"),
+                    name = "clone")
+
+plotExpression(sce_unst_list[["vass"]], vass_de_highexprs[["gene"]],
+              colour_by = "assigned") +
+  xlab("Clone") +
+  scale_fill_manual(values = c("firebrick3", "goldenrod3", "white"),
+                    name = "clone")
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5))
+```
+
+Let us next look at the intra-clone variance compared to the variance of 
+expression for these genes if we ignore the clone groups.
+
+```{r}
+vass_de_highexprs_mat <- logcounts(sce_unst_list[["vass"]])[vass_de_highexprs[["gene"]],]
+vass_de_highexprs_df <- as.data.frame(vass_de_highexprs_mat) %>%
+  dplyr::mutate(gene = rownames(.)) %>%
+  tidyr::gather(key = "cell", value = "logcount", -gene)
+
+vass_de_highexprs_df <- left_join(
+  vass_de_highexprs_df, 
+  tibble(cell = colnames(sce_unst_list[["vass"]]),
+         clone = sce_unst_list[["vass"]]$assigned))
+
+vass_de_highexprs_clonevar <- vass_de_highexprs_df %>%
+  group_by(clone, gene) %>%
+  summarise(exprs_variance = var(logcount))
+
+vass_de_highexprs_allvar <- vass_de_highexprs_df %>%
+  group_by(gene) %>%
+  summarise(all_cells = var(logcount))
+
+inner_join(tidyr::spread(vass_de_highexprs_clonevar, clone, exprs_variance),
+           vass_de_highexprs_allvar) %>%
+  gather(key = "population", value = "variance", -gene) %>%
+  dplyr::filter(population != "unassigned") %>%
+ggplot(aes(x = variance, y = gene, color = population)) +
+  geom_point(size = 3) +
+  scale_colour_manual(values = c("gray60", "firebrick3", "goldenrod3")) +
+  theme_bw()
+```
+
+It's an appealing idea to try to understand if expression is "more homogeneous" 
+within clones than between clones. Intuitively, one might think that computing
+the variance for cells in each clone and comparing it to the variance of 
+expression across all cells, ignoring which clone they are assigned to. However,
+the nature of single-cell RNA-seq means that this intuitive approach has some
+complications.
+
+As discussed above, for genes with non-zero expression in most cells gene expression
+(normalised and on the log-scale) could be reasonably well approximated by 
+normal distributions. As such, for these genes it makes good sense to compare 
+per-clone variance of expression to all-cells variance. In the case of _vass_,
+almost all of the top DE genes fall into this category.
+
+```{r}
+vass_norm_distn_genes <- sort(vass_de_highexprs[["gene"]][1:10])
+
+p1 <- inner_join(tidyr::spread(vass_de_highexprs_clonevar, clone, exprs_variance),
+           vass_de_highexprs_allvar) %>%
+  gather(key = "population", value = "variance", -gene) %>%
+  dplyr::filter(population != "unassigned", gene %in% vass_norm_distn_genes) %>%
+  dplyr::mutate(gene = factor(gene, levels = rev(levels(factor(gene))))) %>%
+ggplot(aes(x = variance, y = gene, fill = population)) +
+  geom_point(size = 3, colour = "gray40", pch = 21, alpha = 0.6) +
+  scale_fill_manual(values = c("gray60", "firebrick3", "goldenrod3")) +
+  xlab("Expression variance") +
+  ylab("Gene") +
+  theme_bw()
+p1
+
+p2 <- plotExpression(sce_unst_list[["vass"]], vass_norm_distn_genes,
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone") +
+  scale_fill_manual(values = c("firebrick3", "goldenrod3", "white"),
+                    name = "clone")
+p2
+
+p3 <- plot_grid(p2, p1, labels = "auto", nrow = 1)
+ggsave("figures/gene_expression_across_clones/vass_highexprs_normdistn_genes.png", 
+       height = 7, width = 13, plot = p3)
+ggsave("figures/gene_expression_across_clones/vass_highexprs_normdistn_genes.pdf", 
+       height = 7, width = 13, plot = p3)
+```
+
+For these (almost) uqibitously expressed genes, it is indeed the case that we 
+see a tendency towards expression homogeneity within clones - for all of these 
+genes the variance across all cells is greater than the variance within clones
+(the only exception here is STC1 has almost all zero values for clone2, which 
+makes the overall variance relatively low, while simultaneously clone1 has more
+of an "activation" phenotype for the gene, with relatively high expression).
+
+### zoxy
+
+We can next look at _zoxy_.
+
+```{r zoxy}
+zoxy_de_genes <- rownames(topTags(de_res$qlf_list$zoxy))
+topTags(de_res$qlf_list$zoxy)
+```
+
+Let us look at the distribution of (log-scale) expression values across clones
+for these top 10 DE genes for _zoxy_.
+
+```{r zoxy-plot-dist, fig.height=9, fig.width=7}
+plotExpression(sce_unst_list[["zoxy"]], zoxy_de_genes,
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone")
+```
+
+Several of the top DE genes have extremely low expression in one or more clones,
+so let us instead filter to genes that have reasonably high overall expression.
+
+
+```{r zoxy-plot-dist-highexprs-genes, fig.height=9, fig.width=7}
+zoxy_de_highexprs <- de_res$qlf_list$zoxy$table %>%
+  dplyr::mutate(gene = rownames(.)) %>%
+  dplyr::filter(logCPM > 5, PValue < 1e-05) %>%
+  dplyr::arrange(PValue)
+zoxy_de_highexprs
+
+plotExpression(sce_unst_list[["zoxy"]], zoxy_de_highexprs[["gene"]],
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone") +
+  scale_fill_manual(values = c("firebrick3", "coral2", "goldenrod3", "white"),
+                    name = "clone")
+
+plotExpression(sce_unst_list[["zoxy"]], zoxy_de_highexprs[["gene"]],
+              colour_by = "assigned") +
+  xlab("Clone") +
+  scale_fill_manual(values = c("firebrick3", "coral2", "goldenrod3", "white"),
+                    name = "clone") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.5))
+```
+
+Let us next look at the intra-clone variance compared to the variance of 
+expression for these genes if we ignore the clone groups.
+
+```{r}
+zoxy_de_highexprs_mat <- logcounts(sce_unst_list[["zoxy"]])[zoxy_de_highexprs[["gene"]],]
+zoxy_de_highexprs_df <- as.data.frame(zoxy_de_highexprs_mat) %>%
+  dplyr::mutate(gene = rownames(.)) %>%
+  tidyr::gather(key = "cell", value = "logcount", -gene)
+
+zoxy_de_highexprs_df <- left_join(
+  zoxy_de_highexprs_df, 
+  tibble(cell = colnames(sce_unst_list[["zoxy"]]),
+         clone = sce_unst_list[["zoxy"]]$assigned))
+
+zoxy_de_highexprs_clonevar <- zoxy_de_highexprs_df %>%
+  group_by(clone, gene) %>%
+  summarise(exprs_variance = var(logcount))
+
+zoxy_de_highexprs_allvar <- zoxy_de_highexprs_df %>%
+  group_by(gene) %>%
+  summarise(all_cells = var(logcount))
+
+inner_join(tidyr::spread(zoxy_de_highexprs_clonevar, clone, exprs_variance),
+           zoxy_de_highexprs_allvar) %>%
+  gather(key = "population", value = "variance", -gene) %>%
+  dplyr::filter(population != "unassigned") %>%
+ggplot(aes(x = variance, y = gene, color = population)) +
+  geom_point(size = 3) +
+  scale_colour_manual(values = c("gray60", "firebrick3", "coral2", "goldenrod3")) +
+  theme_bw()
+```
+
+Again, most of the top DE genes with substantial average expression fall into 
+the "ubiquitously expressed" category. 
+```{r}
+zoxy_norm_distn_genes <- sort(zoxy_de_highexprs[["gene"]][1:10])
+
+p1 <- inner_join(tidyr::spread(zoxy_de_highexprs_clonevar, clone, exprs_variance),
+           zoxy_de_highexprs_allvar) %>%
+  gather(key = "population", value = "variance", -gene) %>%
+  dplyr::filter(population != "unassigned", gene %in% zoxy_norm_distn_genes) %>%
+  dplyr::mutate(gene = factor(gene, levels = rev(levels(factor(gene))))) %>%
+ggplot(aes(x = variance, y = gene, fill = population)) +
+  geom_point(size = 3, colour = "gray40", pch = 21, alpha = 0.6) +
+  scale_fill_manual(values = c("gray60", "firebrick3", "coral2", "goldenrod3")) +
+  xlab("Expression variance") +
+  ylab("Gene") +
+  theme_bw()
+p1
+
+p2 <- plotExpression(sce_unst_list[["zoxy"]], zoxy_norm_distn_genes,
+              x = "assigned", colour_by = "assigned") +
+  xlab("Clone") +
+  scale_fill_manual(values = c("firebrick3", "coral2", "goldenrod3", "white"),
+                    name = "clone")
+p2
+
+p3 <- plot_grid(p2, p1, labels = "auto", nrow = 1)
+ggsave("figures/gene_expression_across_clones/zoxy_highexprs_normdistn_genes.png", 
+       height = 7, width = 13, plot = p3)
+ggsave("figures/gene_expression_across_clones/zoxy_highexprs_normdistn_genes.pdf", 
+       height = 7, width = 13, plot = p3)
+```
+
+For these (almost) uqibitously expressed genes, it is indeed the case that we 
+see a tendency towards expression homogeneity within clones - for all of these 
+genes the variance across all cells is greater than the variance within clones
+(the exceptions here are FHL1, POSTN and PT3, for which the gene has something
+of an "activation" phenotype for one of more clones).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
