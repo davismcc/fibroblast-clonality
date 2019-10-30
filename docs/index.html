@@ -310,7 +310,7 @@ div.section {
 
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
-<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 </button>
 </p>
 <div id="workflowr-report" class="collapse">
@@ -319,7 +319,7 @@ div.section {
 <a data-toggle="tab" href="#summary">Summary</a>
 </li>
 <li>
-<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -331,7 +331,7 @@ div.section {
 <strong>Last updated:</strong> 2019-10-30
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 1 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
 </p>
 <p>
 <strong>Knit directory:</strong> <code>fibroblast-clonality/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
@@ -347,22 +347,22 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
 </div>
 </div>
 </div>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdavismccfibroblastclonalitytree7c1dc306e35808a08fbc46034932a75e3649a743targetblank7c1dc30a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/7c1dc306e35808a08fbc46034932a75e3649a743" target="_blank">7c1dc30</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdavismccfibroblastclonalitytree35c3269f76a8e55c09ba75e2a934a044c077e02dtargetblank35c3269a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/35c3269f76a8e55c09ba75e2a934a044c077e02d" target="_blank">35c3269</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomdavismccfibroblastclonalitytree7c1dc306e35808a08fbc46034932a75e3649a743targetblank7c1dc30a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomdavismccfibroblastclonalitytree35c3269f76a8e55c09ba75e2a934a044c077e02dtargetblank35c3269a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -437,9 +437,6 @@ Untracked files:
     Untracked:  src/Rmd/cell_assignment_cardelino-relax_template.Rmd
     Untracked:  tree.txt
 
-Unstaged changes:
-    Modified:   analysis/index.Rmd
-
 </code></pre>
 <p>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
@@ -477,6 +474,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/35c3269f76a8e55c09ba75e2a934a044c077e02d/analysis/index.Rmd" target="_blank">35c3269</a>
+</td>
+<td>
+Davis McCarthy
+</td>
+<td>
+2019-10-30
+</td>
+<td>
+Updating index to get accurate update time
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/davismcc/fibroblast-clonality/35c3269f76a8e55c09ba75e2a934a044c077e02d/docs/index.html" target="_blank">35c3269</a>
+</td>
+<td>
+Davis McCarthy
+</td>
+<td>
+2019-10-30
+</td>
+<td>
+Updating index to get accurate update time
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -908,7 +939,7 @@ Start workflowr project.
 <h2>Manuscript</h2>
 <p>A pre-print describing the work in detail is available:</p>
 <ul>
-<li>McCarthy, D. J.^, Rostom, R.^, Huang, Y.^, Kunz, D. J., Danecek, P., Bonder, M. J., … Stegle, O.#, Teichmann, S. A.# (2018). Cardelino: Integrating whole exomes and single-cell transcriptomes to reveal phenotypic impact of somatic variants (p. 413047). <a href="https://doi.org/10.1101/413047" class="uri">https://doi.org/10.1101/413047</a> <a href="https://doi.org/10.1101/413047">bioRxiv link</a>.</li>
+<li>McCarthy, D. J.^, Rostom, R.^, Huang, Y.^, Kunz, D. J., Danecek, P., Bonder, M. J., … Stegle, O.#, Teichmann, S. A.# (2018). Cardelino: Integrating whole exomes and single-cell transcriptomes to reveal phenotypic impact of somatic variants (p. 413047). <a href="https://doi.org/10.1101/413047" class="uri">https://doi.org/10.1101/413047</a>.</li>
 </ul>
 </div>
 <div id="data-pre-processing" class="section level2">
