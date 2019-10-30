@@ -1,0 +1,1120 @@
+---
+title: "Analysis for joxm: using Cardelino-relax assignments"
+author: "Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+
+## Load libraries and data
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.height = 10, fig.width = 14)
+dir.create("figures/donor_specific", showWarnings = FALSE, recursive = TRUE)
+library(tidyverse)
+library(scater)
+library(ggridges)
+library(GenomicRanges)
+library(RColorBrewer)
+library(edgeR)
+library(ggrepel)
+library(rlang)
+library(limma)
+library(org.Hs.eg.db)
+library(ggforce)
+library(cardelino)
+library(cowplot)
+library(IHW)
+library(viridis)
+library(ggthemes)
+library(superheat)
+options(stringsAsFactors = FALSE)
+```
+
+Load MSigDB gene sets.
+
+```{r}
+load("data/human_c6_v5p2.rdata")
+load("data/human_H_v5p2.rdata")
+load("data/human_c2_v5p2.rdata")
+```
+
+Load VEP consequence information.
+
+```{r load-csq-data}
+vep_best <- read_tsv("data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-filt_lenient.all_filt_sites.vep_most_severe_csq.txt")
+colnames(vep_best)[1] <- "Uploaded_variation"
+## deduplicate dataframe
+vep_best <- vep_best[!duplicated(vep_best[["Uploaded_variation"]]),]
+```
+
+Load somatic variant sites from whole-exome sequencing data.
+
+```{r load-exome-sites-data}
+exome_sites <- read_tsv("data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz",
+    col_types = "ciccdcciiiiccccccccddcdcll", comment = "#",
+    col_names = TRUE)
+exome_sites <- dplyr::mutate(
+    exome_sites, 
+    chrom = paste0("chr", gsub("chr", "", chrom)),
+    var_id = paste0(chrom, ":", pos, "_", ref, "_", alt))
+## deduplicate sites list
+exome_sites <- exome_sites[!duplicated(exome_sites[["var_id"]]),]
+```
+
+Add consequences to exome sites.
+
+```{r join-csq}
+vep_best[["var_id"]] <- paste0("chr", vep_best[["Uploaded_variation"]])
+exome_sites <- inner_join(exome_sites, 
+                           vep_best[, c("var_id", "Location", "Consequence")], 
+                           by = "var_id")
+```
+
+Load cell-clone assignment results for this donor.
+
+```{r load-cell-assign}
+cell_assign_joxm <- readRDS(file.path("data/cell_assignment", 
+        paste0("cardelino_results_carderelax.joxm.filt_lenient.cell_coverage_sites.rds")))
+```
+
+Load SCE objects.
+
+```{r load-sce}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites"
+fls <- list.files("data/sces")
+fls <- fls[grepl(paste0("carderelax.", params$callset), fls)]
+donors <- gsub(".*ce_([a-z]+)_with_clone_assignments_carderelax.*", "\\1", fls)
+
+sce_unst_list <- list()
+for (don in donors) {
+    sce_unst_list[[don]] <- readRDS(file.path("data/sces",
+        paste0("sce_", don, "_with_clone_assignments_carderelax.", 
+               params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), 
+              "unstimulated cells.\n"))
+}
+
+assignments_lst <- list()
+for (don in donors) {
+    assignments_lst[[don]] <- as_tibble(
+        colData(sce_unst_list[[don]])[, 
+                                      c("donor_short_id", "highest_prob", 
+                                        "assigned", "total_features",
+                                        "total_counts_endogenous", "num_processed")])
+}
+assignments <- do.call("rbind", assignments_lst)
+```
+
+Load the SCE object for `joxm`.
+
+```{r sce-joxm}
+sce_joxm <- readRDS("data/sces/sce_joxm_with_clone_assignments_carderelax.filt_lenient.cell_coverage_sites.rds")
+sce_joxm
+```
+
+We can check cell assignments for this donor.
+
+```{r joxm-assigned}
+table(sce_joxm$assigned)
+```
+
+Load DE results (obtained using the *edgeR* quasi-likelihood F test and the 
+camera method from the *limma* package).
+
+```{r load-de}
+de_res <- readRDS("data/de_analysis_FTv62/carderelax.filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds")
+```
+
+
+## Tree and probability heatmap 
+
+We can plot the clonal tree inferred with *Canopy* for this donor along with the
+cell-clone assignment results from *cardelino*.
+
+
+Plot tree (updated tree output by Cardelino) with assignment probability matrix.
+
+```{r plot-tree}
+fig_tree <- plot_tree(cell_assign_joxm$full_tree, orient = "v") + 
+    xlab("Clonal tree") +
+    cardelino:::heatmap.theme(size = 16) +
+    theme(axis.text.x = element_blank(), axis.title.y = element_text(size = 20))
+
+prob_to_plot <- cell_assign_joxm$prob_mat[
+    colnames(sce_joxm)[sce_joxm$well_condition == "unstimulated"], ]
+hc <- hclust(dist(prob_to_plot))
+
+clone_ids <- colnames(prob_to_plot)
+clone_frac <- colMeans(prob_to_plot[matrixStats::rowMaxs(prob_to_plot) > 0.5,])
+clone_perc <- paste0(clone_ids, ": ", 
+                          round(clone_frac*100, digits = 1), "%")
+
+colnames(prob_to_plot) <- clone_perc
+nba.m <- as_data_frame(prob_to_plot[hc$order,]) %>%
+    dplyr::mutate(cell = rownames(prob_to_plot[hc$order,])) %>%
+    gather(key = "clone", value = "prob", -cell)
+nba.m <- dplyr::mutate(nba.m, cell = factor(
+    cell, levels = rownames(prob_to_plot[hc$order,])))
+fig_assign <- ggplot(nba.m, aes(clone, cell, fill = prob)) + 
+    geom_tile(show.legend = TRUE) +
+    # scale_fill_gradient(low = "white", high = "firebrick4",
+    #                     name = "posterior probability of assignment") +
+    scico::scale_fill_scico(palette = "oleron", direction = 1) +
+    ylab(paste("Single cells")) + 
+    cardelino:::heatmap.theme(size = 16) + #cardelino:::pub.theme() +
+    theme(axis.title.y = element_text(size = 20), legend.position = "bottom",
+          legend.text = element_text(size = 12), legend.key.size = unit(0.05, "npc"))
+
+plot_grid(fig_tree, fig_assign, nrow = 2, rel_heights = c(0.46, 0.52))
+
+ggsave("figures/donor_specific/carderelax_joxm_tree_probmat.png", height = 10, width = 7.5)
+ggsave("figures/donor_specific/carderelax_joxm_tree_probmat.pdf", height = 10, width = 7.5)
+ggsave("figures/donor_specific/carderelax_joxm_tree_probmat.svg", height = 10, width = 7.5)
+
+ggsave("figures/donor_specific/carderelax_joxm_tree_probmat_wide.png", height = 9, width = 10)
+ggsave("figures/donor_specific/carderelax_joxm_tree_probmat_wide.pdf", height = 9, width = 10)
+ggsave("figures/donor_specific/carderelax_joxm_tree_probmat_wide.svg", height = 9, width = 10)
+
+
+```
+
+
+
+
+## Analysis of direct effects of variants on gene expression
+
+Load SCE object and cell assignment results.
+
+First, plot the VEP consequences of somatic variants in this donor used to 
+infer the clonal tree.
+
+```{r load-sce-canopy}
+joxm_config <- as_data_frame(cell_assign_joxm$full_tree$Z)
+joxm_config[["var_id"]] <- rownames(cell_assign_joxm$full_tree$Z)
+exome_sites_joxm <- inner_join(exome_sites, joxm_config)
+exome_sites_joxm[["clone_presence"]] <- ""
+for (cln in colnames(cell_assign_joxm$full_tree$Z)[-1]) {
+    exome_sites_joxm[["clone_presence"]][
+        as.logical(exome_sites_joxm[[cln]])] <- paste(
+            exome_sites_joxm[["clone_presence"]][
+                as.logical(exome_sites_joxm[[cln]])], cln, sep = "&")
+}
+exome_sites_joxm[["clone_presence"]] <- gsub("^&", "",
+                                        exome_sites_joxm[["clone_presence"]])
+
+exome_sites_joxm %>% group_by(Consequence, clone_presence) %>%
+    summarise(n_vars = n()) %>%
+ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max), 
+       colour = reorder(Consequence, n_vars, max))) +
+    geom_point(size = 5) +
+    geom_segment(aes(x = 0, y = Consequence, xend = n_vars, yend = Consequence)) +
+    facet_wrap(~clone_presence) +
+#    scale_color_brewer(palette = "Set2") +
+    scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(12)) +
+    guides(colour = FALSE) +
+    ggtitle("joxm clone tagging variants by consequence class") +
+    xlab("number of variants") + ylab("consequence") +
+    theme_bw(16)
+```
+
+
+Look at expression of genes with mutations.
+
+Organise data for analysis.
+
+```{r org-data}
+## filter out any remaining ERCC genes
+sce_joxm <- sce_joxm[!rowData(sce_joxm)$is_feature_control,]
+sce_joxm_gr <- makeGRangesFromDataFrame(rowData(sce_joxm),
+                                   start.field = "start_position",
+                                   end.field = "end_position",
+                                   keep.extra.columns = TRUE)
+exome_sites_joxm[["chrom"]] <- gsub("chr", "", exome_sites_joxm[["chrom"]])
+exome_sites_joxm_gr <- makeGRangesFromDataFrame(exome_sites_joxm,
+                                   start.field = "pos",
+                                   end.field = "pos",
+                                   keep.extra.columns = TRUE)
+# find overlaps
+ov_joxm <- findOverlaps(sce_joxm_gr, exome_sites_joxm_gr)
+tmp_cols <- colnames(mcols(exome_sites_joxm_gr))
+tmp_cols <- tmp_cols[grepl("clone", tmp_cols)]
+tmp_cols <- c("Consequence", tmp_cols, "var_id")
+mut_genes_exprs_joxm <- logcounts(sce_joxm)[queryHits(ov_joxm),]
+mut_genes_df_joxm <- as_data_frame(mut_genes_exprs_joxm)
+mut_genes_df_joxm[["gene"]] <- rownames(mut_genes_exprs_joxm)
+mut_genes_df_joxm <- bind_cols(mut_genes_df_joxm,
+                          as_data_frame(
+                              exome_sites_joxm_gr[
+                                  subjectHits(ov_joxm)])[, tmp_cols]
+)
+
+```
+
+
+### DE comparing mutated clone to all other clones
+
+Get DE results comparing mutated clone to all unmutated clones.
+
+```{r de-mutated}
+cell_assign_list <- list()
+for (don in donors) {
+    cell_assign_list[[don]] <- readRDS(file.path("data/cell_assignment", 
+        paste0("cardelino_results.", don, ".", params$callset, ".rds")))
+    cat(paste("reading", don, "\n"))
+}   
+
+get_sites_by_donor <- function(sites_df, sce_list, assign_list) {
+    if (!identical(sort(names(sce_list)), sort(names(assign_list))))
+        stop("donors do not match between sce_list and assign_list.")
+    sites_by_donor <- list()
+    for (don in names(sce_list)) {
+        config <- as_data_frame(assign_list[[don]]$tree$Z)
+        config[["var_id"]] <- rownames(assign_list[[don]]$tree$Z)
+        sites_donor <- inner_join(sites_df, config)
+        sites_donor[["clone_presence"]] <- ""
+        for (cln in colnames(assign_list[[don]]$tree$Z)[-1]) {
+            sites_donor[["clone_presence"]][
+                as.logical(sites_donor[[cln]])] <- paste(
+                    sites_donor[["clone_presence"]][
+                        as.logical(sites_donor[[cln]])], cln, sep = "&")
+        }
+        sites_donor[["clone_presence"]] <- gsub("^&", "",
+                                                sites_donor[["clone_presence"]])
+        ## drop config columns as these won't match up between donors
+        keep_cols <- grep("^clone[0-9]$", colnames(sites_donor), invert = TRUE)
+        sites_by_donor[[don]] <- sites_donor[, keep_cols]
+    }
+    do.call("bind_rows", sites_by_donor)
+}
+
+sites_by_donor <- get_sites_by_donor(exome_sites, sce_unst_list, cell_assign_list)
+
+sites_by_donor_gr <- makeGRangesFromDataFrame(sites_by_donor,
+                                              start.field = "pos",
+                                              end.field = "pos",
+                                              keep.extra.columns = TRUE)
+
+## run DE for mutated cells vs unmutated cells using existing DE results
+## filter out any remaining ERCC genes
+for (don in names(de_res[["sce_list_unst"]]))
+    de_res[["sce_list_unst"]][[don]] <- de_res[["sce_list_unst"]][[don]][
+        !rowData(de_res[["sce_list_unst"]][[don]])$is_feature_control,]  
+sce_de_list_gr <- list()
+for (don in names(de_res[["sce_list_unst"]])) {
+    sce_de_list_gr[[don]] <- makeGRangesFromDataFrame(
+        rowData(de_res[["sce_list_unst"]][[don]]),
+        start.field = "start_position",
+        end.field = "end_position",
+        keep.extra.columns = TRUE)
+    seqlevelsStyle(sce_de_list_gr[[don]]) <- "UCSC"
+}
+mut_genes_df_allcells_list <- list()
+for (don in names(de_res[["sce_list_unst"]])) {
+    cat("working on ", don, "\n")
+    sites_tmp <- sites_by_donor_gr[sites_by_donor_gr$donor_short_id == don]
+    ov_tmp <- findOverlaps(sce_de_list_gr[[don]], sites_tmp)
+    sce_tmp <- de_res[["sce_list_unst"]][[don]][queryHits(ov_tmp),]
+    sites_tmp <- sites_tmp[subjectHits(ov_tmp)]
+    sites_tmp$gene <- rownames(sce_tmp)
+    dge_tmp <- de_res[["dge_list"]][[don]]
+    dge_tmp <- dge_tmp[intersect(rownames(dge_tmp), sites_tmp$gene),]
+    base_design <- dge_tmp$design[, !grepl("assigned", colnames(dge_tmp$design))]
+    de_tbl_tmp <- data.frame(donor = don,
+                             gene = sites_tmp$gene, 
+                             hgnc_symbol = gsub(".*_", "", sites_tmp$gene),
+                             ensembl_gene_id = gsub("_.*", "", sites_tmp$gene),
+                             var_id = sites_tmp$var_id,
+                             location = sites_tmp$Location,
+                             consequence = sites_tmp$Consequence,
+                             clone_presence = sites_tmp$clone_presence,
+                             logFC = NA, logCPM = NA, F = NA, PValue = NA,
+                             comment = "")
+    for (i in seq_len(length(sites_tmp))) {
+        clones_tmp <- strsplit(sites_tmp$clone_presence[i], split = "&")[[1]]
+        mutatedclone <- as.numeric(sce_tmp$assigned %in% clones_tmp)
+        dsgn_tmp <- cbind(base_design, data.frame(mutatedclone))
+        if (sites_tmp$gene[i] %in% rownames(dge_tmp) && is.fullrank(dsgn_tmp)) {
+            qlfit_tmp <- glmQLFit(dge_tmp[sites_tmp$gene[i],], dsgn_tmp)
+            de_tmp <- glmQLFTest(qlfit_tmp, coef = ncol(dsgn_tmp))
+            de_tbl_tmp$logFC[i] <- de_tmp$table$logFC
+            de_tbl_tmp$logCPM[i] <- de_tmp$table$logCPM
+            de_tbl_tmp$F[i] <- de_tmp$table$F
+            de_tbl_tmp$PValue[i] <- de_tmp$table$PValue
+        }
+        if (!(sites_tmp$gene[i] %in% rownames(dge_tmp)))
+            de_tbl_tmp$comment[i] <- "gene did not pass DE filters"
+        if (!is.fullrank(dsgn_tmp))
+            de_tbl_tmp$comment[i] <- "insufficient cells assigned to clone"
+    }
+    mut_genes_df_allcells_list[[don]] <- de_tbl_tmp
+}
+mut_genes_df_allcells <- do.call("bind_rows", mut_genes_df_allcells_list)
+## add FDRs for genes tested here for DE
+ihw_res_all <- ihw(PValue ~ logCPM, data = mut_genes_df_allcells, alpha = 0.2)
+mut_genes_df_allcells$FDR <- adj_pvalues(ihw_res_all)
+## add simplified consequence categories
+mut_genes_df_allcells$consequence_simplified <- 
+    mut_genes_df_allcells$consequence
+mut_genes_df_allcells$consequence_simplified[
+    mut_genes_df_allcells$consequence_simplified %in% 
+        c("stop_retained_variant", "start_lost", "stop_lost", "stop_gained")] <- "nonsense"
+mut_genes_df_allcells$consequence_simplified[
+    mut_genes_df_allcells$consequence_simplified %in% 
+        c("splice_donor_variant", "splice_acceptor_variant", "splice_region_variant")] <- "splicing"
+# table(mut_genes_df_allcells$consequence_simplified)
+# dplyr::arrange(mut_genes_df_allcells, FDR) %>% dplyr::select(-location) %>% head(n = 20)
+```
+
+For just the donor `joxm`.
+
+```{r de-mutated-joxm, fig.height = 6, fig.width=11.5}
+tmp4 <- mut_genes_df_allcells %>%
+    dplyr::filter(!is.na(logFC), donor == "joxm") %>%
+    group_by(consequence_simplified) %>%
+    summarise(med = median(logFC, na.rm = TRUE),
+              nvars = n())
+tmp4
+
+df_to_plot <- mut_genes_df_allcells %>%
+    dplyr::filter(!is.na(logFC), donor == "joxm") %>%
+    dplyr::mutate(
+        FDR = p.adjust(PValue, method = "BH"),
+        consequence_simplified = factor(
+        consequence_simplified, 
+        levels(as.factor(consequence_simplified))[order(tmp4[["med"]])]),
+        de  = ifelse(FDR < 0.2, "FDR < 0.2", "FDR > 0.2"))
+
+
+df_to_plot %>%
+    dplyr::select(gene, hgnc_symbol, consequence, clone_presence, logFC, 
+                  F, FDR, PValue, ) %>%
+    dplyr::arrange(FDR) %>% head(n = 20)
+
+df_to_plot %>% 
+    dplyr::arrange(FDR) %>% write_tsv("output/donor_specific/joxm_mut_genes_de_results.tsv")
+
+p_mutated_clone <- ggplot(df_to_plot, aes(y = logFC, x = consequence_simplified)) +
+    geom_hline(yintercept = 0, linetype = 1, colour = "black") +
+    geom_boxplot(outlier.size = 0, outlier.alpha = 0, fill = "gray90",
+                 colour = "firebrick4", width = 0.2, size = 1) +
+    ggbeeswarm::geom_quasirandom(aes(fill = -log10(PValue)), 
+                                 colour = "gray40", pch = 21, size = 4) +
+    geom_segment(aes(y = -0.25, x = 0, yend = -1, xend = 0), 
+                 colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+    annotate("text", y = -3, x = 0, size = 6, label = "lower in mutated clone") +
+    geom_segment(aes(y = 0.25, x = 0, yend = 1, xend = 0), 
+                 colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+    annotate("text", y = 3, x = 0, size = 6, label = "higher in mutated clone") +
+    scale_x_discrete(expand = c(0.1, .05), name = "consequence") +
+    scale_y_continuous(expand = c(0.1, 0.1), name = "logFC") +
+    expand_limits(x = c(-0.75, 8)) +
+    theme_ridges(22) +
+    coord_flip() +
+    scale_fill_viridis(option = "B", name = "-log10(P)") +
+    theme(strip.background = element_rect(fill = "gray90"),
+          legend.position = "right") +
+    guides(color = FALSE)
+
+ggsave("figures/donor_specific/carderelax_joxm_mutgenes_logfc-box_by_simple_vep_anno_allcells.png", 
+      plot = p_mutated_clone, height = 6, width = 11.5)
+ggsave("figures/donor_specific/carderelax_joxm_mutgenes_logfc-box_by_simple_vep_anno_allcells.pdf", 
+       plot = p_mutated_clone, height = 6, width = 11.5)
+ggsave("figures/donor_specific/carderelax_joxm_mutgenes_logfc-box_by_simple_vep_anno_allcells.svg", 
+       plot = p_mutated_clone, height = 6, width = 11.5)
+p_mutated_clone
+```
+
+
+
+## Differential expression transcriptome-wide
+
+First we can look for genes that have any significant difference in expression
+between clones. The summary below shows the number of significant and 
+non-significant genes at a Benjamini-Hochberg FDR threshold of 10%.
+
+```{r summary-de}
+knitr::opts_chunk$set(fig.height = 6, fig.width = 8)
+summary(decideTests(de_res$qlf_list$joxm, p.value = 0.1))
+```
+
+```{r summary-de}
+summary(decideTests(de_res$qlf_list$joxm, p.value = 0.05))
+```
+
+We can view the 10 genes with strongest evidence for differential expression 
+across clones.
+
+```{r toptags-joxm}
+topTags(de_res$qlf_list$joxm)
+```
+
+We can check that the estimates of the biological coefficient of variation from
+the negative binomial model look sensible. Here they do, so we can expect 
+sensible DE results.
+
+```{r plot-bcv}
+plotBCV(de_res$dge_list$joxm)
+```
+
+Likewise, a plot of the quasi-likelihood parameter against average gene 
+expression looks smooth and sensible.
+
+```{r plot-qld}
+plotQLDisp(de_res$qlf_list$joxm)
+```
+
+
+### Pairwise comparisons of clones
+
+As well as looking for *any* difference in expression across clones, we can also
+inspect specific pairwise contrasts of clones for differential expression.
+
+For this donor, we are able to look at `r length(de_res$qlf_pairwise$joxm) - 1`
+pairwise contrasts.
+
+The output below shows the top 10 DE genes for pair of (testable) clones.
+
+```{r toptags-cntr}
+cntrsts <- names(de_res$qlf_pairwise$joxm)[-1]
+for (i in cntrsts) {
+  print(topTags(de_res$qlf_pairwise$joxm[[i]]))
+}
+```
+
+Below we see the following plots for each pairwise comparison:
+
+* A "mean-difference" plot: log-fold-change (between clones) vs average 
+expression;
+* A "volcano plot": -log10(PValue) vs log-fold-change between clones.
+
+In the MD plots we see logFC distributions centred around zero as we would hope
+(gold line in plots shows lowess curve through points).
+
+```{r plots-cntrst, fig.height=6, fig.width=9}
+for (i in cntrsts) {
+  plotMD(de_res$qlf_pairwise$joxm[[i]], p.value = 0.1)
+  lines(lowess(x = de_res$qlf_pairwise$joxm[[i]]$table$logCPM,
+               y = de_res$qlf_pairwise$joxm[[i]]$table$logFC), 
+        col = "goldenrod3", lwd = 4)
+  
+  de_tab <- de_res$qlf_pairwise$joxm[[i]]$table
+  de_tab[["gene"]] <- rownames(de_tab)
+  de_tab <- de_tab %>% 
+    dplyr::mutate(FDR = adj_pvalues(ihw(PValue ~ logCPM, alpha = 0.1)), 
+                  sig = FDR < 0.1,
+                  signed_F = sign(logFC) * F) 
+  de_tab[["lab"]] <- ""
+  int_genes_entrezid <- c(Hs.H$HALLMARK_G2M_CHECKPOINT, Hs.H$HALLMARK_E2F_TARGETS,
+                          Hs.c2$ROSTY_CERVICAL_CANCER_PROLIFERATION_CLUSTER)
+  mm <- match(int_genes_entrezid, de_tab$entrezid)
+  mm <- mm[!is.na(mm)]
+  int_genes_hgnc <- de_tab$hgnc_symbol[mm]
+  int_genes_hgnc <- c(int_genes_hgnc, "MYBL1")
+  genes_to_label <- (de_tab[["hgnc_symbol"]] %in% int_genes_hgnc &
+                       de_tab[["FDR"]] < 0.1)
+  de_tab[["lab"]][genes_to_label] <-
+    de_tab[["hgnc_symbol"]][genes_to_label]
+  
+  p_vulcan <- ggplot(de_tab, aes(x = logFC, y = -log10(PValue), fill = sig,
+                     label = lab)) +
+    geom_point(aes(size = sig), pch = 21, colour = "gray40") +
+    geom_label_repel(show.legend = FALSE, 
+                     arrow = arrow(type = "closed", length = unit(0.25, "cm")), 
+                     nudge_x = 0.2, nudge_y = 0.3, fill = "gray95") +
+    geom_segment(aes(x = -1, y = 0, xend = -4, yend = 0), 
+                 colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+    annotate("text", x = -4, y = -0.5, size = 6,
+             label = paste("higher in", strsplit(i, "_")[[1]][2])) +
+    geom_segment(aes(x = 1, y = 0, xend = 4, yend = 0), 
+                 colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+    annotate("text", x = 4, y = -0.5, size = 6,
+             label = paste("higher in", strsplit(i, "_")[[1]][1])) +
+    scale_fill_manual(values = c("gray60", "firebrick"), 
+                      label = c("N.S.", "FDR < 10%"), name = "") +
+    scale_size_manual(values = c(1, 3), guide = FALSE) +
+    guides(alpha = FALSE,
+           fill = guide_legend(override.aes = list(size = 5))) +
+    theme_classic(20) + theme(legend.position = "right")
+  print(p_vulcan)
+  
+  ggsave(paste0("figures/donor_specific/carderelax_joxm_volcano_", i, ".png"), 
+         plot = p_vulcan, height = 6, width = 9)
+  ggsave(paste0("figures/donor_specific/carderelax_joxm_volcano_", i, ".pdf"), 
+         plot = p_vulcan, height = 6, width = 9)
+  ggsave(paste0("figures/donor_specific/carderelax_joxm_volcano_", i, ".svg"),
+         plot = p_vulcan, height = 6, width = 9)
+}
+```
+
+--------
+
+## Gene set enrichment results
+
+We extend our analysis from looking at differential expression for single genes
+to looking for enrichment in gene sets. We use gene sets from the MSigDB 
+collection.
+
+We use the _camera_ method from the *limma* package to conduct competitive gene
+set testing. This method uses the full distributions of logFC statistics from
+pairwise clone contrasts to identify significantly enriched gene sets.
+
+### MSigDB Hallmark gene sets
+
+We look primarily at the "Hallmark" collection of gene sets from MSigDB.
+
+```{r top-genesets}
+for (i in cntrsts) {
+  print(i)
+  cam_H_pw <- de_res$camera$H$joxm[[i]]$logFC
+  cam_H_pw[["geneset"]] <- rownames(de_res$camera$H$joxm[[i]]$logFC)
+  cam_H_pw <- cam_H_pw %>% 
+    dplyr::mutate(sig = FDR < 0.05) 
+  print(head(cam_H_pw))
+}
+```
+
+Below we see the following plots for each pairwise comparison:
+
+* A -log10(PValue) vs direction plot for enrichment of each of the 50 Hallmark 
+gene sets;
+* A logFC "barcode plot": distribution of the logFC statistics for genes in the E2F
+targets and G2M checkpoint gene sets relative to all other genes;
+* A signed-F "barcode plot": distribution of the signed F statistics for genes 
+in the E2F targets and G2M checkpoint gene sets relative to all other genes.
+
+
+```{r gene-set-plots, fig.height=6, fig.width=9}
+for (i in cntrsts) {
+  cam_H_pw <- de_res$camera$H$joxm[[i]]$logFC
+  cam_H_pw[["geneset"]] <- rownames(de_res$camera$H$joxm[[i]]$logFC)
+  cam_H_pw <- cam_H_pw %>% 
+    dplyr::mutate(sig = FDR < 0.05) 
+  cam_H_pw[["lab"]] <- ""
+  cam_H_pw[["lab"]][1:3] <-
+    cam_H_pw[["geneset"]][1:3]
+  cam_H_pw[["Direction"]][cam_H_pw[["Direction"]] == "Up"] <- 
+    paste("Up in", strsplit(i, "_")[[1]][1], "vs", strsplit(i, "_")[[1]][2])
+  cam_H_pw[["Direction"]][cam_H_pw[["Direction"]] == "Down"] <- 
+    paste("Down in", strsplit(i, "_")[[1]][1], "vs", strsplit(i, "_")[[1]][2])
+  de_tab <- de_res$qlf_pairwise$joxm[[i]]$table
+  de_tab[["gene"]] <- rownames(de_tab)
+  de_tab <- de_tab %>% 
+    dplyr::mutate(FDR = adj_pvalues(ihw(PValue ~ logCPM, alpha = 0.1)), 
+                  sig = FDR < 0.1,
+                  signed_F = sign(logFC) * F)
+  
+  p_hallmark <- cam_H_pw %>% 
+    ggplot(aes(x = Direction, y = -log10(PValue), colour = sig, 
+               label = lab)) +
+    ggbeeswarm::geom_quasirandom(aes(size = NGenes)) +
+    geom_label_repel(show.legend = FALSE,
+                     nudge_y = 0.3, nudge_x = 0.3, fill = "gray95") +
+    scale_colour_manual(values = c("gray50", "firebrick"), 
+                        label = c("N.S.", "FDR < 5%"), name = "") +
+    guides(alpha = FALSE,
+           fill = guide_legend(override.aes = list(size = 5))) +
+    xlab("Gene set enrichment direction") +
+    theme_classic(20) + theme(legend.position = "right")
+  print(p_hallmark)
+  
+  ggsave(paste0("figures/donor_specific/carderelax_joxm_camera_H_", i, ".png"), 
+         plot = p_hallmark, height = 6, width = 9)
+  ggsave(paste0("figures/donor_specific/carderelax_joxm_camera_H_", i, ".png"), 
+         plot = p_hallmark, height = 6, width = 9)
+  ggsave(paste0("figures/donor_specific/carderelax_joxm_camera_H_", i, ".png"), 
+         plot = p_hallmark, height = 6, width = 9)
+  
+  idx <- ids2indices(Hs.H, id = de_tab$entrezid)
+  barcodeplot(de_tab$logFC, index = idx$HALLMARK_E2F_TARGETS, 
+              index2 = idx$HALLMARK_G2M_CHECKPOINT, xlab = "logFC", 
+              main = paste0("joxm: ", i, "\n HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT"))
+  
+  png(paste0("figures/donor_specific/carderelax_joxm_camera_H_", i, "_barcode_logFC_E2F_G2M.png"),
+      height = 400, width = 600)
+  barcodeplot(de_tab$logFC, index = idx$HALLMARK_E2F_TARGETS, 
+              index2 = idx$HALLMARK_G2M_CHECKPOINT, xlab = "logFC", 
+              main = paste0("joxm: ", i, "\n HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT"))
+  dev.off()
+  
+  barcodeplot(de_tab$signed_F, index = idx$HALLMARK_E2F_TARGETS, 
+              index2 = idx$HALLMARK_G2M_CHECKPOINT, xlab = "signed F statistic", 
+              main = paste0("joxm: ", i, "\n HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT"))
+  png(paste0("figures/donor_specific/carderelax_joxm_camera_H_", i, "_barcode_signedF_E2F_G2M.png"),
+      height = 400, width = 600)
+  barcodeplot(de_tab$signed_F, index = idx$HALLMARK_E2F_TARGETS, 
+              index2 = idx$HALLMARK_G2M_CHECKPOINT, xlab = "signed F statistic", 
+              main = paste0("joxm: ", i, "\n HALLMARK_E2F_TARGETS and HALLMARK_G2M_CHECKPOINT"))
+  dev.off()
+}  
+```
+  
+One could carry out similar analyses and produce similar plots for the c2 and
+c6 MSigDB gene set collections.
+
+
+## Test for difference in cell cycle phases by clone
+
+We observe differing proportions of cells in different phases of the cell cycle
+by clone. 
+
+
+```{r test-cc}
+as.data.frame(colData(de_res[["sce_list_unst"]][["joxm"]])) %>%
+    dplyr::mutate(Cell_Cycle = factor(cyclone_phase, levels = c("G2M", "S", "G1")),
+                  assigned = factor(assigned, levels = c("clone3", "clone2", "clone1"))) %>%
+  ggplot(aes(x = assigned, fill = Cell_Cycle)) +
+  geom_bar() +
+  scale_fill_manual(values = c("#ff6a5c", "#ccdfcb", "#414141")) +
+  coord_flip() + 
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme(axis.title.y = element_blank())
+
+as.data.frame(colData(de_res[["sce_list_unst"]][["joxm"]])) %>%
+    dplyr::mutate(Cell_Cycle = factor(cyclone_phase, levels = c("G2M", "S", "G1")),
+                  assigned = factor(assigned, levels = c("clone3", "clone2", "clone1"))) %>%
+  ggplot(aes(x = assigned, fill = Cell_Cycle)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = c("#ff6a5c", "#ccdfcb", "#414141")) +
+  coord_flip() + 
+  ylab("proportion") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme(axis.title.y = element_blank())
+```
+
+
+A Fisher Exact Test can provide some guidance about whether or not 
+these differences in cell cycle proportions are expected by chance.
+
+```{r test-cc-ft}
+freqs <- as.matrix(table(
+    de_res[["sce_list_unst"]][["joxm"]]$assigned,  
+    de_res[["sce_list_unst"]][["joxm"]]$cyclone_phase))
+fisher.test(freqs)
+```
+
+We can also test just for differences in proportions between clone1 and clone2.
+
+```{r ft2}
+fisher.test(freqs[-3,])
+```
+
+
+## PCA plots
+
+Principal component analysis can reveal global structure from single-cell
+transcriptomic profiles.
+
+```{r pca}
+choose_joxm_cells <- (sce_joxm$well_condition == "unstimulated" &
+                          sce_joxm$assigned != "unassigned")
+pca_unst <- reducedDim(runPCA(sce_joxm[, choose_joxm_cells], 
+                              ntop = 500, ncomponents = 10), "PCA")
+pca_unst <- data.frame(
+    PC1 = pca_unst[, 1], PC2 = pca_unst[, 2], 
+    PC3 = pca_unst[, 3], PC4 = pca_unst[, 4],
+    PC5 = pca_unst[, 5], PC6 = pca_unst[, 6],
+    clone = sce_joxm[, choose_joxm_cells]$assigned,
+    nvars_cloneid = sce_joxm[, choose_joxm_cells]$nvars_cloneid,
+    cyclone_phase = sce_joxm[, choose_joxm_cells]$cyclone_phase,
+    G1 = sce_joxm[, choose_joxm_cells]$G1,
+    G2M = sce_joxm[, choose_joxm_cells]$G2M,
+    S = sce_joxm[, choose_joxm_cells]$S,
+    clone1_prob = sce_joxm[, choose_joxm_cells]$clone1_prob,
+    clone2_prob = sce_joxm[, choose_joxm_cells]$clone2_prob,
+    clone3_prob = sce_joxm[, choose_joxm_cells]$clone3_prob,
+    RPS6KA2 = as.vector(logcounts(sce_joxm[grep("RPS6KA2", rownames(sce_joxm)), choose_joxm_cells]))
+    )
+
+ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    theme_classic(14)
+
+ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    theme_classic(14)
+
+ggplot(pca_unst, aes(x = PC2, y = PC4, fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    theme_classic(14)
+
+ggplot(pca_unst, aes(x = PC3, y = PC4, fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    theme_classic(14)
+```
+
+Let us also look at PCA with cells coloured by the posterior probability of 
+assignment to the various clones.
+
+```{r pca-clone-prob, fig.height=11, fig.width=9.5}
+ppc1 <- ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone1_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone1\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc2 <- ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone2_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone2\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc3 <- ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone3_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone3\nposterior\nprobability") +
+  theme_classic(14)
+
+plot_grid(ppc1, ppc2, ppc3, labels = "auto", ncol = 1)
+
+ggsave("figures/donor_specific/carderelax_joxm_pca_pc1_pc2_clone_probs.png", height = 11, width = 9.5)
+ggsave("figures/donor_specific/carderelax_joxm_pca_pc1_pc2_clone_probs.pdf", height = 11, width = 9.5)
+ggsave("figures/donor_specific/carderelax_joxm_pca_pc1_pc2_clone_probs.svg", height = 11, width = 9.5)
+
+ppc1 <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone1_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone1\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc2 <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone2_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone2\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc3 <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone3_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone3\nposterior\nprobability") +
+  theme_classic(14)
+
+plot_grid(ppc1, ppc2, ppc3, labels = "auto", ncol = 1)
+
+ggsave("figures/donor_specific/carderelax_joxm_pca_pc2_pc3_clone_probs.png", height = 11, width = 9.5)
+ggsave("figures/donor_specific/carderelax_joxm_pca_pc2_pc3_clone_probs.pdf", height = 11, width = 9.5)
+ggsave("figures/donor_specific/carderelax_joxm_pca_pc2_pc3_clone_probs.svg", height = 11, width = 9.5)
+
+```
+
+
+We can also explore how inferred cell cycle phase information relates to the
+PCA components.
+
+```{r pca-cc}
+pca_unst$cyclone_phase <- factor(pca_unst$cyclone_phase, levels = c("G1", "S", "G2M"))
+ggplot(pca_unst, aes(x = PC1, y = PC2, colour = cyclone_phase,
+                     shape = clone)) +
+    geom_point(size = 6) +
+    scale_color_manual(values = magma(6)[c(1, 3, 5)], name = "cell cycle\nphase") +
+    xlab("PC1 (10% variance)") +
+    ylab("PC2 (5% variance)") +
+    theme_classic(18)
+
+ggsave("figures/donor_specific/carderelax_joxm_pca.png", height = 6, width = 9.5)
+ggsave("figures/donor_specific/carderelax_joxm_pca.pdf", height = 6, width = 9.5)
+ggsave("figures/donor_specific/carderelax_joxm_pca.svg", height = 6, width = 9.5)
+
+
+pca_unst$cyclone_phase <- factor(pca_unst$cyclone_phase, levels = c("G1", "S", "G2M"))
+ggplot(pca_unst, aes(x = PC2, y = PC3, colour = cyclone_phase,
+                     shape = clone)) +
+    geom_point(size = 6) +
+    scale_color_manual(values = magma(6)[c(1, 3, 5)], name = "cell cycle\nphase") +
+    xlab("PC2 (5% variance)") +
+    ylab("PC3 (3% variance)") +
+    theme_classic(18)
+
+ggplot(pca_unst, aes(x = PC1, y = PC2, fill = G2M,
+                     shape = clone)) +
+    geom_point(colour = "gray50", size = 5) +
+    scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+    scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+    scale_size_continuous(range = c(4, 6)) +
+    xlab("PC1 (10% variance)") +
+    ylab("PC2 (5% variance)") +
+    theme_classic(18)
+
+ggsave("figures/donor_specific/carderelax_joxm_pca_g2m_score.png", height = 6, width = 9.5)
+ggsave("figures/donor_specific/carderelax_joxm_pca_g2m_score.pdf", height = 6, width = 9.5)
+ggsave("figures/donor_specific/carderelax_joxm_pca_g2m_score.svg", height = 6, width = 9.5)
+
+ggplot(pca_unst, aes(x = PC1, y = PC2, colour = S,
+                     shape = clone)) +
+    geom_point(size = 5) +
+    scale_color_viridis(option = "B") +
+    xlab("PC1 (10% variance)") +
+    ylab("PC2 (5% variance") +
+    theme_classic(18)
+
+ggplot(pca_unst, aes(x = PC1, y = PC2, colour = G1,
+                     shape = clone)) +
+    geom_point(size = 5) +
+    scale_color_viridis(option = "B") +
+    xlab("PC1 (10% variance)") +
+    ylab("PC2 (5% variance") +
+    theme_classic(18)
+```
+
+Number of variants used for clone ID looks to have little relationship to 
+global structure in expression PCA space.
+
+```{r pca-nvars}
+ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone2_prob, size = nvars_cloneid)) +
+    geom_point(pch = 21, colour = "gray30") +
+    scale_fill_viridis(option = "B", name = "clone2\nprobability") +
+    scale_size_continuous(name = "# variants\nfor clone ID") +
+    theme_classic(14)
+```
+
+
+
+## Combined figure
+
+For publication, we put together a combined figure summarising the analyses
+conducted above.
+
+```{r combined-fig, fig.height=16, fig.width=18}
+## tree and cell assignment
+fig_tree <- plot_tree(cell_assign_joxm$tree_updated, orient = "v") + 
+    xlab("Clonal tree") +
+    cardelino:::heatmap.theme(size = 16) +
+    theme(axis.text.x = element_blank(), axis.title.y = element_text(size = 20))
+
+prob_to_plot <- cell_assign_joxm$prob_mat[
+    colnames(sce_joxm)[sce_joxm$well_condition == "unstimulated"], ]
+hc <- hclust(dist(prob_to_plot))
+
+clone_ids <- colnames(prob_to_plot)
+clone_frac <- colMeans(prob_to_plot[matrixStats::rowMaxs(prob_to_plot) > 0.5,])
+clone_perc <- paste0(clone_ids, ": ", 
+                          round(clone_frac*100, digits = 1), "%")
+
+colnames(prob_to_plot) <- clone_perc
+nba.m <- as_data_frame(prob_to_plot[hc$order,]) %>%
+    dplyr::mutate(cell = rownames(prob_to_plot[hc$order,])) %>%
+    gather(key = "clone", value = "prob", -cell)
+nba.m <- dplyr::mutate(nba.m, cell = factor(
+    cell, levels = rownames(prob_to_plot[hc$order,])))
+fig_assign <- ggplot(nba.m, aes(clone, cell, fill = prob)) + 
+    geom_tile(show.legend = TRUE) +
+    # scale_fill_gradient(low = "white", high = "firebrick4",
+    #                     name = "posterior probability of assignment") +
+    scico::scale_fill_scico(palette = "oleron", direction = 1) +
+    ylab(paste("Single cells")) + 
+    cardelino:::heatmap.theme(size = 16) + #cardelino:::pub.theme() +
+    theme(axis.title.y = element_text(size = 20), legend.position = "bottom",
+          legend.text = element_text(size = 12), legend.key.size = unit(0.05, "npc"))
+
+p_tree <- plot_grid(fig_tree, fig_assign, nrow = 2, rel_heights = c(0.46, 0.52))
+
+
+## cell cycle barplot
+p_bar <- as.data.frame(colData(de_res[["sce_list_unst"]][["joxm"]])) %>%
+  dplyr::mutate(Cell_Cycle = factor(cyclone_phase, levels = c("G2M", "S", "G1")),
+                assigned = factor(assigned, levels = c("clone3", "clone2", "clone1"))) %>%
+  ggplot(aes(x = assigned, fill = Cell_Cycle, group = Cell_Cycle)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = c("#ff6a5c", "#ccdfcb", "#414141")) +
+  coord_flip() + 
+  ylab("proportion of cells") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme(axis.title.y = element_blank())
+
+## effects on mutated clone
+df_to_plot <- mut_genes_df_allcells %>%
+  dplyr::filter(!is.na(logFC), donor == "joxm") %>%
+  dplyr::filter(!duplicated(gene)) %>%
+  dplyr::mutate(
+    FDR = p.adjust(PValue, method = "BH"),
+    consequence_simplified = factor(
+      consequence_simplified, 
+      levels(as.factor(consequence_simplified))[order(tmp4[["med"]])]),
+    de  = ifelse(FDR < 0.2, "FDR < 0.2", "FDR > 0.2"))
+
+
+p_mutated_clone <- ggplot(df_to_plot, aes(y = logFC, x = consequence_simplified)) +
+    geom_hline(yintercept = 0, linetype = 1, colour = "black") +
+    geom_boxplot(outlier.size = 0, outlier.alpha = 0, fill = "gray90",
+                 colour = "firebrick4", width = 0.2, size = 1) +
+    ggbeeswarm::geom_quasirandom(aes(fill = -log10(PValue)), 
+                                 colour = "gray40", pch = 21, size = 4) +
+    geom_segment(aes(y = -0.25, x = 0, yend = -1, xend = 0), 
+                 colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+    annotate("text", y = -3, x = 0, size = 6, label = "lower in mutated clone") +
+    geom_segment(aes(y = 0.25, x = 0, yend = 1, xend = 0), 
+                 colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+    annotate("text", y = 3, x = 0, size = 6, label = "higher in mutated clone") +
+    scale_x_discrete(expand = c(0.1, .05), name = "consequence") +
+    scale_y_continuous(expand = c(0.1, 0.1), name = "logFC") +
+    expand_limits(x = c(-0.75, 8)) +
+    theme_ridges(22) +
+    coord_flip() +
+    scale_fill_viridis(option = "B", name = "-log10(P)") +
+    theme(strip.background = element_rect(fill = "gray90"),
+          legend.position = "right") +
+    guides(color = FALSE)
+
+## PCA
+p_pca <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone,
+                     shape = clone)) +
+    geom_point(colour = "gray50", size = 5) +
+    scale_shape_manual(values = c(21, 23, 25, 22, 24, 26), name = "clone") +
+    # scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+    ggthemes::scale_fill_canva(palette = "Surf and turf") +
+    scale_size_continuous(range = c(4, 6)) +
+    xlab("PC2 (5% variance)") +
+    ylab("PC3 (3% variance)") +
+    theme_classic(18)
+
+ # ggplot(pca_unst, aes(x = PC2, y = PC3, colour = clone,
+ #                     shape = cyclone_phase)) +
+ #    geom_point(alpha = 0.9, size = 5) +
+ #    scale_shape_manual(values = c(15, 17, 19), name = "clone") +
+ #    # scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+ #    ggthemes::scale_color_canva(palette = "Surf and turf") +
+ #    scale_size_continuous(range = c(4, 6)) +
+ #    xlab("PC2 (5% variance)") +
+ #    ylab("PC3 (3% variance)") +
+ #    theme_classic(18)
+
+## volcano
+de_joxm_cl2_vs_cl1 <- de_res$qlf_pairwise$joxm$clone2_clone1$table
+de_joxm_cl2_vs_cl1[["gene"]] <- rownames(de_joxm_cl2_vs_cl1)
+de_joxm_cl2_vs_cl1 <- de_joxm_cl2_vs_cl1 %>% 
+  dplyr::mutate(FDR = adj_pvalues(ihw(PValue ~ logCPM, alpha = 0.1)), 
+                sig = FDR < 0.1,
+                signed_F = sign(logFC) * F) 
+de_joxm_cl2_vs_cl1[["lab"]] <- ""
+int_genes_entrezid <- c(Hs.H$HALLMARK_G2M_CHECKPOINT, Hs.H$HALLMARK_E2F_TARGETS,
+                        Hs.H$HALLMARK_MITOTIC_SPINDLE)
+mm <- match(int_genes_entrezid, de_joxm_cl2_vs_cl1$entrezid)
+mm <- mm[!is.na(mm)]
+int_genes_hgnc <- de_joxm_cl2_vs_cl1$hgnc_symbol[mm]
+genes_to_label <- (de_joxm_cl2_vs_cl1[["hgnc_symbol"]] %in% int_genes_hgnc &
+                     de_joxm_cl2_vs_cl1[["FDR"]] < 0.01)
+de_joxm_cl2_vs_cl1[["lab"]][genes_to_label] <-
+  de_joxm_cl2_vs_cl1[["hgnc_symbol"]][genes_to_label]
+de_joxm_cl2_vs_cl1[["cell_cycle_gene"]] <- (de_joxm_cl2_vs_cl1$entrezid %in% 
+                                              int_genes_entrezid)
+
+p_volcano <- ggplot(de_joxm_cl2_vs_cl1, aes(x = logFC, y = -log10(PValue), 
+                                            fill = sig, label = lab)) +
+  geom_point(aes(size = sig), pch = 21, colour = "gray40") +
+  geom_label_repel(show.legend = FALSE, 
+                   arrow = arrow(type = "closed", length = unit(0.25, "cm")), 
+                   nudge_x = 0.2, nudge_y = 0.3, fill = "gray95") +
+  geom_segment(aes(x = -1, y = 0, xend = -4, yend = 0), 
+               colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+  annotate("text", x = -4, y = -0.5, label = "higher in clone1", size = 6) +
+  geom_segment(aes(x = 1, y = 0, xend = 4, yend = 0), 
+               colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+  annotate("text", x = 4, y = -0.5, label = "higher in clone2", size = 6) +
+  scale_fill_manual(values = c("gray60", "firebrick"), 
+                    label = c("N.S.", "FDR < 10%"), name = "") +
+  scale_size_manual(values = c(1, 3), guide = FALSE) +
+  ylab(expression(-"log"[10](P))) +
+  xlab(expression("log"[2](FC))) +
+  guides(alpha = FALSE,
+         fill = guide_legend(override.aes = list(size = 5))) +
+  theme_classic(20) + theme(legend.position = "right")
+
+# ggplot(de_joxm_cl2_vs_cl1, aes(x = logFC, y = -log10(PValue), 
+#                                fill = cell_cycle_gene, label = lab)) +
+#   geom_point(aes(size = sig), pch = 21, colour = "gray40") +
+#   geom_point(aes(size = sig), pch = 21, colour = "gray40", 
+#              data = dplyr::filter(de_joxm_cl2_vs_cl1, cell_cycle_gene)) +
+#   geom_label_repel(show.legend = FALSE, 
+#                    arrow = arrow(type = "closed", length = unit(0.25, "cm")), 
+#                    nudge_x = 0.2, nudge_y = 0.3, fill = "gray95") +
+#   geom_segment(aes(x = -1, y = 0, xend = -4, yend = 0), 
+#                colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+#   annotate("text", x = -4, y = -0.5, label = "higher in clone1", size = 6) +
+#   geom_segment(aes(x = 1, y = 0, xend = 4, yend = 0), 
+#                colour = "black", size = 1, arrow = arrow(length = unit(0.5, "cm"))) +
+#   annotate("text", x = 4, y = -0.5, label = "higher in clone2", size = 6) +
+#   scale_fill_manual(values = c("gray60", "firebrick"), 
+#                     label = c("N.S.", "FDR < 10%"), name = "") +
+#   scale_size_manual(values = c(1, 3), guide = FALSE) +
+#   guides(alpha = FALSE) +
+#   theme_classic(20) + theme(legend.position = "right")
+
+## genesets
+cam_H_pw <- de_res$camera$H$joxm$clone2_clone1$logFC
+cam_H_pw[["geneset"]] <- rownames(cam_H_pw)
+tmp_sig <- rep("FDR > 10%", nrow(cam_H_pw))
+tmp_sig[cam_H_pw[["FDR"]] < 0.05] <- "FDR < 5%"
+tmp_sig[cam_H_pw[["FDR"]] >= 0.05 & cam_H_pw[["FDR"]] <= 0.1] <- "5% < FDR < 10%"
+cam_H_pw[["sig"]] <- factor(tmp_sig, levels = c("FDR > 10%", "5% < FDR < 10%", "FDR < 5%"))
+cam_H_pw[["lab"]] <- ""
+cam_H_pw[["lab"]][1:3] <-
+    cam_H_pw[["geneset"]][1:3]
+
+cam_H_pw <- dplyr::mutate(
+    cam_H_pw,
+    Direction = gsub("clone4", "clone2", Direction)
+)
+p_genesets <- cam_H_pw %>% 
+  ggplot(aes(x = Direction, y = -log10(PValue), colour = sig, 
+             label = lab)) +
+  ggbeeswarm::geom_quasirandom(aes(size = NGenes)) +
+  geom_label_repel(show.legend = FALSE,
+                   nudge_y = 0.3, nudge_x = 0.3, fill = "gray95") +
+  scale_colour_manual(values = c("gray50", "darkorange2", "firebrick"), 
+                      name = "") +
+  guides(alpha = FALSE,
+         colour = guide_legend(override.aes = list(size = 5))) +
+  xlab("Gene set enrichment direction") +
+  ylab(expression(-"log"[10](P))) +
+  theme_classic(20) + theme(legend.position = "right")
+
+
+## produce combined fig
+## combine pca and barplot
+p_bar_pca <- ggdraw() +
+  draw_plot(p_pca + theme(legend.justification = "top"), 0, 0, 1, 1) +
+  draw_plot(p_bar, x = 0.48, 0.1, height = 0.35, width = 0.52, scale = 1)
+
+pp <- ggdraw() +
+    draw_plot(p_tree, x = 0,  y = 0.45, width = 0.48, height = 0.55, scale = 1) +
+    draw_plot(p_bar_pca, x = 0.52, y = 0.45, width = 0.48, height = 0.55, scale = 1) +
+    draw_plot(p_volcano, x = 0,  y = 0, width = 0.48, height = 0.45, scale = 1) +
+    draw_plot(p_genesets, x = 0.52,  y = 0, width = 0.48, height = 0.45, scale = 1) +
+    draw_plot_label(letters[1:4], x = c(0, 0.5, 0, 0.5), 
+                    y = c(1, 1, 0.45, 0.45), size = 36)
+    
+ggsave("figures/donor_specific/carderelax_joxm_combined_fig.png", 
+       height = 16, width = 18, plot = pp)
+ggsave("figures/donor_specific/carderelax_joxm_combined_fig.pdf", 
+       height = 16, width = 18, plot = pp)
+
+
+## plots for talk
+ggsave("figures/donor_specific/carderelax_joxm_bar_pca.png", plot = p_bar_pca,
+       height = 7, width = 10)
+ggsave("figures/donor_specific/carderelax_joxm_volcano.png", plot = p_volcano,
+       height = 6, width = 10)
+ggsave("figures/donor_specific/carderelax_joxm_genesets.png", plot = p_genesets,
+       height = 6, width = 10)
+ggsave("figures/donor_specific/carderelax_joxm_mutated_clone.png", plot = p_mutated_clone,
+       height = 6, width = 14)
+
+pp
+# ggdraw() +
+#     draw_plot(p_tree, x = 0,  y = 0.57, width = 0.48, height = 0.43, scale = 1) +
+#     draw_plot(p_bar_pca, x = 0.52, y = 0.57, width = 0.48, height = 0.43, scale = 1) +
+#     draw_plot(p_volcano, x = 0,  y = 0.3, width = 0.48, height = 0.27, scale = 1) +
+#     draw_plot(p_genesets, x = 0.52,  y = 0.3, width = 0.48, height = 0.27, scale = 1) +
+#     #draw_plot(p_table, x = 0,  y = 0.2, width = 1, height = 0.15, scale = 1) +
+#     draw_plot(p_mutated_clone, x = 0.05,  y = 0, width = 0.9, height = 0.3, scale = 1) +
+#     draw_plot_label(letters[1:5], x = c(0, 0.5, 0, 0.5, 0), 
+#                     y = c(1, 1, 0.57, 0.57, 0.3), size = 36)
+# ggsave("figures/donor_specific/joxm_combined_fig.png", 
+#        height = 20, width = 19)
+# ggsave("figures/donor_specific/joxm_combined_fig.pdf", 
+#        height = 20, width = 19)
+```
+
+
+
+
+

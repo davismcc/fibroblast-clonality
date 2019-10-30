@@ -34,6 +34,29 @@ data(config_all)
 data(simulation_input)
 simu_input <- list("D" = D_input)
 
+get_prob_label <- function(X){
+  max_idx <- rep(0, nrow(X))
+  for (j in seq_len(nrow(X))) {
+    max_idx[j] <- which.max(X[j, ])
+  }
+  max_idx
+}
+
+get_prob_value <- function(X, mode = "best") {
+  max_val <- rep(0, nrow(X))
+  for (i in seq_len(nrow(X))) {
+    sorted_val <- sort(X[i,], decreasing = TRUE)
+    if (mode == "delta") {
+      max_val[i] <- sorted_val[1] - sorted_val[2]
+    } else if (mode == "second") {
+      max_val[i] <- sorted_val[2]
+    } else {#default mode: best
+      max_val[i] <- sorted_val[1]
+    }
+  }
+  max_val
+}
+
 demuxlet <- function(A, D, Config, theta1 = 0.5, theta0 = 0.01) {
   P0_mat <- dbinom(A, D, theta0, log = TRUE)
   P1_mat <- dbinom(A, D, theta1, log = TRUE)
@@ -65,9 +88,9 @@ simulate_joint <- function(Config_all, D_all, n_clone = 4, mut_size = 5,
 }
 
 assign_score <- function(prob_mat, simu_mat, threshold=0.2, mode="delta") {
-  assign_0 <- cardelino::get_prob_label(simu_mat)
-  assign_1 <- cardelino::get_prob_label(prob_mat)
-  prob_val <- cardelino::get_prob_value(prob_mat, mode = mode)
+  assign_0 <- get_prob_label(simu_mat)
+  assign_1 <- get_prob_label(prob_mat)
+  prob_val <- get_prob_value(prob_mat, mode = mode)
   idx <- prob_val >= threshold
   
   rt_list <- list("ass" = mean(idx), 
@@ -77,9 +100,9 @@ assign_score <- function(prob_mat, simu_mat, threshold=0.2, mode="delta") {
 }
 
 assign_curve <- function(prob_mat, simu_mat, mode="delta"){
-  assign_0 <- cardelino::get_prob_label(simu_mat)
-  assign_1 <- cardelino::get_prob_label(prob_mat)
-  prob_val <- cardelino::get_prob_value(prob_mat, mode = mode)
+  assign_0 <- get_prob_label(simu_mat)
+  assign_1 <- get_prob_label(prob_mat)
+  prob_val <- get_prob_value(prob_mat, mode = mode)
   
   thresholds <- sort(unique(prob_val))
   ACC <- rep(0, length(thresholds))
@@ -261,6 +284,7 @@ saveRDS(list("assign_0" = assign_0, "assign_1" = assign_1,
 ### Precision-recall curve for default settings
 
 ```{r}
+dat_dir = "data/simulations"
 rds.tmp <- readRDS(paste0(dat_dir, "/simulate_prob_curve.rds"))
 assign_0 <- rds.tmp$assign_0
 assign_1 <- rds.tmp$assign_1
@@ -471,6 +495,8 @@ for (i in seq_len(length(all_files))) {
 
 ### Load results from real data
 
+#### Cardelino-original
+
 ```{r}
 all_files <- paste0("cardelino_results.", lines, 
                     ".filt_lenient.cell_coverage_sites.rds")
@@ -486,6 +512,23 @@ for (i in seq_len(length(all_files))) {
 }
 ```
 
+
+#### Cardelino-relax
+
+```{r}
+all_files_carderelax <- paste0("cardelino_results_carderelax.", lines, 
+                    ".filt_lenient.cell_coverage_sites.rds")
+recall_all_carderelax <- rep(0, length(lines))
+for (i in seq_len(length(all_files))) {
+  afile <- all_files_carderelax[i]
+  carde_dat <- readRDS(file.path("data", "cell_assignment", afile))
+  recall_all_carderelax[i] <- mean(get_prob_value(carde_dat$prob_mat, mode = "best") > 0.5)
+}
+```
+
+
+#### Combine results
+
 Overall correlation in assignment rates (recall) from simulated and observed 
 data is `r round(cor(colMeans(prob_all > 0.5), recall_all), digits = 3)`.
 
@@ -498,13 +541,16 @@ for (i in seq_len(length(lines))) {
 }
 
 df <- data.frame(line = lines, n_sites = n_sites, n_clone = n_clone, 
-                 recall_real = recall_all, recall_simu = colMeans(prob_all > 0.5),
+                 recall_real_cardeorig = recall_all, 
+                 recall_real_carderelax = recall_all_carderelax,
+                 recall_simu = colMeans(prob_all > 0.5),
                  precision_simu = precision_simu)
 ```
 
 
 ## Plot observed vs simulated assignment rates (recall)
 
+### Cardelino-original
 
 ```{r}
 p <- df %>%
@@ -512,7 +558,7 @@ p <- df %>%
   dplyr::mutate(sites_per_clone = cut(n_sites / pmax(n_clone - 1, 1), 
                                       breaks = c(0, 3, 8, 15, 25, 60))) %>%
   ggplot(
-         aes(x = recall_simu, y = recall_real, 
+         aes(x = recall_simu, y = recall_real_cardeorig, 
              fill = sites_per_clone)) +
   geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
   geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
@@ -545,8 +591,53 @@ ggsave("figures/simulations/assign_rate_obs_v_sim_skinny.pdf",
        plot = p + theme(legend.position = "bottom"),
        height = 5.5, width = 5)
 
-summary(lm(recall_real ~ recall_simu, data = df))
+summary(lm(recall_real_cardeorig ~ recall_simu, data = df))
 ```
+
+### Cardelino-relax
+
+```{r}
+pp <- df %>%
+  dplyr::mutate(labs = ifelse(line == "joxm", "joxm", "")) %>%
+  dplyr::mutate(sites_per_clone = cut(n_sites / pmax(n_clone - 1, 1), 
+                                      breaks = c(0, 3, 8, 15, 25, 60))) %>%
+  ggplot(
+         aes(x = recall_simu, y = recall_real_carderelax, 
+             fill = sites_per_clone)) +
+  geom_abline(slope = 1, intercept = 0, colour = "gray40", linetype = 2) +
+  geom_smooth(aes(group = 1), method = "lm", colour = "firebrick") +
+  geom_label_repel(aes(label = labs), fill = "gray90", size = 4,
+                   nudge_x = 0.05, nudge_y = -0.1) +
+  geom_point(size = 3, shape = 21) +
+  xlim(0, 1) + ylim(0, 1) +
+  scale_fill_manual(name = "mean\n# variants\nper clonal\nbranch", 
+                    values = magma(6)[-1]) +
+  guides(colour = FALSE, group = FALSE) +
+  xlab("Assignment rate: simulated") +
+  ylab("Assignment rate: observed") +
+  theme_cowplot(font_size = 12)
+
+ggsave("figures/simulations/carderelax_assign_rate_obs_v_sim.png", plot = pp,
+       height = 4.5, width = 5)
+ggsave("figures/simulations/carderelax_assign_rate_obs_v_sim.pdf", plot = pp,
+       height = 4.5, width = 5)
+
+ggsave("figures/simulations/carderelax_assign_rate_obs_v_sim_wide.png", plot = pp,
+       height = 4.5, width = 6.5)
+ggsave("figures/simulations/carderelax_assign_rate_obs_v_sim_wide.pdf", plot = pp,
+       height = 4.5, width = 6.5)
+pp
+
+ggsave("figures/simulations/carderelax_assign_rate_obs_v_sim_skinny.png", 
+       plot = pp + theme(legend.position = "bottom"),
+       height = 6.5, width = 6)
+ggsave("figures/simulations/carderelax_assign_rate_obs_v_sim_skinny.pdf", 
+       plot = pp + theme(legend.position = "bottom"),
+       height = 6.5, width = 6)
+
+summary(lm(recall_real_carderelax ~ recall_simu, data = df))
+```
+
 
 ## Plot simulation precision-recall curve
 

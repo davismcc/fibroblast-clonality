@@ -369,6 +369,8 @@ donor_info <- merge(donor_info, sig_subset_df, by = "donor_short")
 
 ## Expression data and cell assignments
 
+### Original Cardelino cell assignments
+
 Read in annotated SingleCellExperiment (SCE) objects and create a list of SCE
 objects containing all cells used for analysis and their assignment (using 
 `cardelino`) to clones identified with Canopy from whole-exome sequencing data.
@@ -377,8 +379,8 @@ objects containing all cells used for analysis and their assignment (using
 params <- list()
 params$callset <- "filt_lenient.cell_coverage_sites"
 fls <- list.files("data/sces")
-fls <- fls[grepl(params$callset, fls)]
-donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+fls <- fls[grepl(paste0("assignments.", params$callset), fls)]
+donors <- gsub(".*ce_([a-z]+)_.*assignments.filt.*", "\\1", fls)
 sce_unst_list <- list()
 for (don in donors) {
     sce_unst_list[[don]] <- readRDS(file.path("data/sces", 

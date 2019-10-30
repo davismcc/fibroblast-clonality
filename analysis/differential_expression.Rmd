@@ -889,6 +889,45 @@ ggsave("figures/differential_expression/top_genesets_H_corrplot_with_nsig_donor.
 ## Number of DE genes, pathways and clones vs number of cells
 
 ```{r nde-vs-ncels}
+df_donor_info <- read.table("data/donor_info_070818.txt")
+df_donor_info <- as_data_frame(df_donor_info)
+df_donor_info$donor <- df_donor_info$donor_short
+
+df_ncells_de <- assignments %>% dplyr::filter(assigned != "unassigned", 
+                              donor_short_id %in% names(de_res$qlf_list)) %>%
+    group_by(donor_short_id) %>%
+    dplyr::summarise(n_cells = n())
+colnames(df_ncells_de)[1] <- "donor"
+
+df_prop_assigned <- assignments %>% 
+  dplyr::filter(donor_short_id %in% names(de_res$qlf_list)) %>%
+    group_by(donor_short_id) %>%
+    dplyr::summarise(prop_assigned = mean(assigned != "unassigned"))
+colnames(df_prop_assigned)[1] <- "donor"
+
+df_nvars_by_cat <- readr::read_tsv("output/nvars_by_category_by_donor.tsv")
+df_nvars_by_cat_wd <- tidyr::spread(
+  df_nvars_by_cat[, 1:3], consequence, n_vars_all_genes)
+df_nvars_by_cat_wd <- left_join(
+  dplyr::summarise(group_by(df_nvars_by_cat, donor), nvars_all = sum(n_vars_all_genes)),
+  df_nvars_by_cat_wd
+)
+df_nvars_by_cat_wd <- df_nvars_by_cat %>% 
+  dplyr::filter(consequence %in% c("missense", "splicing", "nonsense")) %>%
+  group_by(donor) %>%
+  dplyr::summarise(nvars_misnonspli = sum(n_vars_all_genes)) %>%
+  left_join(., df_nvars_by_cat_wd)
+
+df_donor_info <- left_join(df_ncells_de, df_donor_info)
+df_donor_info <- left_join(df_prop_assigned, df_donor_info)
+df_donor_info <- left_join(df_donor_n_de, df_donor_info)
+df_donor_info$n_de_genes <- df_donor_info$count
+df_donor_info <- left_join(df_donor_info, df_nvars_by_cat_wd)
+
+nbglm_nde <- MASS::glm.nb(n_de_genes ~ n_cells, data = df_donor_info)
+df_nbglm_nde <- broom::augment(nbglm_nde) %>%
+  left_join(df_donor_info)
+
 ## N DE genes vs Number of cells
 df_nbglm_nde %>%
 ggplot(aes(x = n_cells, y = n_de_genes)) +
@@ -904,7 +943,7 @@ ggsave("figures/differential_expression/n_de_genes_vs_n_cells_nogrouping.png",
 ggsave("figures/differential_expression/n_de_genes_vs_n_cells_nogrouping.pdf", 
        height = 6.5, width = 6.5)
 
-df_nbglm_nde %>%
+p1 <- df_nbglm_nde %>%
   dplyr::mutate(num_clones = paste(num_clones_total, "clones")) %>%
 ggplot(aes(x = n_cells, y = n_de_genes)) +
   geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
@@ -914,6 +953,7 @@ ggplot(aes(x = n_cells, y = n_de_genes)) +
   ylab("Number of DE genes") +
   xlab("Number of cells") +
   scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+p1
 
 ggsave("figures/differential_expression/n_de_genes_vs_n_cells_facet_by_num_clones.png", 
        height = 6.5, width = 9.5)
@@ -946,7 +986,7 @@ ggsave("figures/differential_expression/n_sig_genesets_vs_n_cells_nogrouping.png
 ggsave("figures/differential_expression/n_sig_genesets_vs_n_cells_nogrouping.pdf", 
        height = 6.5, width = 6.5)
 
-df_nbglm_nde %>%
+p2 <- df_nbglm_nde %>%
   dplyr::mutate(num_clones = paste(num_clones_total, "clones")) %>%
 ggplot(aes(x = n_cells, y = n_sig_genesets)) +
   #geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
@@ -957,11 +997,22 @@ ggplot(aes(x = n_cells, y = n_sig_genesets)) +
   ylab("Number of significant Hallmark genesets") +
   xlab("Number of cells") +
   scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+p2
 
 ggsave("figures/differential_expression/n_sig_genesets_vs_n_cells_facet_by_num_clones.png", 
        height = 6.5, width = 9.5)
 ggsave("figures/differential_expression/n_sig_genesets_vs_n_cells_facet_by_num_clones.pdf", 
        height = 6.5, width = 9.5)
+
+
+pp <- plot_grid(p1, p2, labels = "auto", nrow = 2)
+ggsave("figures/differential_expression/n_sig_genesets_N_de_genes_vs_n_cells_2panel_facet_by_num_clones.png", 
+       height = 10.5, width = 9.5, plot = pp)
+ggsave("figures/differential_expression/n_sig_genesets_N_de_genes_vs_n_cells_2panel_facet_by_num_clones.pdf", 
+       height = 10.5, width = 9.5, plot = pp)
+ggsave("figures/differential_expression/n_sig_genesets_N_de_genes_vs_n_cells_2panel_facet_by_num_clones.svg", 
+       height = 10.5, width = 9.5, plot = pp)
+
 
 ## Number of clones vs number of cells
 ggplot(df_nbglm_nde, aes(x = n_cells, y = num_clones_total)) +
@@ -970,7 +1021,7 @@ ggplot(df_nbglm_nde, aes(x = n_cells, y = num_clones_total)) +
   geom_point(size = 3, shape = 21, fill = "gray50") +
   geom_label_repel(aes(label = donor)) +
   ylab("Number of inferred clones (total)") +
-  xlab("Number of inferred cells") +
+  xlab("Number of cells") +
   scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
 
 ggsave("figures/differential_expression/n_clones_total_vs_n_cells_nogrouping.png", 
@@ -984,7 +1035,7 @@ ggplot(df_nbglm_nde, aes(x = n_cells, y = num_clones_with_cells)) +
   geom_point(size = 3, shape = 21, fill = "gray50") +
   geom_label_repel(aes(label = donor)) +
   ylab("Number of inferred clones (with cells assigned)") +
-  xlab("Number of inferred cells") +
+  xlab("Number of cells") +
   scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
 
 ggsave("figures/differential_expression/n_clones_with_cells_vs_n_cells_nogrouping.png", 
@@ -1030,44 +1081,6 @@ ggsave("figures/differential_expression/n_sig_genesets_vs_n_clones_total.pdf",
 ### Selection defined using Williams et al 2016 and negative binomial models
 
 ```{r link-de-to-selection-old-models}
-df_donor_info <- read.table("data/donor_info_070818.txt")
-df_donor_info <- as_data_frame(df_donor_info)
-df_donor_info$donor <- df_donor_info$donor_short
-
-df_ncells_de <- assignments %>% dplyr::filter(assigned != "unassigned", 
-                              donor_short_id %in% names(de_res$qlf_list)) %>%
-    group_by(donor_short_id) %>%
-    dplyr::summarise(n_cells = n())
-colnames(df_ncells_de)[1] <- "donor"
-
-df_prop_assigned <- assignments %>% 
-  dplyr::filter(donor_short_id %in% names(de_res$qlf_list)) %>%
-    group_by(donor_short_id) %>%
-    dplyr::summarise(prop_assigned = mean(assigned != "unassigned"))
-colnames(df_prop_assigned)[1] <- "donor"
-
-df_nvars_by_cat <- readr::read_tsv("output/nvars_by_category_by_donor.tsv")
-df_nvars_by_cat_wd <- tidyr::spread(
-  df_nvars_by_cat[, 1:3], consequence, n_vars_all_genes)
-df_nvars_by_cat_wd <- left_join(
-  dplyr::summarise(group_by(df_nvars_by_cat, donor), nvars_all = sum(n_vars_all_genes)),
-  df_nvars_by_cat_wd
-)
-df_nvars_by_cat_wd <- df_nvars_by_cat %>% 
-  dplyr::filter(consequence %in% c("missense", "splicing", "nonsense")) %>%
-  group_by(donor) %>%
-  dplyr::summarise(nvars_misnonspli = sum(n_vars_all_genes)) %>%
-  left_join(., df_nvars_by_cat_wd)
-
-df_donor_info <- left_join(df_ncells_de, df_donor_info)
-df_donor_info <- left_join(df_prop_assigned, df_donor_info)
-df_donor_info <- left_join(df_donor_n_de, df_donor_info)
-df_donor_info$n_de_genes <- df_donor_info$count
-df_donor_info <- left_join(df_donor_info, df_nvars_by_cat_wd)
-
-nbglm_nde <- MASS::glm.nb(n_de_genes ~ n_cells, data = df_donor_info)
-df_nbglm_nde <- broom::augment(nbglm_nde) %>%
-  left_join(df_donor_info)
 
 ## n_de vs n_cells
 df_nbglm_nde %>%

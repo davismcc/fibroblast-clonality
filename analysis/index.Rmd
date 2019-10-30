@@ -57,13 +57,13 @@ The results presented in the paper were produced with these analyses.
 
 1. [Selection models.](selection_models.html)
 
-1. [Analysis of clonal prevalences.](clone_prevalences.html)
+1. [Analysis of clonal prevalences.](clone_prevalences_cardelino-relax.html)
 
-1. [Analysis for the example cell line *joxm*.](analysis_for_joxm.html)
+1. [Analysis for the example cell line *joxm*.](analysis_for_joxm_cardelino-relax.html)
 
 1. [Variance components analysis.](variance_components.html)
 
-1. [Differential expression analysis.](differential_expression.html)
+1. [Differential expression analysis.](differential_expression_cardelino-relax.html)
 
 1. [Analysis of effects of somatic variants on cis gene expression.](mutated_genes.html)
 

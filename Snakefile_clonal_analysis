@@ -38,11 +38,11 @@ singlecell_donors_all = ['bima', 'bubh', 'ceik', 'ciwj', 'cuhk', 'deyz', 'diku',
 ## lenient variant filtering
 ## donors with <10 variants with coverage in at least one cell:
 ## bima, bubh, ceik, cuhk, deyz, diku, dons, eika, fiaj, gifk, hehd, jogf, kajh, lise, pamv, pelm, rutc, sebz, tolg, toss, tuju, vabj, wigw, wopl, wuye, xuja, zihe
-## not enough QC-passing cells (<30): ciwj, eipl, eofe, miaj, oaqd, 
+## not enough QC-passing cells (<30): ciwj, eipl, eofe, miaj, oaqd,
 donors_lenient_all = ['euts', 'fawm', 'feec', 'fikt', \
     'garx', 'gesg', 'heja', 'hipn', 'ieki', 'joxm', 'kuco', 'laey', 'lexy', 'melw', \
     'naju', 'nusw', 'oaaz', 'oilg', 'pipw', 'puie', 'qayj', 'qolg', 'qonc', 'rozh', \
-    'sehl', 'sohd', 'ualf', 'vass', 'vils', 'vuna', 'wahn', 'wetu', 'xugn', 'zoxy'] ## 34 donors  
+    'sehl', 'sohd', 'ualf', 'vass', 'vils', 'vuna', 'wahn', 'wetu', 'xugn', 'zoxy'] ## 34 donors
 ## Canopy will not fit (variant clustering fails): melw, sohd
 donors_lenient_cell_cov = ['euts', 'fawm', 'feec', 'fikt', 'garx', 'gesg', \
     'heja', 'hipn', 'ieki', 'joxm', 'kuco', 'laey', 'lexy', 'naju', 'nusw', \
@@ -86,30 +86,34 @@ sces_flat = [filename for elem in sces_flat for filename in elem]
 
 rule all:
     input:
-        expand('data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_{strictness}-{donor}.txt.gz',\
-            strictness = ['lenient', 'strict'], donor = singlecell_donors_all),
-        expand('data/raw/mpileup/{donor}.mpileup.vcf{suffix}', \
-            donor = singlecell_donors_all, suffix = ['.gz', '.gz.csi']),
-        expand('data/sces/sce_{donor}_with_clone_assignments.{strictness}.{sites}.rds',\
-            donor = singlecell_assign_donors, strictness = ['filt_strict', 'filt_lenient'],\
-            sites = ['all_filt_sites', 'cell_coverage_sites']),
-        expand('reports/de_pathway/de_pathway.{cells}.{strictness}.{sites}.html', \
-             cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
-             sites = ['all_filt_sites', 'cell_coverage_sites']), # 'cell_coverage_sites'
-        expand('reports/de_pathway/de_pathway.{cells}.cellcycle_analyses.{strictness}.{sites}.html', \
-             cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
-             sites = ['all_filt_sites', 'cell_coverage_sites']), # 'cell_coverage_sites'
-        expand('reports/de_pathway/de_pathway.{cells}.permutations.{strictness}.{sites}.html', \
-             cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
-             sites = ['all_filt_sites', 'cell_coverage_sites']),  
-        expand('data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-{strictness}.all_filt_sites.ped', \
-            strictness = ['filt_strict', 'filt_lenient']),
-        expand('data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-{strictness}.all_filt_sites.vcf', \
-            strictness = ['filt_strict', 'filt_lenient']),
-        expand('data/simulations/{donor}.simulate.rds', \
-            donor = donors_lenient_cell_cov),
-        expand('data/variance_components/donorVar/{donor}.var_part.var1.csv' \
-            donor = donors_lenient_cell_cov)
+        # expand('data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_{strictness}-{donor}.txt.gz',\
+        #     strictness = ['lenient', 'strict'], donor = singlecell_donors_all),
+        # expand('data/raw/mpileup/{donor}.mpileup.vcf{suffix}', \
+        #     donor = singlecell_donors_all, suffix = ['.gz', '.gz.csi']),
+        # expand('data/sces/sce_{donor}_with_clone_assignments.{strictness}.{sites}.rds',\
+        #     donor = singlecell_assign_donors, strictness = ['filt_strict', 'filt_lenient'],\
+        #     sites = ['all_filt_sites', 'cell_coverage_sites']),
+        # expand('reports/de_pathway/de_pathway.{cells}.{strictness}.{sites}.html', \
+        #      cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
+        #      sites = ['all_filt_sites', 'cell_coverage_sites']), # 'cell_coverage_sites'
+        # expand('reports/de_pathway/de_pathway.{cells}.cellcycle_analyses.{strictness}.{sites}.html', \
+        #      cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
+        #      sites = ['all_filt_sites', 'cell_coverage_sites']), # 'cell_coverage_sites'
+        # expand('reports/de_pathway/de_pathway.{cells}.permutations.{strictness}.{sites}.html', \
+        #      cells = ['unst_cells'], strictness = ['filt_strict', 'filt_lenient'],\
+        #      sites = ['all_filt_sites', 'cell_coverage_sites']),
+        # expand('data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-{strictness}.all_filt_sites.ped', \
+        #     strictness = ['filt_strict', 'filt_lenient']),
+        # expand('data/exome-point-mutations/high-vs-low-exomes.v62.ft.alldonors-{strictness}.all_filt_sites.vcf', \
+        #     strictness = ['filt_strict', 'filt_lenient']),
+        # expand('data/simulations/{donor}.simulate.rds', \
+        #     donor = donors_lenient_cell_cov),
+        # expand('data/variance_components/donorVar/{donor}.var_part.var1.csv' \
+        #     donor = donors_lenient_cell_cov),
+        expand('data/sces/sce_{donor}_with_clone_assignments_carderelax.{strictness}.{sites}.rds',\
+            donor = donors_lenient_cell_cov, strictness = ['filt_lenient'],\
+            sites = ['cell_coverage_sites']),
+        # 'data/de_analysis_FTv62/carderelax.filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds'
 
 
 rule run_varpart_per_donor:
@@ -165,6 +169,23 @@ rule run_de_pathway_analysis_unst_cells_cellcycle:
         '--to_working_dir ../../ '
 
 
+rule run_de_pathway_analysis_unst_cells_carderelax:
+    input:
+        sce=expand('data/sces/sce_{donor}_with_clone_assignments_carderelax.{strictness}.{sites}.rds', donor = donors_lenient_cell_cov, strictness = ['filt_lenient'], sites = ['cell_coverage_sites'])
+    output:
+        html='reports/de_pathway/de_pathway.unst_cells.carderelax.filt_lenient.cell_coverage_sites.html',
+        unst_rds='data/de_analysis_FTv62/carderelax.filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds'
+#    singularity:
+#        "docker://davismcc/r-singlecell-img"
+    shell:
+        'Rscript src/R/compile_report_de_pathways.R '
+        '-c filt_lenient.cell_coverage_sites '
+        '-o {output.html} '
+        '--template src/Rmd/DE_pathways_FTv62_callset_clones_pairwise_vs_base.unst_cells.carderelax.Rmd '
+        '--title "DE Pathway Analysis using unstimulated cells: cardelino-relax filt_lenient cell_coverage_sites" '
+        '--to_working_dir ../../ '
+
+
 rule run_de_pathway_analysis_unst_cells:
     input:
         sce=lambda wildcards: sce_list[wildcards.strictness][wildcards.sites]
@@ -180,6 +201,27 @@ rule run_de_pathway_analysis_unst_cells:
         '--template src/Rmd/DE_pathways_FTv62_callset_clones_pairwise_vs_base.unst_cells.Rmd '
         '--title "DE Pathway Analysis using unstimulated cells: {wildcards.strictness} {wildcards.sites}" '
         '--to_working_dir ../../ '
+
+
+rule run_cell_assignment_carderelax:
+    input:
+        can='data/canopy/canopy_results.{donor}.{strictness}.{sites}.rds',
+        sce='data/sces/sce_{donor}_qc.rds',
+        vcf='data/raw/mpileup/{donor}.mpileup.vcf.gz',
+        csi='data/raw/mpileup/{donor}.mpileup.vcf.gz.csi'
+    output:
+        html = 'reports/cell_assignment/cell_assignment_carderelax.{donor}.{strictness}.{sites}.html',
+        sce = 'data/sces/sce_{donor}_with_clone_assignments_carderelax.{strictness}.{sites}.rds',
+        card = 'data/cell_assignment/cardelino_results_carderelax.{donor}.{strictness}.{sites}.rds'
+#    singularity:
+#        "docker://davismcc/r-singlecell-img"
+    shell:
+        'Rscript src/R/compile_report_cell_assign.R '
+        '-i {input.sce} --vcf_file {input.vcf} --tree_file {input.can} '
+        '-o {output.html} --results_sce {output.sce} --results_card {output.card} '
+        '--template src/Rmd/cell_assignment_cardelino-relax_template.Rmd '
+        '--title "Assigning single cells to clones: {wildcards.donor}" '
+        '--donor {wildcards.donor} --to_working_dir ../../ '
 
 
 rule run_cell_assignment:

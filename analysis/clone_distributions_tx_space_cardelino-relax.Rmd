@@ -1,0 +1,918 @@
+---
+title: "Clonal distributions in transcriptional space: Cardelino-relax assignments"
+author: "Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+
+## Load libraries and data
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.height = 10, fig.width = 14)
+library(tidyverse)
+library(scater)
+library(ggridges)
+library(GenomicRanges)
+library(RColorBrewer)
+library(edgeR)
+library(ggrepel)
+library(rlang)
+library(limma)
+library(org.Hs.eg.db)
+library(ggforce)
+library(cardelino)
+library(cowplot)
+library(IHW)
+library(viridis)
+library(ggthemes)
+library(superheat)
+library(scico)
+library(SC3)
+options(stringsAsFactors = FALSE)
+```
+
+Load donors and callset.
+
+```{r}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites"
+fls <- list.files("data/sces")
+fls <- fls[grepl(paste0("carderelax.", params$callset), fls)]
+donors <- gsub(".*ce_([a-z]+)_with_clone_assignments_carderelax.*", "\\1", fls)
+```
+
+Load cell-clone assignment results.
+
+```{r load-cell-assign}
+cell_assign_list <- list()
+for (don in donors) {
+    cell_assign_list[[don]] <- readRDS(file.path("data/cell_assignment", 
+        paste0("cardelino_results_carderelax.", don, ".", params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", nrow(cell_assign_list[[don]]$prob_mat), 
+              "cells.\n"))
+}
+```
+
+Load SCE objects.
+
+```{r load-sce}
+sce_unst_list <- list()
+for (don in donors) {
+    sce_unst_list[[don]] <- readRDS(file.path("data/sces",
+        paste0("sce_", don, "_with_clone_assignments_carderelax.", 
+               params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), 
+              "unstimulated cells.\n"))
+}
+
+assignments_lst <- list()
+for (don in donors) {
+    assignments_lst[[don]] <- as_tibble(
+        colData(sce_unst_list[[don]])[, 
+                                      c("donor_short_id", "highest_prob", 
+                                        "assigned", "total_features",
+                                        "total_counts_endogenous", "num_processed")])
+}
+assignments <- do.call("rbind", assignments_lst)
+```
+
+
+Load DE results (obtained using the *edgeR* quasi-likelihood F test and the 
+camera method from the *limma* package).
+
+```{r load-de}
+de_res <- readRDS("data/de_analysis_FTv62/carderelax.filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds")
+```
+
+
+
+## PCA plots
+
+Principal component analysis can reveal global structure from single-cell
+transcriptomic profiles. Just plot for the donors that have at least 20 
+cells assigned to donors. (nusw and vils do not)
+
+```{r pca}
+pca_list <- plotlist_pca_c1c2 <- plotlist_pca_c2c3 <- plotlist_pca_c2c4 <- 
+  plotlist_pca_c3c4 <- plotlist_pca_c1c2_cellcycle <- list()
+for (don in donors) {
+  if (sum(sce_unst_list[[don]]$assigned != "unassigned") < 20)
+    next
+  choose_cells <- (sce_unst_list[[don]]$well_condition == "unstimulated" &
+                     sce_unst_list[[don]]$assigned != "unassigned")
+  pca_unst <- reducedDim(runPCA(sce_unst_list[[don]][, choose_cells], 
+                                ntop = 500, ncomponents = 10), "PCA")
+  pca_unst <- data.frame(
+    PC1 = pca_unst[, 1], PC2 = pca_unst[, 2], 
+    PC3 = pca_unst[, 3], PC4 = pca_unst[, 4],
+    PC5 = pca_unst[, 5], PC6 = pca_unst[, 6],
+    PC7 = pca_unst[, 7], PC8 = pca_unst[, 8],
+    PC9 = pca_unst[, 9], PC10 = pca_unst[, 10],
+    clone = sce_unst_list[[don]][, choose_cells]$assigned,
+    nvars_cloneid = sce_unst_list[[don]][, choose_cells]$nvars_cloneid,
+    cyclone_phase = sce_unst_list[[don]][, choose_cells]$cyclone_phase,
+    G1 = sce_unst_list[[don]][, choose_cells]$G1,
+    G2M = sce_unst_list[[don]][, choose_cells]$G2M,
+    S = sce_unst_list[[don]][, choose_cells]$S,
+    clone1_prob = sce_unst_list[[don]][, choose_cells]$clone1_prob,
+    clone2_prob = sce_unst_list[[don]][, choose_cells]$clone2_prob
+  )
+  pca_list[[don]] <- pca_unst
+  
+  plotlist_pca_c1c2[[don]] <- ggplot(pca_unst, aes(x = PC1, y = PC2, 
+                                                   fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+    plotlist_pca_c1c2_cellcycle[[don]] <- ggplot(
+    pca_unst, aes(x = PC1, y = PC2, fill = G2M,
+                  shape = clone)) +
+    geom_point(colour = "gray50", size = 5) +
+    scale_shape_manual(values = c(21, 23, 25, 22, 24), name = "clone") +
+    scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+    scale_size_continuous(range = c(4, 6)) +
+    ggtitle(don) + 
+    theme_classic(14)
+  
+  plotlist_pca_c2c3[[don]] <- ggplot(pca_unst, aes(x = PC2, y = PC3, 
+                                                   fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+  plotlist_pca_c2c4[[don]] <- ggplot(pca_unst, aes(x = PC2, y = PC4, 
+                                                   fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+  plotlist_pca_c3c4[[don]] <- ggplot(pca_unst, aes(x = PC3, y = PC4, 
+                                                   fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+}
+
+p_pca1 <- plot_grid(plotlist = plotlist_pca_c1c2, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_clone_carderelax.png"), 
+       plot = p_pca1, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_clone_carderelax.pdf"), 
+       plot = p_pca1, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_clone_carderelax.svg"), 
+       plot = p_pca1, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca1cc <- plot_grid(plotlist = plotlist_pca_c1c2_cellcycle, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_g2mscore_carderelax.png"), 
+       plot = p_pca1cc, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_g2mscore_carderelax.pdf"), 
+       plot = p_pca1cc, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_g2mscore_carderelax.svg"), 
+       plot = p_pca1cc, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca2 <- plot_grid(plotlist = plotlist_pca_c2c3, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc3_vs_pc2_colby_clone_carderelax.png"), 
+       plot = p_pca2, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc3_vs_pc2_colby_clone_carderelax.pdf"), 
+       plot = p_pca2, height = 36, width = 36, limitsize = FALSE)
+ggsave(paste0("figures/donor_specific/alldonors_pc3_vs_pc2_colby_clone_carderelax.svg"), 
+       plot = p_pca2, height = 36, width = 36, limitsize = FALSE)
+
+p_pca3 <- plot_grid(plotlist = plotlist_pca_c2c4, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc2_colby_clone_carderelax.png"), 
+       plot = p_pca3, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc2_colby_clone_carderelax.pdf"), 
+       plot = p_pca3, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc2_colby_clone_carderelax.svg"), 
+       plot = p_pca3, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca4 <- plot_grid(plotlist = plotlist_pca_c3c4, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc3_colby_clone_carderelax.png"), 
+       plot = p_pca4, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc3_colby_clone_carderelax.pdf"), 
+       plot = p_pca4, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc3_colby_clone_carderelax.svg"), 
+       plot = p_pca4, height = 36, width = 36, limitsize = FALSE) 
+```
+
+
+
+Number of variants used for clone ID looks to have little relationship to 
+global structure in expression PCA space.
+
+```{r pca-nvars}
+ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone2_prob, size = nvars_cloneid)) +
+  geom_point(pch = 21, colour = "gray30") +
+  scale_fill_viridis(option = "B", name = "clone2\nprobability") +
+  scale_size_continuous(name = "# variants\nfor clone ID") +
+  ggtitle(don) + 
+  theme_classic(14)
+```
+
+
+## Clustering cells on expression
+
+### Standard normalised expression values
+
+```{r sc3-clustering}
+sc3_sce_list <- sc3_cons_plot_list <- sc3_silh_plot_list <- list()
+sc3_adj_rand_ind_df <- tibble(donor = donors, AdjRandInd = NA)
+for (don in donors) {
+  if (sum(sce_unst_list[[don]]$assigned != "unassigned") < 20)
+    next
+  choose_cells <- (sce_unst_list[[don]]$well_condition == "unstimulated" &
+                     sce_unst_list[[don]]$assigned != "unassigned")
+  n_clones <- length(unique(sce_unst_list[[don]]$assigned[choose_cells]))
+  sc3_sce_list[[don]] <- sc3(sce_unst_list[[don]][, choose_cells], 
+                             ks = n_clones, biology = TRUE, n_cores = 4)
+  
+  if (n_clones == 2) {
+    cons_plot <- sc3_plot_consensus(
+      sc3_sce_list[[don]], k = n_clones, 
+      show_pdata = c(
+        "assigned", 
+        "cyclone_phase",
+        "sc3_2_clusters", 
+        "sc3_2_log2_outlier_score"
+      )
+    )
+    ari <- mclust::adjustedRandIndex(sc3_sce_list[[don]]$assigned,
+                                     sc3_sce_list[[don]]$sc3_2_clusters)
+    sc3_sce_list[[don]]$sc3_cluster <- sc3_sce_list[[don]]$sc3_2_clusters
+  } else if (n_clones == 3) {
+    cons_plot <- sc3_plot_consensus(
+      sc3_sce_list[[don]], k = n_clones, 
+      show_pdata = c(
+        "assigned", 
+        "cyclone_phase",
+        "sc3_3_clusters", 
+        "sc3_3_log2_outlier_score"
+      )
+    )
+    ari <- mclust::adjustedRandIndex(sc3_sce_list[[don]]$assigned,
+                                     sc3_sce_list[[don]]$sc3_3_clusters)
+    sc3_sce_list[[don]]$sc3_cluster <- sc3_sce_list[[don]]$sc3_3_clusters
+  } else {
+    cons_plot <- sc3_plot_consensus(
+      sc3_sce_list[[don]], k = n_clones, 
+      show_pdata = c(
+        "assigned", 
+        "cyclone_phase",
+        "sc3_4_clusters", 
+        "sc3_4_log2_outlier_score"
+      )
+    )
+    ari <- mclust::adjustedRandIndex(sc3_sce_list[[don]]$assigned,
+                                     sc3_sce_list[[don]]$sc3_4_clusters)
+    sc3_sce_list[[don]]$sc3_cluster <- sc3_sce_list[[don]]$sc3_4_clusters
+  }
+  sc3_cons_plot_list[[don]] <- cons_plot
+  
+  sc3_silh_plot_list[[don]] <- sc3_plot_silhouette(sc3_sce_list[[don]], 
+                                                   k = n_clones)
+
+  sc3_adj_rand_ind_df[["AdjRandInd"]][
+    sc3_adj_rand_ind_df[["donor"]] == don] <- ari
+
+}
+
+
+plotlist_pca_c1c2_sc3 <- plotlist_pca_c2c3_sc3 <- plotlist_pca_c2c4_sc3 <- 
+  plotlist_pca_c3c4_sc3 <- plotlist_pca_c1c2_cellcycle_sc3 <- list()
+for (don in names(pca_list)) {
+  pca_list[[don]][["sc3_cluster"]] <- sc3_sce_list[[don]]$sc3_cluster
+  pca_unst
+  
+  plotlist_pca_c1c2_sc3[[don]] <- ggplot(pca_list[[don]], aes(x = PC1, y = PC2,
+                                                          fill = sc3_cluster)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "SC3\ncluster") +
+    ggtitle(don) +
+    theme_classic(14)
+    
+  plotlist_pca_c1c2_cellcycle_sc3[[don]] <- ggplot(
+    pca_list[[don]], aes(x = PC1, y = PC2, fill = G2M, shape = sc3_cluster)) +
+    geom_point(colour = "gray50", size = 5) +
+    scale_shape_manual(values = c(21, 23, 25, 22, 24), name = "SC3\ncluster") +
+    scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+    scale_size_continuous(range = c(4, 6)) +
+    ggtitle(don) + 
+    theme_classic(14)
+
+  plotlist_pca_c2c3_sc3[[don]] <- ggplot(pca_list[[don]], aes(x = PC2, y = PC3,
+                                                   fill = sc3_cluster)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "SC3\ncluster") +
+    ggtitle(don) +
+    theme_classic(14)
+
+  plotlist_pca_c2c4_sc3[[don]] <- ggplot(pca_list[[don]], aes(x = PC2, y = PC4,
+                                                   fill = sc3_cluster)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "SC3\ncluster") +
+    ggtitle(don) +
+    theme_classic(14)
+
+  plotlist_pca_c3c4_sc3[[don]] <- ggplot(pca_list[[don]], aes(x = PC3, y = PC4,
+                                                   fill = sc3_cluster)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "SC3\ncluster") +
+    ggtitle(don) +
+    theme_classic(14)
+}
+
+p_pca1sc3 <- plot_grid(plotlist = plotlist_pca_c1c2_sc3, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_sc3_carderelax.png"), 
+       plot = p_pca1sc3, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_sc3_carderelax.pdf"), 
+       plot = p_pca1sc3, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca1sc3cc <- plot_grid(plotlist = plotlist_pca_c1c2_cellcycle_sc3, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_g2m_shapeby_sc3_carderelax.png"), 
+       plot = p_pca1sc3cc, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_g2m_shapeby_sc3_carderelax.pdf"), 
+       plot = p_pca1sc3cc, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca2sc3 <- plot_grid(plotlist = plotlist_pca_c2c3_sc3, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc3_vs_pc2_colby_sc3_carderelax.png"), 
+       plot = p_pca2sc3, height = 36, width = 36, limitsize = FALSE)
+ggsave(paste0("figures/donor_specific/alldonors_pc3_vs_pc1_colby_sc3_carderelax.pdf"), 
+       plot = p_pca2sc3, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca3sc3 <- plot_grid(plotlist = plotlist_pca_c2c4_sc3, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc2_colby_sc3_carderelax.png"), 
+       plot = p_pca3sc3, height = 36, width = 36, limitsize = FALSE) 2
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc2_colby_sc3_carderelax.pdf"), 
+       plot = p_pca3sc3, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca4sc3 <- plot_grid(plotlist = plotlist_pca_c3c4_sc3, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc3_colby_sc3_carderelax.png"), 
+       plot = p_pca4sc3, height = 36, width = 36, limitsize = FALSE)
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc3_colby_sc3_carderelax.pdf"), 
+       plot = p_pca4sc3, height = 36, width = 36, limitsize = FALSE) 
+
+
+```
+
+
+### After regressing out cell cycle scores
+
+```{r sc3-regress-cell-cyle}
+sc3_regresscc_sce_list <- sc3_regresscc_cons_plot_list <- 
+  sc3_regresscc_silh_plot_list <- list()
+sc3_regresscc_adj_rand_ind_df <- tibble(donor = donors, AdjRandInd = NA)
+for (don in donors) {
+  if (sum(sce_unst_list[[don]]$assigned != "unassigned") < 20)
+    next
+  choose_cells <- (sce_unst_list[[don]]$well_condition == "unstimulated" &
+                     sce_unst_list[[don]]$assigned != "unassigned")
+  n_clones <- length(unique(sce_unst_list[[don]]$assigned[choose_cells]))
+  ## regress out cell cycle scores
+  sc3_regresscc_sce_list[[don]] <- sce_unst_list[[don]][, choose_cells]
+  design <- model.matrix(~G1 + G2M + S, 
+                         data = colData(sc3_regresscc_sce_list[[don]]))
+  limma_fit <- limma::lmFit(logcounts(sc3_regresscc_sce_list[[don]]), design)
+  logcounts(sc3_regresscc_sce_list[[don]]) <- limma::residuals.MArrayLM(
+    limma_fit, logcounts(sc3_regresscc_sce_list[[don]]))
+  
+  
+  sc3_regresscc_sce_list[[don]] <- sc3(sc3_regresscc_sce_list[[don]], 
+                             ks = n_clones, biology = FALSE, n_cores = 4)
+  
+  if (n_clones == 2) {
+    regresscc_cons_plot <- sc3_plot_consensus(
+      sc3_regresscc_sce_list[[don]], k = n_clones, 
+      show_pdata = c(
+        "assigned", 
+        "cyclone_phase",
+        "sc3_2_clusters"
+      )
+    )
+    ari <- mclust::adjustedRandIndex(sc3_regresscc_sce_list[[don]]$assigned,
+                                     sc3_regresscc_sce_list[[don]]$sc3_2_clusters)
+    sc3_regresscc_sce_list[[don]]$sc3_cluster <- sc3_regresscc_sce_list[[don]]$sc3_2_clusters
+  } else if (n_clones == 3) {
+    regresscc_cons_plot <- sc3_plot_consensus(
+      sc3_regresscc_sce_list[[don]], k = n_clones, 
+      show_pdata = c(
+        "assigned", 
+        "cyclone_phase",
+        "sc3_3_clusters"
+      )
+    )
+    ari <- mclust::adjustedRandIndex(sc3_regresscc_sce_list[[don]]$assigned,
+                                     sc3_regresscc_sce_list[[don]]$sc3_3_clusters)
+    sc3_regresscc_sce_list[[don]]$sc3_cluster <- sc3_regresscc_sce_list[[don]]$sc3_3_clusters
+  } else {
+    regresscc_cons_plot <- sc3_plot_consensus(
+      sc3_regresscc_sce_list[[don]], k = n_clones, 
+      show_pdata = c(
+        "assigned", 
+        "cyclone_phase",
+        "sc3_4_clusters"
+      )
+    )
+    ari <- mclust::adjustedRandIndex(sc3_regresscc_sce_list[[don]]$assigned,
+                                     sc3_regresscc_sce_list[[don]]$sc3_4_clusters)
+    sc3_regresscc_sce_list[[don]]$sc3_cluster <- sc3_regresscc_sce_list[[don]]$sc3_4_clusters
+  }
+  sc3_regresscc_cons_plot_list[[don]] <- regresscc_cons_plot
+  
+  sc3_regresscc_silh_plot_list[[don]] <- sc3_plot_silhouette(
+    sc3_regresscc_sce_list[[don]], k = n_clones)
+  
+  sc3_regresscc_adj_rand_ind_df[["AdjRandInd"]][
+    sc3_regresscc_adj_rand_ind_df[["donor"]] == don] <- ari
+  
+}
+
+```
+
+#### PCA after regressing out cell cycle scores
+
+```{r}
+pca_regresscc_list <- plotlist_pca_regresscc_c1c2 <- 
+  plotlist_pca_regresscc_c2c3 <- plotlist_pca_regresscc_c2c4 <- 
+  plotlist_pca_regresscc_c3c4 <- plotlist_pca_regresscc_c1c2_cellcycle <- 
+  plotlist_pca_regresscc_c1c2_sc3 <- plotlist_pca_regresscc_c2c3_sc3 <- list()
+for (don in names(sc3_regresscc_sce_list)) {
+  pca_regresscc_unst <- reducedDim(runPCA(sc3_regresscc_sce_list[[don]], 
+                                ntop = 500, ncomponents = 10), "PCA")
+  pca_regresscc_unst <- data.frame(
+    PC1 = pca_regresscc_unst[, 1], PC2 = pca_regresscc_unst[, 2], 
+    PC3 = pca_regresscc_unst[, 3], PC4 = pca_regresscc_unst[, 4],
+    PC5 = pca_regresscc_unst[, 5], PC6 = pca_regresscc_unst[, 6],
+    PC7 = pca_regresscc_unst[, 7], PC8 = pca_regresscc_unst[, 8],
+    PC9 = pca_regresscc_unst[, 9], PC10 = pca_regresscc_unst[, 10],
+    clone = sc3_regresscc_sce_list[[don]]$assigned,
+    nvars_cloneid = sc3_regresscc_sce_list[[don]]$nvars_cloneid,
+    cyclone_phase = sc3_regresscc_sce_list[[don]]$cyclone_phase,
+    G1 = sc3_regresscc_sce_list[[don]]$G1,
+    G2M = sc3_regresscc_sce_list[[don]]$G2M,
+    S = sc3_regresscc_sce_list[[don]]$S,
+    clone1_prob = sc3_regresscc_sce_list[[don]]$clone1_prob,
+    clone2_prob = sc3_regresscc_sce_list[[don]]$clone2_prob,
+    sc3_cluster = sc3_regresscc_sce_list[[don]]$sc3_cluster
+  )
+  pca_regresscc_list[[don]] <- pca_regresscc_unst
+  
+  plotlist_pca_regresscc_c1c2[[don]] <- ggplot(
+    pca_regresscc_unst, aes(x = PC1, y = PC2, fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+    plotlist_pca_regresscc_c1c2_cellcycle[[don]] <- ggplot(
+    pca_regresscc_unst, aes(x = PC1, y = PC2, fill = G2M, shape = clone)) +
+    geom_point(colour = "gray50", size = 5) +
+    scale_shape_manual(values = c(21, 23, 25, 22, 24), name = "clone") +
+    scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+    scale_size_continuous(range = c(4, 6)) +
+    ggtitle(don) + 
+    theme_classic(14)
+  
+  plotlist_pca_regresscc_c2c3[[don]] <- ggplot(
+    pca_regresscc_unst, aes(x = PC2, y = PC3, fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+  plotlist_pca_regresscc_c2c4[[don]] <- ggplot(
+    pca_regresscc_unst, aes(x = PC2, y = PC4, fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+  plotlist_pca_regresscc_c3c4[[don]] <- ggplot(
+    pca_regresscc_unst, aes(x = PC3, y = PC4, fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+   plotlist_pca_regresscc_c1c2_sc3[[don]] <- ggplot(
+    pca_regresscc_unst, aes(x = PC1, y = PC2, fill = sc3_cluster)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "SC3\ncluster") +
+    ggtitle(don) +
+    theme_classic(14)
+   
+   plotlist_pca_regresscc_c2c3_sc3[[don]] <- ggplot(
+     pca_regresscc_unst, aes(x = PC2, y = PC3, fill = sc3_cluster)) +
+     geom_point(pch = 21, size = 4, colour = "gray30") +
+     scale_fill_brewer(palette = "Accent", name = "SC3\ncluster") +
+     ggtitle(don) +
+     theme_classic(14)
+}
+
+p_pca1 <- plot_grid(plotlist = plotlist_pca_regresscc_c1c2, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc2_vs_pc1_colby_clone_carderelax.png"), 
+       plot = p_pca1, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc2_vs_pc1_colby_clone_carderelax.pdf"), 
+       plot = p_pca1, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca1cc <- plot_grid(plotlist = plotlist_pca_regresscc_c1c2_cellcycle, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc2_vs_pc1_colby_g2mscore_carderelax.png"), 
+       plot = p_pca1cc, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc2_vs_pc1_colby_g2mscore_carderelax.pdf"), 
+       plot = p_pca1cc, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca2 <- plot_grid(plotlist = plotlist_pca_regresscc_c2c3, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc3_vs_pc2_colby_clone_carderelax.png"), 
+       plot = p_pca2, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc3_vs_pc2_colby_clone_carderelax.pdf"), 
+       plot = p_pca2, height = 36, width = 36, limitsize = FALSE)
+
+p_pca3 <- plot_grid(plotlist = plotlist_pca_regresscc_c2c4, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc4_vs_pc2_colby_clone_carderelax.png"), 
+       plot = p_pca3, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc4_vs_pc2_colby_clone_carderelax.pdf"), 
+       plot = p_pca3, height = 36, width = 36, limitsize = FALSE)
+
+p_pca4 <- plot_grid(plotlist = plotlist_pca_regresscc_c3c4, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc4_vs_pc3_colby_clone_carderelax.png"), 
+       plot = p_pca4, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc4_vs_pc3_colby_clone_carderelax.pdf"), 
+       plot = p_pca4, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca1sc3 <- plot_grid(plotlist = plotlist_pca_regresscc_c1c2_sc3, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc2_vs_pc1_colby_sc3_carderelax.png"), 
+       plot = p_pca1sc3, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc2_vs_pc1_colby_sc3_carderelax.pdf"), 
+       plot = p_pca1sc3, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca2sc3 <- plot_grid(plotlist = plotlist_pca_regresscc_c2c3_sc3, align = "hv", 
+                         nrow = 6)
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc3_vs_pc2_colby_sc3_carderelax.png"), 
+       plot = p_pca2sc3, height = 36, width = 36, limitsize = FALSE)
+ggsave(paste0("figures/donor_specific/alldonors_regresscc_pc3_vs_pc1_colby_sc3_carderelax.pdf"), 
+       plot = p_pca2sc3, height = 36, width = 36, limitsize = FALSE) 
+
+```
+
+
+
+### Compare clusterings
+
+Compare adjusted rand index values between Cardelino clone assignment and SC3 
+clusterings with and without regressing out cell cycle scores,
+
+```{r compare-adj-rand-index}
+inner_join(sc3_adj_rand_ind_df, sc3_regresscc_adj_rand_ind_df,
+           by = "donor", suffix = c(".NoCCRegression", ".WithCCRegression")) %>%
+  ggplot(aes(x = AdjRandInd.NoCCRegression, y = AdjRandInd.WithCCRegression)) +
+  geom_abline(slope = 1, linetype = 2) +
+  geom_point() +
+  ylab("Adjusted Rand Index btw SC3 and Cardelino\n(with cell-cycle regressed out)") +
+  xlab("Adjusted Rand Index btw SC3 and Cardelino\n(no cell-cycle regression)") 
+
+ggsave(paste0("figures/clone_distributions_tx_space/adjusted-rand-index_btw_cardelino_sc3_with_without_cellcycle_regression.png"), 
+       height = 8, width = 12) 
+ggsave(paste0("figures/clone_distributions_tx_space/adjusted-rand-index_btw_cardelino_sc3_with_without_cellcycle_regression.pdf"), 
+       height = 8, width = 12) 
+ggsave(paste0("figures/clone_distributions_tx_space/adjusted-rand-index_btw_cardelino_sc3_with_without_cellcycle_regression.svg"), 
+       height = 8, width = 12) 
+```
+
+Calculate adjusted Rand index for each donor between the SC3 clusterings with
+and without regressing out cell cycle scores.
+
+```{r}
+sc3_regresscc_or_not_adj_rand_ind_df <- tibble(
+  donor = names(sc3_regresscc_sce_list), AdjRandInd = NA)
+for (don in names(sc3_regresscc_sce_list)) {
+  ari <- mclust::adjustedRandIndex(sc3_regresscc_sce_list[[don]]$sc3_cluster, 
+                                   sc3_sce_list[[don]]$sc3_cluster)
+  cat(don, " ARI: ", ari , "\n") 
+  sc3_regresscc_or_not_adj_rand_ind_df[["AdjRandInd"]][
+    sc3_regresscc_or_not_adj_rand_ind_df[["donor"]] == don] <- ari
+}
+ggpubr::ggdotchart(sc3_regresscc_or_not_adj_rand_ind_df, 
+           x = "donor", y = "AdjRandInd",
+           sorting = "descending",                       # Sort value in descending order
+           add = "segments",                             # Add segments from y = 0 to dots
+           rotate = TRUE,                                # Rotate vertically
+           dot.size = 6,                                 # Large dot size
+           ggtheme = ggpubr::theme_pubr(),                        # ggplot2 theme
+           ylab = "Adjusted Rand Index\n(SC3 clustering with and without regressing out cell cycle scores)"
+           )
+ggsave(paste0("figures/clone_distributions_tx_space/adjusted-rand-index_btw_sc3_with_without_cellcycle_regression.png"), 
+       height = 8, width = 12) 
+ggsave(paste0("figures/clone_distributions_tx_space/adjusted-rand-index_sc3_with_without_cellcycle_regression.pdf"), 
+       height = 8, width = 12) 
+ggsave(paste0("figures/clone_distributions_tx_space/adjusted-rand-index_sc3_with_without_cellcycle_regression.svg"), 
+       height = 8, width = 12) 
+```
+
+
+Calculate adjusted Rand index for each donor between SC3 clusterings and cyclone
+inferred cell cycle phase.
+
+```{r, fig.height=12, fig.width=17}
+sc3_vs_cyclone_df <- tibble(
+  donor = names(sc3_regresscc_sce_list), 
+  AdjRandInd_noregresscc = NA,
+  AdjRandInd_regresscc = NA)
+for (don in names(sc3_regresscc_sce_list)) {
+  ari <- mclust::adjustedRandIndex(sc3_regresscc_sce_list[[don]]$sc3_cluster, 
+                                   sc3_regresscc_sce_list[[don]]$cyclone_phase)
+  sc3_vs_cyclone_df[["AdjRandInd_regresscc"]][
+    sc3_vs_cyclone_df[["donor"]] == don] <- ari
+  ari <- mclust::adjustedRandIndex(sc3_sce_list[[don]]$sc3_cluster, 
+                                   sc3_sce_list[[don]]$cyclone_phase)
+  sc3_vs_cyclone_df[["AdjRandInd_noregresscc"]][
+    sc3_vs_cyclone_df[["donor"]] == don] <- ari
+}
+
+coldata_list <- list()
+for (don in names(sc3_sce_list)) {
+  coldata_list[[don]] <- colData(sc3_sce_list[[don]])
+  coldata_list[[don]]$sc3_cluster_regresscc <- 
+    sc3_regresscc_sce_list[[don]]$sc3_cluster
+  coldata_list[[don]] <- as_tibble(coldata_list[[don]])
+}
+coldata_df <- bind_rows(coldata_list)
+
+p1 <- ggplot(coldata_df, aes(x = G2M, y = donor, fill = sc3_cluster)) +
+  geom_density_ridges(alpha = 0.5) +
+  scale_fill_manual(name = "SC3\ncluster",
+                    values = c("#00AFBB", "#E7B800", "#FC4E07", "gray50")) +
+  xlab("Cyclone G2M score") +
+  ggtitle("SC3 clustering: without regressing out cell cycle scores") +
+  theme_ridges() 
+p2 <- ggplot(coldata_df, aes(x = G2M, y = donor, fill = sc3_cluster_regresscc)) +
+  geom_density_ridges(alpha = 0.5) +
+  scale_fill_manual(name = "SC3\ncluster", 
+                    values = c("#00AFBB", "#E7B800", "#FC4E07", "gray50")) +
+  xlab("Cyclone G2M score") +
+  ggtitle("SC3 clustering: regressing out cell cycle scores") +
+  theme_ridges() 
+plot_grid(p1, p2, nrow = 1, labels = "auto")
+ggsave(paste0("figures/clone_distributions_tx_space/ridgeplots_sc3clustering_g2m-scores.png"), 
+       height = 10, width = 14) 
+ggsave(paste0("figures/clone_distributions_tx_space/ridgeplots_sc3clustering_g2m-scores.pdf"), 
+       height = 10, width = 14) 
+ggsave(paste0("figures/clone_distributions_tx_space/ridgeplots_sc3clustering_g2m-scores.svg"), 
+       height = 10, width = 14) 
+
+p1 <- ggplot(coldata_df, aes(x = S, y = donor, fill = sc3_cluster)) +
+  geom_density_ridges(alpha = 0.5) +
+  scale_fill_manual(name = "SC3\ncluster",
+                    values = c("#00AFBB", "#E7B800", "#FC4E07", "gray50")) +
+  xlab("Cyclone S score") +
+  ggtitle("SC3 clustering: without regressing out cell cycle scores") +
+  theme_ridges() 
+p2 <- ggplot(coldata_df, aes(x = S, y = donor, fill = sc3_cluster_regresscc)) +
+  geom_density_ridges(alpha = 0.5) +
+  scale_fill_manual(name = "SC3\ncluster", 
+                    values = c("#00AFBB", "#E7B800", "#FC4E07", "gray50")) +
+  xlab("Cyclone S score") +
+  ggtitle("SC3 clustering: regressing out cell cycle scores") +
+  theme_ridges() 
+plot_grid(p1, p2, nrow = 1, labels = "auto")
+ggsave(paste0("figures/clone_distributions_tx_space/ridgeplots_sc3clustering_s-scores.png"), 
+       height = 10, width = 14) 
+ggsave(paste0("figures/clone_distributions_tx_space/ridgeplots_sc3clustering_s-scores.pdf"), 
+       height = 10, width = 14) 
+ggsave(paste0("figures/clone_distributions_tx_space/ridgeplots_sc3clustering_s-scores.svg"), 
+       height = 10, width = 14) 
+
+p1 <- ggplot(coldata_df, aes(x = G1, y = donor, fill = sc3_cluster)) +
+  geom_density_ridges(alpha = 0.5) +
+  scale_fill_manual(name = "SC3\ncluster",
+                    values = c("#00AFBB", "#E7B800", "#FC4E07", "gray50")) +
+  xlab("Cyclone G1 score") +
+  ggtitle("SC3 clustering: without regressing out cell cycle scores") +
+  theme_ridges() 
+p2 <- ggplot(coldata_df, aes(x = G1, y = donor, fill = sc3_cluster_regresscc)) +
+  geom_density_ridges(alpha = 0.5) +
+  scale_fill_manual(name = "SC3\ncluster", 
+                    values = c("#00AFBB", "#E7B800", "#FC4E07", "gray50")) +
+  xlab("Cyclone G1 score") +
+  ggtitle("SC3 clustering: regressing out cell cycle scores") +
+  theme_ridges() 
+plot_grid(p1, p2, nrow = 1, labels = "auto")
+ggsave(paste0("figures/clone_distributions_tx_space/ridgeplots_sc3clustering_g1-scores.png"), 
+       height = 10, width = 14) 
+ggsave(paste0("figures/clone_distributions_tx_space/ridgeplots_sc3clustering_g1-scores.pdf"), 
+       height = 10, width = 14) 
+ggsave(paste0("figures/clone_distributions_tx_space/ridgeplots_sc3clustering_g1-scores.svg"), 
+       height = 10, width = 14) 
+```
+
+
+
+## UMAP plots
+
+As well as the linear projection method of PCA, let us look at the global 
+population structure among cells using the non-linear dimension reduction method
+UMAP.
+
+```{r umap}
+choose_cells <- (sce_unst_list[[don]]$well_condition == "unstimulated" &
+                   sce_unst_list[[don]]$assigned != "unassigned")
+umap_unst <- reducedDim(runUMAP(sce_unst_list[[don]][, choose_cells], 
+                              ntop = 500, ncomponents = 6), "UMAP")
+umap_unst <- data.frame(
+  UMAP_1 = umap_unst[, 1], UMAP_2 = umap_unst[, 2], 
+  UMAP_3 = umap_unst[, 3], UMAP_4 = umap_unst[, 4],
+  UMAP_5 = umap_unst[, 5], UMAP_6 = umap_unst[, 6],
+  clone = sce_unst_list[[don]][, choose_cells]$assigned,
+  nvars_cloneid = sce_unst_list[[don]][, choose_cells]$nvars_cloneid,
+  cyclone_phase = sce_unst_list[[don]][, choose_cells]$cyclone_phase,
+  G1 = sce_unst_list[[don]][, choose_cells]$G1,
+  G2M = sce_unst_list[[don]][, choose_cells]$G2M,
+  S = sce_unst_list[[don]][, choose_cells]$S,
+  clone1_prob = sce_unst_list[[don]][, choose_cells]$clone1_prob,
+  clone2_prob = sce_unst_list[[don]][, choose_cells]$clone2_prob,
+  clone3_prob = sce_unst_list[[don]][, choose_cells]$clone3_prob
+)
+
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+ggplot(umap_unst, aes(x = UMAP_2, y = UMAP_3, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+ggplot(umap_unst, aes(x = UMAP_2, y = UMAP_4, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+ggplot(umap_unst, aes(x = UMAP_3, y = UMAP_4, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+```
+
+We can also explore how inferred cell cycle phase information relates to the
+UMAP components.
+
+```{r umap-cc}
+umap_unst$cyclone_phase <- factor(umap_unst$cyclone_phase, 
+                                  levels = c("G1", "S", "G2M"))
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = G2M,
+                      shape = clone)) +
+  geom_point(colour = "gray50", size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  scale_size_continuous(range = c(4, 6)) +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggplot(umap_unst, aes(x = UMAP_2, y = UMAP_3, fill = G2M,
+                      shape = clone)) +
+  geom_point(colour = "gray50", size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  scale_size_continuous(range = c(4, 6)) +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggplot(umap_unst, aes(x = UMAP_5, y = UMAP_6, fill = G2M,
+                      shape = clone)) +
+  geom_point(colour = "gray50", size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  scale_size_continuous(range = c(4, 6)) +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = S,
+                      shape = clone)) +
+  geom_point(size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "S score") +
+  ggtitle(don) +
+  theme_classic(18)
+
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = G1,
+                      shape = clone)) +
+  geom_point(size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G1 score") +
+  ggtitle(don) + 
+  theme_classic(18)
+```
+
+Number of variants used for clone ID looks to have little relationship to 
+global structure in expression PCA space.
+
+```{r umap-nvars}
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = clone2_prob, 
+                      size = nvars_cloneid)) +
+  geom_point(pch = 21, colour = "gray30") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "Clone2 prob") +
+  scale_size_continuous(name = "# variants\nfor clone ID") +
+  theme_classic(14)
+```
+
+
+## Diffusion map plots
+
+Let us also look at diffusion map representations of the cells.
+
+```{r diffmap}
+choose_cells <- (sce_unst_list[[don]]$well_condition == "unstimulated" &
+                   sce_unst_list[[don]]$assigned != "unassigned")
+difmap_unst <- reducedDim(runDiffusionMap(sce_unst_list[[don]][, choose_cells], 
+                              ntop = 500, ncomponents = 6), "DiffusionMap")
+difmap_unst <- data.frame(
+  difmap_1 = difmap_unst[, 1], difmap_2 = difmap_unst[, 2], 
+  difmap_3 = difmap_unst[, 3], difmap_4 = difmap_unst[, 4],
+  difmap_5 = difmap_unst[, 5], difmap_6 = difmap_unst[, 6],
+  clone = sce_unst_list[[don]][, choose_cells]$assigned,
+  nvars_cloneid = sce_unst_list[[don]][, choose_cells]$nvars_cloneid,
+  cyclone_phase = sce_unst_list[[don]][, choose_cells]$cyclone_phase,
+  G1 = sce_unst_list[[don]][, choose_cells]$G1,
+  G2M = sce_unst_list[[don]][, choose_cells]$G2M,
+  S = sce_unst_list[[don]][, choose_cells]$S,
+  clone1_prob = sce_unst_list[[don]][, choose_cells]$clone1_prob,
+  clone2_prob = sce_unst_list[[don]][, choose_cells]$clone2_prob,
+  clone3_prob = sce_unst_list[[don]][, choose_cells]$clone3_prob
+)
+
+p_c1c2 <- ggplot(difmap_unst, aes(x = difmap_1, y = difmap_2, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+difmap_unst$cyclone_phase <- factor(difmap_unst$cyclone_phase, 
+                                  levels = c("G1", "S", "G2M"))
+ggplot(difmap_unst, aes(x = difmap_1, y = difmap_2, fill = G2M,
+                      shape = clone)) +
+  geom_point(colour = "gray50", size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  scale_size_continuous(range = c(4, 6)) +
+  ggtitle(don) + 
+  theme_classic(18)
+
+p_c2c3 <- ggplot(difmap_unst, aes(x = difmap_2, y = difmap_3, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+p_c2c4 <- ggplot(difmap_unst, aes(x = difmap_2, y = difmap_4, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+p_c3c4 <- ggplot(difmap_unst, aes(x = difmap_3, y = difmap_4, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+
+# extract the legend from one of the plots
+# (clearly the whole thing only makes sense if all plots
+# have the same legend, so we can arbitrarily pick one.)
+legend <- get_legend(p_c1c2)
+prow <- plot_grid(p_c1c2 + theme(legend.position = "none"), 
+                  p_c2c3 + theme(legend.position = "none"), 
+                  p_c2c4 + theme(legend.position = "none"), 
+                  p_c3c4 + theme(legend.position = "none"), nrow = 2)
+# add the legend to the row we made earlier. Give it one-third of the width
+# of one plot (via rel_widths).
+p <- plot_grid(prow, legend, rel_widths = c(3, .3))
+p
+```
+
+
+

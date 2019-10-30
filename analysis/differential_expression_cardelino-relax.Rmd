@@ -1,0 +1,2110 @@
+---
+title: "Differential expression across all donors - cardelino-relax results"
+author: "Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+Here, we will lok at differential expresion between clones across all lines (
+i.e. donors) at the gene and gene set levels, using the clone-assignment results
+using the cardelino-relax method (which treats the Canopy clonal tree as a prior
+for the clonal structure rather than the definitive truth).
+
+## Load libraries, data and DE results
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(scater)
+library(ggridges)
+library(GenomicRanges)
+library(RColorBrewer)
+library(edgeR)
+library(ggrepel)
+library(ggcorrplot)
+library(rlang)
+library(limma)
+library(org.Hs.eg.db)
+library(ggforce)
+library(superheat)
+library(viridis)
+library(IHW)
+library(cowplot)
+library(broom)
+library(cardelino)
+options(stringsAsFactors = FALSE)
+dir.create("figures/differential_expression_cardelino-relax", showWarnings = FALSE, 
+           recursive = TRUE)
+```
+
+Load the genewise differential expression results produced with the edgeR 
+quasi-likelihood F test and gene set enrichment results produced with camera. 
+
+```{r load-de}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites"
+load(file.path("data/human_c6_v5p2.rdata"))
+load(file.path("data/human_H_v5p2.rdata"))
+load(file.path("data/human_c2_v5p2.rdata"))
+
+de_res <- readRDS(paste0("data/de_analysis_FTv62/carderelax.",
+                         params$callset, 
+                         ".de_results_unstimulated_cells.rds"))
+```
+
+Load SingleCellExpression objects with data used for differential expression 
+analyses.
+
+```{r load-sce}
+fls <- list.files("data/sces")
+fls <- fls[grepl(paste0("carderelax.", params$callset), fls)]
+donors <- gsub(".*ce_([a-z]+)_with_clone_assignments_carderelax.*", "\\1", fls)
+
+sce_unst_list <- list()
+for (don in donors) {
+    sce_unst_list[[don]] <- readRDS(file.path("data/sces",
+        paste0("sce_", don, "_with_clone_assignments_carderelax.", 
+               params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), 
+              "unstimulated cells.\n"))
+}
+```
+
+The starting point for differential expression analysis was a set of 
+`r length(donors)` donors, of which `r length(names(de_res$dge_list))` donors
+had enough cells assigned to clones to conduct DE testing.
+
+Summarise cell assignment information.
+
+```{r assignments}
+assignments_lst <- list()
+for (don in donors) {
+    assignments_lst[[don]] <- as_tibble(
+        colData(sce_unst_list[[don]])[, 
+                                      c("donor_short_id", "highest_prob", 
+                                        "assigned", "total_features",
+                                        "total_counts_endogenous", "num_processed")])
+}
+assignments <- do.call("rbind", assignments_lst)
+```
+
+`r round(100 * mean(assignments$assigned != "unassigned"))`% of cells from these
+donors are assigned with confidence to a clone.
+
+Load donor info including evidence for selection dynamics in donors.
+
+```{r load-donor-info}
+df_donor_info <- read.table("data/donor_info_070818.txt")
+```
+
+
+## Genewise DE results
+
+We first look at differential expression at the level of individual genes.
+
+```{r genewise-de}
+fdr_thresh <- 1
+df_de_all_unst <- tibble()
+for (donor in names(de_res[["qlf_list"]])) {
+    tmp <- de_res[["qlf_list"]][[donor]]$table
+    tmp$gene <- rownames(de_res[["qlf_list"]][[donor]]$table)
+    ihw_res <- ihw(PValue ~ logCPM, data = tmp, alpha = 0.05)
+    tmp$FDR <- adj_pvalues(ihw_res)
+    tmp <- tmp[tmp$FDR <= fdr_thresh,]
+    if (nrow(tmp) > 0.5) {
+        tmp[["donor"]] <- donor
+        df_de_all_unst <- bind_rows(df_de_all_unst, tmp)
+    }
+}
+
+df_ncells_de <- assignments %>% dplyr::filter(assigned != "unassigned", 
+                              donor_short_id %in% names(de_res$qlf_list)) %>%
+    group_by(donor_short_id) %>%
+    dplyr::summarise(n_cells = n())
+colnames(df_ncells_de)[1] <- "donor"
+
+fdr_thresh <- 0.1
+df_de_sig_unst <- tibble()
+for (donor in names(de_res[["qlf_list"]])) {
+    tmp <- de_res[["qlf_list"]][[donor]]$table
+    tmp$gene <- rownames(de_res[["qlf_list"]][[donor]]$table)
+    ihw_res <- ihw(PValue ~ logCPM, data = tmp, alpha = 0.05)
+    tmp$FDR <- adj_pvalues(ihw_res)
+    tmp <- tmp[tmp$FDR < fdr_thresh,]
+    if (nrow(tmp) > 0.5) {
+        tmp[["donor"]] <- donor
+        df_de_sig_unst <- bind_rows(df_de_sig_unst, tmp)
+    }
+}
+
+df_de_sig_unst %>% 
+    group_by(gene) %>% 
+    dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% group_by(n_donors) %>%
+    dplyr::summarise(count = n()) %>%
+ggplot(aes(x = n_donors, y = count)) +
+    geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), 
+                 colour = "gray50") +
+        geom_point(size = 3) +
+    scale_y_log10(breaks = c(10, 100, 1000)) +
+    scale_x_continuous(breaks = 0:15) +
+    coord_cartesian(ylim = c(1, 2000)) +
+    theme_classic(20) +
+    xlab("Number of lines in which significant (FDR < 10%)")  +
+    ylab("Number of genes") +
+    ggtitle("edgeR QL F test DE results")
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes.png", 
+       height = 7, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes.pdf", 
+       height = 7, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes.svg", 
+       height = 7, width = 10)
+       
+p1 <- df_de_sig_unst %>% 
+    group_by(gene) %>% 
+    dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% group_by(n_donors) %>%
+    dplyr::summarise(count = n()) %>%
+ggplot(aes(x = n_donors, y = count)) +
+    geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), 
+                 colour = "gray50") +
+        geom_point(size = 3) +
+    scale_x_continuous(breaks = 0:14) +
+    #coord_cartesian(ylim = c(1, 2200)) +
+    theme_classic(16) +
+    xlab("Number of lines significant (FDR < 10%)")  +
+    ylab("Number of genes")
+p1 
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes_linscale.png", 
+       height = 7, width = 5.5)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes_linscale.pdf", 
+       height = 7, width = 5.5)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes_linscale.svg", 
+       height = 7, width = 5.5)
+```
+
+
+```{r, fig.height=14, fig.width=12}
+p2 <- df_de_sig_unst %>% 
+    group_by(gene) %>% 
+    dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(gene, n_donors) %>% ungroup() %>%
+    dplyr::mutate(gene = gsub("ENSG.*_", "", gene)) %>%
+    dplyr::filter(n_donors > 7.5) %>%
+    ggplot(aes(y = n_donors, x = reorder(gene, n_donors, max))) +
+    geom_point(alpha = 0.7, size = 4) +
+    scale_y_continuous(breaks = 7:11) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Gene") + ylab("Number of lines significant")
+p2
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_topgenes.png", 
+       height = 7, width = 5.5)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_topgenes.pdf", 
+       height = 7, width = 5.5)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_topgenes.svg", 
+       height = 7, width = 5.5)
+
+
+#cowplot::plot_grid(p1, p2, rel_heights = c(0.4, 0.6))
+
+
+df_donor_n_de <- df_de_sig_unst %>% 
+    group_by(gene) %>% 
+    dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
+    group_by(donor) %>%
+    dplyr::summarise(count = n())
+no_de_donor <- unique(df_de_all_unst[["donor"]])[!(unique(df_de_all_unst[["donor"]]) %in% df_donor_n_de[["donor"]])]
+df_donor_n_de <- rbind(df_donor_n_de, tibble(donor = no_de_donor, count = 0))
+
+```
+
+Permute gene labels to get a null distribution.
+
+```{r permute-de}
+df_de_nsig <- df_de_all_unst %>% dplyr::filter(FDR < 0.1) %>% 
+    dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
+    group_by(donor) %>% 
+    dplyr::summarise(n_sig = n())
+df_nsig_ncells_de <- full_join(df_ncells_de, df_de_nsig)
+df_nsig_ncells_de$n_sig[is.na(df_nsig_ncells_de$n_sig)] <- 0
+
+permute_gene_labels <- function(gene_names, n_de)  {
+    sampled_genes <- c()
+    for (i in seq_along(n_de))
+        sampled_genes <- c(sampled_genes, sample(gene_names, size = n_de[i]))
+    tab <- table(table(sampled_genes))
+    df <- tibble(n_donors = 1:12, n_genes = 0)
+    df[names(tab), 2] <- tab
+    df
+}
+
+
+n_perm <- 1000
+df_perm <- list()
+for (i in seq_len(n_perm))
+    df_perm[[i]] <- permute_gene_labels(rownames(de_res$qlf_list$vass$table), 
+                                        df_nsig_ncells_de[["n_sig"]])
+df_perm <- do.call("rbind", df_perm)
+df_perm <- dplyr::mutate(df_perm, data_type = "permuted")
+
+df_perm %>% group_by(n_donors) %>% dplyr::summarise(min = min(n_genes), 
+                                             median = median(n_genes),
+                                             mean = mean(n_genes), 
+                                             max = max(n_genes))
+
+ppp <- df_de_sig_unst %>% 
+    group_by(gene) %>% 
+    dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% group_by(n_donors) %>%
+    dplyr::summarise(n_genes = n()) %>% dplyr::mutate(data_type = "observed") %>%
+ggplot(aes(x = n_donors, y = n_genes)) +
+    # geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), 
+    #              colour = "gray50") +
+#    geom_hline(yintercept = 0, linetype = 2) +
+    geom_hline(yintercept = 0) +
+    geom_boxplot(aes(group = n_donors, y = n_genes, colour = data_type), 
+                 fill = "gray80", data = df_perm, show.legend = FALSE) +
+    geom_point(aes(colour = data_type), shape = 17, size = 5) +
+    scale_x_continuous(breaks = 0:13) +
+    scale_y_sqrt(breaks = c(0, 10, 100, 500, 1000, 2000, 3000),
+                 labels = c(0, 10, 100, 500, 1000, 2000, 3000),
+                 limits = c(0, 4500)) +
+    scale_colour_manual(name = '', 
+                        values = c("observed" = "black", "permuted" = "gray50"), 
+                        labels = c("observed", "permuted")) +
+    coord_cartesian(ylim = c(0, 4500)) +
+    theme_bw(18) +
+    theme(legend.position = c(0.8, 0.88),
+          panel.grid.major.x = element_blank(), 
+          panel.grid.minor.x = element_blank()) +
+    guides(colour = guide_legend(override.aes = list(shape = c(17, 19))),
+           fill = FALSE, boxplot = FALSE) +
+    xlab("Number of lines significant (FDR < 10%)")  +
+    ylab("Number of genes")
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm.png", 
+       height = 7, width = 10, plot = ppp)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm.pdf", 
+       height = 7, width = 10, plot = ppp)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm.svg", 
+       height = 7, width = 10, plot = ppp)
+
+df_de_sig_unst %>% 
+    group_by(gene) %>% 
+    dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% group_by(n_donors) %>%
+    dplyr::summarise(n_genes = n()) %>% dplyr::mutate(data_type = "observed") %>%
+ggplot(aes(x = n_donors, y = n_genes)) +
+    # geom_segment(aes(x = n_donors, xend = n_donors, y = count, yend = 0.1), 
+    #              colour = "gray50") +
+#    geom_hline(yintercept = 0, linetype = 2) +
+    geom_hline(yintercept = 0) +
+    geom_boxplot(aes(group = n_donors, y = n_genes, colour = data_type), 
+                 fill = "gray80", data = df_perm, show.legend = FALSE) +
+    geom_point(aes(colour = data_type), shape = 17, size = 5) +
+    scale_x_continuous(breaks = 0:13) +
+    scale_y_sqrt(breaks = c(0, 10, 100, 500, 1000, 2000, 4000),
+                 labels = c(0, 10, 100, 500, 1000, 2000, 4000),
+                 limits = c(0, 4500)) +
+    scale_colour_manual(name = '', 
+                        values = c("observed" = "black", "permuted" = "gray50"), 
+                        labels = c("observed", "permuted")) +
+    coord_cartesian(ylim = c(0, 4500)) +
+    theme(legend.position = c(0.7, 0.88),
+          panel.grid.major.x = element_blank(), 
+          panel.grid.minor.x = element_blank()) +
+    guides(colour = guide_legend(override.aes = list(shape = c(17, 19))),
+           fill = FALSE, boxplot = FALSE) +
+    xlab("Number of lines significant (FDR < 10%)")  +
+    ylab("Number of genes")
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm_skinny.png", 
+       height = 5.5, width = 6.5)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_de_n_sig_donors_n_sig_genes_sqrtscale_perm_veryskinny.png", 
+       height = 7.5, width = 6.5)
+
+```
+
+Look at recurrently DE genes.
+
+```{r recurrent-de}
+df_gene_n_de <- df_de_sig_unst %>% 
+    group_by(gene) %>% 
+    dplyr::mutate(id = paste0(donor, gene)) %>% distinct(id, .keep_all = TRUE) %>%
+    group_by(gene) %>%
+    dplyr::summarise(count = n()) %>% 
+    dplyr::arrange(desc(count)) %>%
+    dplyr::mutate(ensembl_gene_id = gsub("_.*", "", gene),
+                  hgnc_symbol = gsub(".*_", "", gene))
+df_gene_n_de <- left_join(
+    df_gene_n_de,
+    dplyr::select(de_res$qlf_pairwise$joxm$clone2_clone1$table, 
+                  ensembl_gene_id, hgnc_symbol, entrezid)
+    )
+df_gene_n_de <- dplyr::mutate(
+    df_gene_n_de,
+    cell_cycle_growth = (entrezid %in% 
+                             c(Hs.H$HALLMARK_G2M_CHECKPOINT,
+                               Hs.H$HALLMARK_MITOTIC_SPINDLE,
+                               Hs.H$HALLMARK_E2F_TARGETS)),
+    myc = (entrezid %in% c(Hs.H$HALLMARK_MYC_TARGETS_V1,
+                           Hs.H$HALLMARK_MYC_TARGETS_V2)),
+    emt = (entrezid %in% c(Hs.H$HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION))
+)
+df_gene_n_de %>% dplyr::filter(count >= 8) %>% 
+  DT::datatable(.)
+```
+
+----------
+
+## Camera results
+
+First, aggregate gene set enrichment results across all donors.
+
+```{r agg-camera-res}
+fdr_thresh <- 1
+df_camera_all_unst <- tibble()
+for (geneset in names(de_res[["camera"]])) {
+    for (donor in names(de_res[["camera"]][[geneset]])) {
+        for (coeff in names(de_res[["camera"]][[geneset]][[donor]])) {
+            for (stat in names(de_res[["camera"]][[geneset]][[donor]][[coeff]])) {
+                tmp <- de_res[["camera"]][[geneset]][[donor]][[coeff]][[stat]]
+                tmp <- tmp[tmp$FDR <= fdr_thresh,]
+                if (nrow(tmp) > 0.5) {
+                    tmp[["collection"]] <- geneset
+                    tmp[["geneset"]] <- rownames(tmp)
+                    tmp[["coeff"]] <- coeff
+                    tmp[["donor"]] <- donor
+                    tmp[["stat"]] <- stat
+                    df_camera_all_unst <- bind_rows(df_camera_all_unst, tmp)
+                }
+            }
+        }
+    }
+}
+
+fdr_thresh <- 0.05
+df_camera_sig_unst <- tibble()
+for (geneset in names(de_res[["camera"]])) {
+    for (donor in names(de_res[["camera"]][[geneset]])) {
+        for (coeff in names(de_res[["camera"]][[geneset]][[donor]])) {
+            for (stat in names(de_res[["camera"]][[geneset]][[donor]][[coeff]])) {
+                tmp <- de_res[["camera"]][[geneset]][[donor]][[coeff]][[stat]]
+                tmp <- tmp[tmp$FDR <= fdr_thresh,]
+                if (nrow(tmp) > 0.5) {
+                    tmp[["collection"]] <- geneset
+                    tmp[["geneset"]] <- rownames(tmp)
+                    tmp[["coeff"]] <- coeff
+                    tmp[["donor"]] <- donor
+                    tmp[["stat"]] <- stat
+                    df_camera_sig_unst <- bind_rows(df_camera_sig_unst, tmp)
+                }
+            }
+        }
+    }
+}
+
+df_camera_sig_unst <- dplyr::mutate(
+    df_camera_sig_unst,
+    contrast = gsub("_", " - ", coeff),
+    msigdb_collection = plyr::mapvalues(collection, from = c("c2", "c6", "H"), to = c("MSigDB curated (c2)", "MSigDB oncogenic (c6)", "MSigDB Hallmark")))
+
+df_camera_all_unst <- dplyr::mutate(
+    df_camera_all_unst,
+    contrast = gsub("_", " - ", coeff),
+    msigdb_collection = plyr::mapvalues(collection, from = c("c2", "c6", "H"), to = c("MSigDB curated (c2)", "MSigDB oncogenic (c6)", "MSigDB Hallmark")))
+```
+
+We now have a dataframe for significant (FDR <5%) results from the camera 
+gene set enrichment results.
+
+```{r}
+head(df_camera_sig_unst)
+```
+
+And a dataframe with all results.
+
+```{r}
+head(df_camera_all_unst)
+```
+
+For now, focus on gene set enrichment results computed using log-fold change 
+statistics for pairwise comparisons of clones estimated from the edgeR QL-F 
+models.
+
+We can look at all significant results summarised by donor, geneset and pairwise
+contrast of clones.
+
+```{r camera-allcontr-allsets-sig-bydonor-pvals, fig.height=17, fig.width=11}
+df_camera_sig_unst %>% 
+    dplyr::filter(stat == "logFC") %>%
+    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor))))) %>%
+ggplot(aes(y = -log10(PValue), x = donor, colour = contrast)) +
+    ggbeeswarm::geom_quasirandom(alpha = 0.7,  groupOnX = FALSE) +
+    facet_grid(contrast ~ msigdb_collection) + 
+    scale_colour_brewer(palette = "Accent") +
+    coord_flip() + theme_bw()
+```
+
+Similarly, we can look at all results summarised by donor, geneset and pairwise
+contrast of clones.
+
+```{r camera-allcontr-allsets-all-bydonor-fdr, fig.height=17, fig.width=11}
+df_camera_all_unst %>%
+  dplyr::filter(stat == "logFC") %>%
+  dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor))))) %>%
+  ggplot(aes(y = -log10(FDR), x = donor, colour = contrast)) +
+  ggbeeswarm::geom_quasirandom(alpha = 0.7,  groupOnX = FALSE) +
+  geom_hline(yintercept = -log10(0.05), linetype = 2, colour = "firebrick") +
+  facet_grid(contrast ~ msigdb_collection, scales = "free_x") + 
+  scale_colour_brewer(palette = "Accent") +
+  coord_flip() + theme_bw()
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_by_donor_all_results.png", 
+       height = 16, width = 14)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_by_donor_all_results.pdf", 
+       height = 16, width = 14)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_by_donor_all_results.svg", 
+       height = 16, width = 14)
+```
+
+We can check the number of significant gene sets for each donor, for each MSigDB
+gene set collection.
+
+```{r camera-nsig-donor}
+df_camera_sig_unst %>% 
+    dplyr::filter(stat == "logFC") %>%
+    dplyr::filter(FDR < 0.05) %>%
+    group_by(donor, msigdb_collection) %>%
+    dplyr::summarise(n_sig = n()) %>% print(n = Inf)
+
+df_camera_sig_unst %>% 
+    dplyr::filter(stat == "logFC", msigdb_collection == "MSigDB Hallmark") %>%
+    dplyr::filter(FDR < 0.05) %>%
+    group_by(donor, msigdb_collection) %>%
+    dplyr::summarise(n_sig = n()) %>% print(n = Inf)
+
+df_camera_sig_unst %>% 
+    dplyr::filter(stat == "logFC", msigdb_collection == "MSigDB Hallmark") %>%
+    dplyr::filter(FDR < 0.05) %>%
+    group_by(geneset, msigdb_collection) %>%
+    dplyr::summarise(n_sig = n()) %>% print(n = Inf)
+```
+
+We can look at the number of significant gene sets for each donor.
+
+```{r alldonors_camera_enrichment_by_donor_simple, fig.height=12, fig.width=8}
+## simpler version
+df_camera_all_unst %>% 
+    dplyr::filter(stat == "logFC") %>%
+    group_by(donor, msigdb_collection) %>%
+    dplyr::summarise(n_sig = sum(FDR < 0.05)) %>% ungroup() %>% 
+    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor))))) %>%
+    ggplot(aes(y = n_sig, x = donor)) +
+    geom_point(alpha = 1, size = 4) +
+    facet_wrap(~ msigdb_collection, scales = "free_x") + 
+    scale_fill_brewer(palette = "Accent") +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Donor") + ylab("Number of significant genesets (FDR < 5%)") +
+    ggtitle("Camera MSigDB gene set enrichment by line")
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_by_donor_simple.png", 
+       height = 7, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_by_donor_simple.pdf", 
+       height = 7, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_by_donor_simple.svg", 
+       height = 7, width = 10)
+```
+
+We can look at the effect of the the number of cells for each donor on the 
+DE results obtained.
+
+```{r alldonors_camera_enrichment_by_donor_simple_size_by_ncells, fig.height=12, fig.width=8}
+ncells_by_donor <- rep(NA, length(sce_unst_list))
+names(ncells_by_donor) <- names(sce_unst_list)
+for (don in names(sce_unst_list))
+    ncells_by_donor[don] <- ncol(sce_unst_list[[don]])
+
+df_camera_all_unst %>% 
+    dplyr::filter(stat == "logFC") %>%
+    group_by(donor, msigdb_collection) %>%
+    dplyr::summarise(n_sig = sum(FDR < 0.05)) %>% ungroup() -> df_to_plot
+df_to_plot <- inner_join(df_to_plot, 
+                        tibble(donor = names(ncells_by_donor),
+                                   ncells = ncells_by_donor))
+df_to_plot %>%
+    dplyr::mutate(donor = factor(donor, levels = rev(levels(factor(donor))))) %>%
+    ggplot(aes(y = n_sig, x = donor, size = ncells)) +
+    geom_point(alpha = 1) +
+    facet_wrap(~ msigdb_collection, scales = "free_x") + 
+    scale_fill_brewer(palette = "Accent") +
+    coord_flip() +
+    theme_bw(16) +
+    xlab("Donor") + ylab("Number of significant genesets (FDR < 5%)") +
+    ggtitle("Camera MSigDB gene set enrichment by line")
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_by_donor_simple_size_by_ncells.png", 
+       height = 7, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_by_donor_simple_size_by_ncells.pdf", 
+       height = 7, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_by_donor_simple_size_by_ncells.svg", 
+       height = 7, width = 10)
+
+```
+
+### Hallmark gene set
+
+Focus now on looking at DE results for the MSigDB Hallmark gene set (50 of the 
+best-characterised gene sets as determined by MSigDB).
+
+Look at the gene sets that are found to be enriched in multiple donors.
+
+```{r alldonors_camera_enrichment_H_by_geneset, fig.height=7, fig.width=10}
+
+## Hallmark geneset
+df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+    dplyr::filter(stat == "logFC") %>%
+    group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max))) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(14) +
+    xlab("Gene set") + ylab("Number of lines significant")
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_H_by_geneset.png", 
+       height = 7, width = 9.5)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_H_by_geneset.pdf", 
+       height = 7, width = 9.5)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_H_by_geneset.svg", 
+       height = 7, width = 9.5)
+## number of donors with at least one significant geneset
+tmp <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+    dplyr::filter(stat == "logFC") %>%
+    group_by(geneset)
+unique(tmp[["donor"]])
+```
+
+`r length(unique(tmp[["donor"]]))` donors have at least one significantly 
+enriched Hallmark gene set.
+
+Overall, we obtain very similar gene set enrichment results if we use the 
+signed-F statistic rather than logFC as the ranking statistic for camera.
+
+```{r}
+## Hallmark geneset
+df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+    dplyr::filter(stat == "signF") %>%
+    group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max))) +
+    geom_point(alpha = 0.7, size = 4) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    theme_bw(14) +
+    xlab("Gene set") + ylab("Number of lines significant")
+```
+
+
+
+For gene sets related directly to cell cycle and growth, we see contrasts being
+both up- and down- regulated, but for EMT, coagulation and angiogenesis pathways,
+we only see these down-regulated.
+
+```{r alldonors_camera_enrichment_H_by_geneset_by_dir, fig.height=10, fig.width=16}
+df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+  dplyr::filter(stat == "logFC") %>%
+  group_by(geneset, Direction) %>% 
+  dplyr::mutate(id = paste0(donor, geneset)) %>% 
+  dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+  ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max),
+             colour = Direction)) +
+  geom_point(alpha = 0.7, size = 4, position = position_dodge(width = 0.5)) +
+  ggthemes::scale_colour_tableau() +
+  coord_flip() +
+  theme_bw(16) +
+  xlab("Gene set") + ylab("Number of lines significant")  +
+  ggtitle("Camera MSigDB Hallmark gene set enrichment")
+```
+
+
+
+## Heatmap of results for camera Hallmark geneset testing
+
+We can get an overview of all the Hallmark gene set results by producing a 
+heatmap, first showing just the significant (FDR < 5%) results across all 
+donors and pairwise contrasts of clones.
+
+```{r top_genesets_H_direction_heatmap, fig.height=7, fig.width=12}
+repeated_sig_H_genesets <- df_camera_sig_unst %>% 
+    dplyr::filter(collection == "H", stat == "logFC") %>% 
+    group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(n_donors) %>% 
+    dplyr::filter(n_donors > 0.5) 
+repeated_sig_H_genesets_vec <- unique(repeated_sig_H_genesets[["geneset"]])
+repeated_sig_H_genesets_vec <- gsub("_", " ", gsub("HALLMARK_", "", 
+                                                   repeated_sig_H_genesets_vec))
+     
+df_4_heatmap <- df_camera_sig_unst %>% 
+  dplyr::filter(collection == "H", stat == "logFC") %>%
+  dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+  dplyr::mutate(geneset = 
+                  factor(geneset, levels = repeated_sig_H_genesets_vec)) %>%
+  dplyr::filter(geneset %in% repeated_sig_H_genesets_vec) %>%
+  dplyr::mutate(id = paste0(donor, ": ", contrast))
+  
+
+div_lines <- gsub(": c.*", "",
+     sort(unique(paste0(df_4_heatmap[["donor"]], ": ", 
+                        df_4_heatmap[["contrast"]])))) %>% table %>% cumsum + 0.5
+    
+df_4_heatmap %>%
+    ggplot(aes(x = id, y = geneset, fill = Direction)) +
+    geom_tile() +
+    geom_vline(xintercept = div_lines, colour = "gray70") +
+    scale_fill_manual(values = c("lightgoldenrod1", "sienna1")) +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap.png", height = 6, width = 12)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap.pdf", height = 6, width = 12)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap.svg", height = 6, width = 12)
+```
+
+We can do the same for all results for the gene sets that are significantly 
+enriched in at least two donors.
+
+```{r top_genesets_H_direction_heatmap_all_contrasts, fig.height=9, fig.width=18}
+df_camera_all_unst %>% 
+    dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+    dplyr::mutate(geneset = 
+                      factor(geneset, levels = repeated_sig_H_genesets_vec)) %>%
+    dplyr::filter(geneset %in% repeated_sig_H_genesets_vec) %>%
+    dplyr::mutate(id = paste0(donor, ": ", contrast)) ->
+    df_4_heatmap_all
+
+df_4_heatmap_all <- dplyr::mutate(
+    df_4_heatmap_all,
+    minlog10P = cut(-log10(PValue), breaks = c(0, 1, 2, 3, 4, 5, 30)))
+
+div_lines_all <- gsub(": c.*", "",
+     sort(unique(paste0(df_4_heatmap_all[["donor"]], ": ", 
+                        df_4_heatmap_all[["contrast"]])))) %>% table %>% cumsum + 0.5
+
+pp <- df_4_heatmap_all %>%
+    ggplot(aes(x = id, y = geneset, fill = Direction, alpha = minlog10P)) +
+    geom_tile() +
+    geom_point(alpha = 1, data = df_4_heatmap, pch = 19, size = 0.5, show.legend = FALSE) +
+    geom_vline(xintercept = div_lines_all, colour = "gray70") +
+    scale_fill_manual(values = c("lightgoldenrod1", "sienna1")) +
+    scale_alpha_discrete(name = "-log10(P)") +
+    ylab("Gene set") +
+    xlab("Line and clone comparison") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1),
+          legend.position = "right")
+pp    
+
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_all_contrasts.png", height = 9, width = 20)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_all_contrasts.pdf", height = 9, width = 20)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_all_contrasts.svg", height = 9, width = 20)
+```
+
+We can also add a panel to this figure showing the number of donors in which
+each of these gene sets is significantly enriched.
+
+```{r top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors, fig.height=9, fig.width=20}
+## Hallmark geneset
+pp_nsig <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+    dplyr::filter(stat == "logFC") %>%
+    group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+    ggplot(aes(y = n_donors, x = reorder(geneset, n_donors, max))) +
+    geom_hline(yintercept = 0, colour = "gray50") +
+    geom_segment(aes(xend = reorder(geneset, n_donors, max), yend = 0),
+                 colour = "gray50") +
+    geom_point(size = 4, colour = "gray30", alpha = 1) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    xlab("Gene set") + ylab("Number of lines significant") +
+    theme(axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank())
+
+prow <- plot_grid(pp + theme(legend.position = "none"), 
+                  pp_nsig, align = 'h', rel_widths = c(7, 1))
+lgnd <- get_legend(pp)
+plot_grid(prow, lgnd, rel_widths = c(3, .3))
+
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors.png", height = 9, width = 22)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors.pdf", height = 9, width = 22)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_all_contrasts_with_nsig_donors.svg", height = 9, width = 22)
+```
+
+However, the plot above is very complicated, so we may want to focus just on the 
+lines for which there are multiple clones that show differing behaviour amongst
+each other. To simplify, let us just look at the 19 donors that have significant 
+geneset enrichment for at least one contrasts and just look at the 8 gene sets 
+that are significant in at least three lines.
+
+```{r top_genesets_H_direction_heatmap_all_contrasts-simple, fig.height=9, fig.width=18}
+repeated_sig_H_genesets3 <- df_camera_sig_unst %>% 
+    dplyr::filter(collection == "H", stat == "logFC") %>% 
+    group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(n_donors) %>% 
+    dplyr::filter(n_donors > 2.5) 
+repeated_sig_H_genesets_vec3 <- unique(repeated_sig_H_genesets3[["geneset"]])
+repeated_sig_H_genesets_vec3 <- gsub("_", " ", gsub("HALLMARK_", "", 
+                                                   repeated_sig_H_genesets_vec3))
+
+selected_donors <- c("fawm", "feec", "fikt", "garx", "ieki", "joxm", "laey", 
+                     "lexy", "naju", "oilg", "qayj", "qolg", "rozh", 
+                     "sehl", "ualf", "vass", "wahn", "xugn", "zoxy")
+
+df_4_heatmap_filt <- df_camera_all_unst %>% 
+  dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+  dplyr::mutate(geneset = 
+                  factor(geneset, levels = repeated_sig_H_genesets_vec3)) %>%
+  dplyr::filter(geneset %in% repeated_sig_H_genesets_vec3,
+                donor %in% selected_donors) %>%
+  dplyr::mutate(id = paste0(donor, ": ", contrast))
+
+df_4_heatmap_filt_sig <- df_camera_sig_unst %>% 
+  dplyr::filter(collection == "H", stat == "logFC") %>%
+  dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+  dplyr::mutate(geneset = 
+                  factor(geneset, levels = repeated_sig_H_genesets_vec3)) %>%
+  dplyr::filter(geneset %in% repeated_sig_H_genesets_vec3,
+                donor %in% selected_donors) %>%
+  dplyr::mutate(id = paste0(donor, ": ", contrast))
+
+df_4_heatmap_filt <- dplyr::mutate(
+    df_4_heatmap_filt,
+    minlog10P = cut(-log10(PValue), breaks = c(0, 1, 2, 3, 4, 5, 30)))
+
+div_lines_filt <- gsub(": c.*", "",
+                       sort(unique(paste0(df_4_heatmap_filt[["donor"]], ": ", 
+                                          df_4_heatmap_filt[["contrast"]])))) %>% 
+  table %>% cumsum + 0.5
+
+pp_filt <- df_4_heatmap_filt %>%
+    ggplot(aes(x = id, y = geneset, fill = Direction, alpha = minlog10P)) +
+    geom_tile() +
+    geom_point(alpha = 1, data = df_4_heatmap_filt_sig, pch = 19, size = 0.5, 
+               show.legend = FALSE) +
+    geom_vline(xintercept = div_lines_filt, colour = "gray70") +
+    scale_fill_manual(values = c("lightgoldenrod1", "sienna1")) +
+    scale_alpha_discrete(name = "-log10(P)") +
+    ylab("Gene set") +
+    xlab("Line and clone comparison") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1),
+          legend.position = "right")
+pp_filt    
+
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_filt_contrasts.png", plot = pp_filt, height = 5, width = 12)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_filt_contrasts.pdf", plot = pp_filt, height = 5, width = 12)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_filt_contrasts.svg", plot = pp_filt, height = 5, width = 12)
+
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_filt_contrasts_wide.png", plot = pp_filt, height = 5, width = 16)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_filt_contrasts_wide.pdf", plot = pp_filt, height = 5, width = 16)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_direction_heatmap_filt_contrasts_wide.svg", plot = pp_filt, height = 5, width = 16)
+```
+
+
+## Correlation of gene set results and genes contained
+
+Let's look at the correlation between gene set results (Spearman correlation of
+signed -log10(P-values) from _camera_ tests) and compare to the proportion of 
+genes overlapping between pairs of gene sets.
+
+```{r corr-maps, fig.height=9, fig.width=13}
+repeated_sig_H_genesets_vec2 <- paste0("HALLMARK_", 
+                                       gsub(" ", "_", repeated_sig_H_genesets_vec))
+## all results
+df_H_pvals <- df_camera_all_unst %>% dplyr::filter(collection == "H") %>% 
+  dplyr::filter(stat == "logFC", geneset %in% repeated_sig_H_genesets_vec2) %>%
+  dplyr::mutate(donor_coeff = paste(donor, coeff, sep = "."),
+                sign = ifelse(Direction == "Down", -1, 1),
+                signed_P = sign * -log10(PValue)) %>%
+  dplyr::select(geneset, donor_coeff, signed_P) %>%
+  tidyr::spread(key = donor_coeff, value = signed_P)
+
+mat_H_pvals <- as.matrix(df_H_pvals[, -1])
+rownames(mat_H_pvals) <- gsub("_", " ", gsub("HALLMARK_", "", df_H_pvals[[1]]))
+cor_H_pvals <- cor(t(mat_H_pvals), method = "spearman")
+p.mat <- cor_pmat(t(mat_H_pvals))
+ggcorrplot(cor_H_pvals, hc.order = TRUE, p.mat = p.mat, insig = "blank") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+hclust_cor <- hclust(as.dist(1 - cor_H_pvals))
+corrplot1 <- ggcorrplot(cor_H_pvals[hclust_cor$order, hclust_cor$order], 
+           p.mat = p.mat[hclust_cor$order, hclust_cor$order], insig = "blank") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+mat_H_gene_overlap <- matrix(nrow = nrow(cor_H_pvals), ncol = ncol(cor_H_pvals),
+                             dimnames = dimnames(cor_H_pvals))
+for (i in seq_along(repeated_sig_H_genesets_vec2)) {
+  for (j in seq_along(repeated_sig_H_genesets_vec2)) {
+    gs1 <- paste0("HALLMARK_", gsub(" ", "_", rownames(mat_H_gene_overlap)[i]))
+    gs2 <- paste0("HALLMARK_", gsub(" ", "_", rownames(mat_H_gene_overlap)[j]))
+    mat_H_gene_overlap[i, j] <- mean(Hs.H[[gs1]] %in% Hs.H[[gs2]])
+  }
+}
+
+corrplot2 <- ggcorrplot(mat_H_gene_overlap[hclust_cor$order, hclust_cor$order]) +
+  scale_fill_gradient(name = "Gene set\noverlap", low = "white", high = "black") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+corrplot2
+corrplot3 <- corrplot2 + theme(axis.text.y = element_blank())
+```
+
+```{r corr-plot-combined, fig.height=9, fig.width=20}
+plot_grid(corrplot1 + theme(plot.margin = unit(c(0,0,0,0), "cm")), 
+          corrplot3 + theme(plot.margin = unit(c(0,0,0,0), "cm")), 
+          align = "h", axis = "b", rel_widths = c(0.58, 0.42))
+
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_corrplots.png", height = 9, width = 20)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_corrplots.pdf", height = 9, width = 20)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_corrplots.svg", height = 9, width = 20)
+```
+
+Plot gene set correlation with the number of donors in which each gene set is 
+significant.
+
+```{r, fig.height=7, fig.width=12}
+pp_nsig <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+    dplyr::filter(stat == "logFC") %>%
+    group_by(geneset) %>% 
+    dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+    dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+    dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+    dplyr::mutate(geneset = factor(
+      geneset, levels = rownames(mat_H_gene_overlap)[hclust_cor$order])) %>%
+    ggplot(aes(y = n_donors, x = geneset)) +
+    geom_hline(yintercept = 0, colour = "gray50") +
+    geom_segment(aes(xend = geneset, yend = 0),
+                 colour = "gray50") +
+    geom_point(size = 4, colour = "gray30", alpha = 1) +
+    ggthemes::scale_colour_tableau() +
+    coord_flip() +
+    xlab("Gene set") + ylab("Number of lines\nsignificant") +
+    theme(axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank())
+
+ggdraw() +
+  draw_plot(corrplot1 + theme(legend.position = "top"), 
+            x = 0,  y = 0, width = 0.8, scale = 1) +
+  draw_plot(pp_nsig, 
+            x = 0.685,  y = 0.25, width = 0.25, height = 0.6445)
+
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_corrplot_with_nsig_donor.png", 
+       height = 7, width = 12)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_corrplot_with_nsig_donor.pdf", 
+       height = 7, width = 12)
+
+```
+
+
+## Number of DE genes, pathways and clones vs number of cells
+
+```{r nde-vs-ncels}
+df_donor_info <- read.table("data/donor_info_070818.txt")
+df_donor_info <- as_tibble(df_donor_info)
+df_donor_info$donor <- df_donor_info$donor_short
+
+df_ncells_de <- assignments %>% dplyr::filter(assigned != "unassigned", 
+                              donor_short_id %in% names(de_res$qlf_list)) %>%
+    group_by(donor_short_id) %>%
+    dplyr::summarise(n_cells = n())
+colnames(df_ncells_de)[1] <- "donor"
+
+df_prop_assigned <- assignments %>% 
+  dplyr::filter(donor_short_id %in% names(de_res$qlf_list)) %>%
+    group_by(donor_short_id) %>%
+    dplyr::summarise(prop_assigned = mean(assigned != "unassigned"))
+colnames(df_prop_assigned)[1] <- "donor"
+
+df_nvars_by_cat <- readr::read_tsv("output/nvars_by_category_by_donor.tsv")
+df_nvars_by_cat_wd <- tidyr::spread(
+  df_nvars_by_cat[, 1:3], consequence, n_vars_all_genes)
+df_nvars_by_cat_wd <- left_join(
+  dplyr::summarise(group_by(df_nvars_by_cat, donor), nvars_all = sum(n_vars_all_genes)),
+  df_nvars_by_cat_wd
+)
+df_nvars_by_cat_wd <- df_nvars_by_cat %>% 
+  dplyr::filter(consequence %in% c("missense", "splicing", "nonsense")) %>%
+  group_by(donor) %>%
+  dplyr::summarise(nvars_misnonspli = sum(n_vars_all_genes)) %>%
+  left_join(., df_nvars_by_cat_wd)
+
+df_donor_info <- left_join(df_ncells_de, df_donor_info)
+df_donor_info <- left_join(df_prop_assigned, df_donor_info)
+df_donor_info <- left_join(df_donor_n_de, df_donor_info)
+df_donor_info$n_de_genes <- df_donor_info$count
+df_donor_info <- left_join(df_donor_info, df_nvars_by_cat_wd)
+
+nbglm_nde <- MASS::glm.nb(n_de_genes ~ n_cells, data = df_donor_info)
+df_nbglm_nde <- broom::augment(nbglm_nde) %>%
+  left_join(df_donor_info)
+
+## N DE genes vs Number of cells
+df_nbglm_nde %>%
+ggplot(aes(x = n_cells, y = n_de_genes)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of DE genes") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_genes_vs_n_cells_nogrouping.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression_cardelino-relax/n_de_genes_vs_n_cells_nogrouping.pdf", 
+       height = 6.5, width = 6.5)
+
+p1 <- df_nbglm_nde %>%
+  dplyr::mutate(num_clones = paste(num_clones_total, "clones")) %>%
+ggplot(aes(x = n_cells, y = n_de_genes)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  facet_wrap(~num_clones) +
+  ylab("Number of DE genes") +
+  xlab("Number of cells") +
+  coord_cartesian(ylim = c(0, 1200)) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+p1
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_genes_vs_n_cells_facet_by_num_clones.png", 
+       height = 6.5, width = 9.5)
+ggsave("figures/differential_expression_cardelino-relax/n_de_genes_vs_n_cells_facet_by_num_clones.pdf", 
+       height = 6.5, width = 9.5)
+
+
+## Number of significant genesets vs number of cells
+df_nbglm_nde <- df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+  dplyr::filter(stat == "logFC", FDR < 0.05) %>%
+  group_by(donor) %>%
+  dplyr::mutate(id = paste0(donor, geneset)) %>% 
+  distinct(id, .keep_all = TRUE) %>%
+  summarise(n_sig_genesets = n()) %>%
+left_join(df_nbglm_nde, .)
+
+df_nbglm_nde[["n_sig_genesets"]][is.na(df_nbglm_nde[["n_sig_genesets"]])] <- 0
+
+ggplot(df_nbglm_nde, aes(x = n_cells, y = n_sig_genesets)) +
+  #geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of significant Hallmark genesets") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_sig_genesets_vs_n_cells_nogrouping.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression_cardelino-relax/n_sig_genesets_vs_n_cells_nogrouping.pdf", 
+       height = 6.5, width = 6.5)
+
+p2 <- df_nbglm_nde %>%
+  dplyr::mutate(num_clones = paste(num_clones_total, "clones")) %>%
+ggplot(aes(x = n_cells, y = n_sig_genesets)) +
+  #geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  facet_wrap(~num_clones) +
+  ylab("Number of significant Hallmark genesets") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+p2
+
+ggsave("figures/differential_expression_cardelino-relax/n_sig_genesets_vs_n_cells_facet_by_num_clones.png", 
+       height = 6.5, width = 9.5)
+ggsave("figures/differential_expression_cardelino-relax/n_sig_genesets_vs_n_cells_facet_by_num_clones.pdf", 
+       height = 6.5, width = 9.5)
+
+
+pp <- plot_grid(p1, p2, labels = "auto", nrow = 2)
+ggsave("figures/differential_expression_cardelino-relax/n_sig_genesets_N_de_genes_vs_n_cells_2panel_facet_by_num_clones.png", 
+       height = 10.5, width = 9.5, plot = pp)
+ggsave("figures/differential_expression_cardelino-relax/n_sig_genesets_N_de_genes_vs_n_cells_2panel_facet_by_num_clones.pdf", 
+       height = 10.5, width = 9.5, plot = pp)
+ggsave("figures/differential_expression_cardelino-relax/n_sig_genesets_N_de_genes_vs_n_cells_2panel_facet_by_num_clones.svg", 
+       height = 10.5, width = 9.5, plot = pp)
+
+
+## Number of clones vs number of cells
+ggplot(df_nbglm_nde, aes(x = n_cells, y = num_clones_total)) +
+  #geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of inferred clones (total)") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_clones_total_vs_n_cells_nogrouping.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression_cardelino-relax/n_clones_total_vs_n_cells_nogrouping.pdf", 
+       height = 6.5, width = 6.5)
+
+ggplot(df_nbglm_nde, aes(x = n_cells, y = num_clones_with_cells)) +
+  #geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of inferred clones (with cells assigned)") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_clones_with_cells_vs_n_cells_nogrouping.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression_cardelino-relax/n_clones_with_cells_vs_n_cells_nogrouping.pdf", 
+       height = 6.5, width = 6.5)
+
+## Number of DE genes vs number of clones
+df_nbglm_nde %>%
+ggplot(aes(x = num_clones_total, y = n_de_genes)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of DE genes") +
+  xlab("Number of clones") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_genes_vs_n_clones_total.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression_cardelino-relax/n_de_genes_vs_n_clones_total.pdf", 
+       height = 6.5, width = 6.5)
+
+## Number of sig genesets vs number of clones
+df_nbglm_nde %>%
+ggplot(aes(x = num_clones_total, y = n_sig_genesets)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21, fill = "gray50") +
+  geom_label_repel(aes(label = donor)) +
+  ylab("Number of significant Hallmark genesets") +
+  xlab("Number of clones") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_sig_genesets_vs_n_clones_total.png", 
+       height = 6.5, width = 6.5)
+ggsave("figures/differential_expression_cardelino-relax/n_sig_genesets_vs_n_clones_total.pdf", 
+       height = 6.5, width = 6.5)
+
+```
+
+
+## Linking DE to selection
+
+
+### Selection defined using Williams et al 2018 models
+
+The Williams et al 2018 model provides as output a "probability of selection". 
+We define lines with a probability of selection greater than 0.7 as "selected", 
+those with probability of selection less than 0.3 as "neutral" and the remaining
+lines as "undetermined".
+
+```{r load-williams2018-classifications}
+df_williams2018 <- read_csv("data/selection/p1-selection.csv")
+colnames(df_williams2018) <- c("donor", "prob_select_williams2018", 
+                               "selection_williams2018")
+df_nbglm_nde <- left_join(df_nbglm_nde, df_williams2018)
+df_williams2018
+```
+
+We get confident results from the Williams et al 2018 model for lines with at 
+least 100 somatic variants:
+
+```{r}
+df_high_conf_selection <- df_nbglm_nde %>% 
+  dplyr::filter(num_mutations >= 100) %>% 
+  dplyr::select(donor, num_mutations, n_cells, prob_select_williams2018, 
+                selection_williams2018, n_de_genes, n_sig_genesets) %>%
+  print(n = Inf)
+
+dplyr::filter(df_high_conf_selection, selection_williams2018 == "selected")
+
+dplyr::filter(df_high_conf_selection, selection_williams2018 == "neutral")
+
+
+dplyr::filter(df_high_conf_selection, selection_williams2018 == "undetermined")
+
+selected_lines <- dplyr::filter(df_high_conf_selection, 
+                                selection_williams2018 == "selected")[["donor"]]
+undetermined_lines <- dplyr::filter(df_high_conf_selection, 
+                                selection_williams2018 == "undetermined")[["donor"]]
+neutral_lines <- dplyr::filter(df_high_conf_selection, 
+                                selection_williams2018 == "neutral")[["donor"]]
+
+df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+    dplyr::filter(stat == "logFC", donor %in% neutral_lines) %>%
+  dplyr::select(NGenes, Direction, PValue, FDR, geneset, contrast, donor) %>%
+  print(n = Inf)
+
+
+df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+    dplyr::filter(stat == "logFC", donor %in% undetermined_lines) %>%
+  dplyr::select(NGenes, Direction, PValue, FDR, geneset, contrast, donor) %>%
+  print(n = Inf)
+
+df_camera_sig_unst %>% dplyr::filter(collection == "H") %>% 
+    dplyr::filter(stat == "logFC", donor %in% selected_lines) %>%
+  dplyr::select(NGenes, Direction, PValue, FDR, geneset, contrast, donor) %>% 
+  dplyr::mutate(id = paste0(donor, geneset)) %>% 
+  distinct(id, .keep_all = TRUE) %>% group_by(geneset) %>% 
+  summarise(n_sig = sum(FDR < 0.05)) %>% print(n = Inf)
+```
+
+NB: 
+* 10 of 13 selected lines have Hallmark genesets significantly enriched at FDR 
+< 5% - all of these are significant for E2F targets and 9 are significant for 
+G2M checkpoint.
+* `euts` would be significantly enriched for E2F targets and G2M checkpoints
+at FDR < 10% (down in clone3 vs clone2).
+* `wahn` would have have E2F targets significantly enriched at FDR < 20% (Up in
+clone3 vs clone2) and G2M checkpoint significant at FDR < 30%
+* 3 of 7 neutral and undetermined lines have significantly enriched Hallmark 
+genesets at FDR < 5%.
+
+* all 13 selected lines have c2 genesets significantly enriched at FDR < 5%
+* 5 of 7 neutral and undetermined lines have c2 genesets significantly enriched
+at FDR < 5%.
+
+
+```{r link-de-to-selection-williams2018-model}
+
+
+## selection, n_de resid boxplot
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = selection, y = .resid)) +
+  geom_violin(aes(fill = selection), alpha = 0.7) +
+  geom_boxplot(outlier.alpha = 0, width = 0.2) +
+  ggbeeswarm::geom_quasirandom(aes(fill = selection), size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Inferred selection status (Willams 2018 model)") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  coord_flip()
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_williams2018_boxplot.png", 
+       height = 4.5, width = 6.5)
+
+summary(lm(.resid ~ selection_williams2018, data = df_nbglm_nde))
+
+## selection, n_de (sqrt scale) boxplot
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = selection, y = n_de_genes)) +
+  geom_violin(aes(fill = selection), alpha = 0.7) +
+  geom_boxplot(outlier.alpha = 0, width = 0.2) +
+  ggbeeswarm::geom_quasirandom(aes(fill = selection), size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Inferred selection status (Williams 2018 model)") +
+  scale_y_sqrt(breaks = c(0, 100, 500, 1000, 1500, 2000, 2500)) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  coord_flip()
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_sqrt_selection_williams2018_boxplot.png", 
+       height = 5.5, width = 6.5)
+
+## n_de (resids) vs goodness of fit cumul. mutation model
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = prob_select_williams2018, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Probability of selection (Williams 2018 model)") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_vs_prob_selection_williams2018_model.png", 
+       height = 6.5, width = 5.5)
+
+
+## n_de (sqrt scale) vs goodness of fit cumul. mutation model
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = prob_select_williams2018, y = n_de_genes, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Probability of selection (Williams 2018 model)") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_sqrt_vs_prob_selection_williams2018_model.png", 
+       height = 6.5, width = 5.5)
+
+## n_de (resids) vs mutational load (all)
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Number of somatic variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_williams2018_vs_n_somatic_vars_all.png", 
+       height = 6.5, width = 5.5)
+
+## n_de (sqrt scale) vs mutational load (all)
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = n_de_genes, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Number of somatic variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500)) +
+  scale_y_sqrt(breaks = c(10, 100, 500, 1000, 1500, 2000, 2500))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_sqrt_selection_vs_n_somatic_vars_all.png", 
+       height = 5.5, width = 6.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection_williams2018, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = prob_select_williams2018, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Probability of selection (Williams 2018 model)") +
+  xlab("Number of somatic variants") +
+  coord_cartesian(ylim = c(0, 1)) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression_cardelino-relax/prob_select_williams2018_model_vs_n_somatic_vars.png", 
+       height = 6.5, width = 5.5)
+
+```
+
+
+
+### Selection defined using Williams et al 2016 and negative binomial models
+
+```{r link-de-to-selection-old-models}
+
+## n_de vs n_cells
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = n_cells, y = n_de_genes, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Number of cells") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_genes_vs_n_cells.png", 
+       height = 5.5, width = 5.5)
+
+
+## selection, n_de resid boxplot
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = selection, y = .resid)) +
+  geom_violin(aes(fill = selection), alpha = 0.7) +
+  geom_boxplot(outlier.alpha = 0, width = 0.2) +
+  ggbeeswarm::geom_quasirandom(aes(fill = selection), size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Inferred selection status") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  coord_flip()
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_boxplot.png", 
+       height = 4.5, width = 6.5)
+
+summary(lm(.resid ~ selection, data = df_nbglm_nde))
+
+## selection, n_de (sqrt scale) boxplot
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = selection, y = n_de_genes)) +
+  geom_violin(aes(fill = selection), alpha = 0.7) +
+  geom_boxplot(outlier.alpha = 0, width = 0.2) +
+  ggbeeswarm::geom_quasirandom(aes(fill = selection), size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Inferred selection status") +
+  scale_y_sqrt(breaks = c(0, 100, 500, 1000, 1500, 2000, 2500)) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  coord_flip()
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_sqrt_selection_boxplot.png", 
+       height = 5.5, width = 6.5)
+
+## n_de (resids) vs goodness of fit cumul. mutation model
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = rsq_ntrtestr, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Goodness of fit: cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_vs_gof_cumul_mut_model.png", 
+       height = 6.5, width = 5.5)
+
+
+## n_de (sqrt scale) vs goodness of fit cumul. mutation model
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = rsq_ntrtestr, y = n_de_genes, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Goodness of fit: cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_sqrt_selection_vs_gof_cumul_mut_model.png", 
+       height = 5.5, width = 6.5)
+
+## n_de (resids) vs goodness of fit NB model
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = rsq_negbinfit, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Goodness of fit: negative binomial distribution") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_vs_gof_negbin_model.png", 
+       height = 5.5, width = 6.5)
+
+## n_de (resids) vs ave goodness of fit from both models
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = (rsq_negbinfit + rsq_ntrtestr) / 2, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_vs_ave_gof_2_models.png", 
+       height = 5.5, width = 6.5)
+
+## n_de vs ave goodness of fit from both models
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = (rsq_negbinfit + rsq_ntrtestr) / 2, y = n_de_genes, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  scale_y_sqrt() +
+  ylab("Number of DE genes") +
+  xlab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+
+## n_de (resids) vs mutational load (all)
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Number of somatic variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_vs_n_somatic_vars_all.png", 
+       height = 6.5, width = 5.5)
+
+## n_de (sqrt scale) vs mutational load (all)
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = n_de_genes, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes") +
+  xlab("Number of somatic variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500)) +
+  scale_y_sqrt(breaks = c(10, 100, 500, 1000, 1500, 2000, 2500))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_sqrt_selection_vs_n_somatic_vars_all.png", 
+       height = 5.5, width = 6.5)
+
+## n_de (resids) vs mutational load (missense)
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = missense, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Number of somatic missense variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_vs_n_somatic_vars_missense.png", 
+       height = 5.5, width = 6.5)
+
+## n_de (resids) vs mutational load (missense, nonsense, splicing)
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_misnonspli, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Number of missense, nonsense & splicing variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_vs_n_somatic_vars_misnonspli.png", 
+       height = 6.5, width = 5.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = rsq_ntrtestr, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Goodness of fit: cumulative mutations ") +
+  xlab("Number of somatic variants") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression_cardelino-relax/gof_cumul_mut_model_vs_n_somatic_vars.png", 
+       height = 6.5, width = 5.5)
+
+```
+
+We can also check the relationship between the number of somatic variants and
+evidence for selection as immediately above, but flipping the relationship.
+
+```{r nvars-vs-gof-selection}
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = rsq_ntrtestr, y = nvars_all, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab("Goodness of fit: cumulative mutations ") +
+  ylab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_y_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression_cardelino-relax/n_somatic_vars_vs_gof_cumul_mut_model.png", 
+       height = 6.5, width = 5.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = rsq_negbinfit, y = nvars_all, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab("Goodness of fit: negative binomial ") +
+  ylab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_y_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression_cardelino-relax/n_somatic_vars_vs_gof_cumul_mut_model.png", 
+       height = 6.5, width = 5.5)
+
+df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = (rsq_negbinfit + rsq_ntrtestr) / 2, y = nvars_all, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  ylab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_y_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+ggsave("figures/differential_expression_cardelino-relax/n_somatic_vars_vs_ave_gof_two_models.png", 
+       height = 6.5, width = 5.5)
+```
+
+```{r nde-plots-grid-gof-cummut, fig.height=5, fig.width=12}
+p1 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = rsq_ntrtestr, y = .resid, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Goodness of fit: cumulative mutations ") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+p2 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = rsq_ntrtestr, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  ylab("Goodness of fit: cumulative mutations ") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+p3 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = .resid,
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+plot_grid(p1, p2, p3, nrow = 1, labels = "auto")
+```
+
+```{r nde-plots-grid-gof-ave, fig.height=5, fig.width=12}
+p1 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = (rsq_ntrtestr + rsq_negbinfit) / 2, y = .resid, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+p2 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = (rsq_ntrtestr + rsq_negbinfit) / 2, 
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  xlab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  ylab("Ave. goodness of fit:\n negative binomial & cumulative mutations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+p3 <- df_nbglm_nde %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = nvars_all, y = .resid,
+           fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab(bquote("Number of somatic variants (log"[10]~ "scale)")) +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4")) +
+  scale_x_log10(breaks = c(5, 10, 20, 50, 100, 500))
+
+plot_grid(p1, p2, p3, nrow = 1, labels = "auto")
+```
+
+
+## Linking DE to assignment accuracy
+
+Simulation results provide us with an estimate of the assignment accuracy for
+each line. 
+
+We load the simulation results for individual lines.
+
+```{r read-sim-results}
+get_prob_label <- function(X){
+  max_idx <- rep(0, nrow(X))
+  for (j in seq_len(nrow(X))) {
+    max_idx[j] <- which.max(X[j, ])
+  }
+  max_idx
+}
+
+get_prob_value <- function(X, mode = "best") {
+  max_val <- rep(0, nrow(X))
+  for (i in seq_len(nrow(X))) {
+    sorted_val <- sort(X[i,], decreasing = TRUE)
+    if (mode == "delta") {
+      max_val[i] <- sorted_val[1] - sorted_val[2]
+    } else if (mode == "second") {
+      max_val[i] <- sorted_val[2]
+    } else {#default mode: best
+      max_val[i] <- sorted_val[1]
+    }
+  }
+  max_val
+}
+
+all_files <- paste0(donors, ".simulate.rds")
+assign_0 <- matrix(0, nrow = 500, ncol = length(donors))
+assign_1 <- matrix(0, nrow = 500, ncol = length(donors))
+prob_all <- matrix(0, nrow = 500, ncol = length(donors))
+
+for (i in seq_len(length(all_files))) {
+  afile <- all_files[i]
+  sim_dat <- readRDS(file.path("data", "simulations", afile))
+  assign_0[, i] <- get_prob_label(sim_dat$I_sim)
+  assign_1[, i] <- get_prob_label(sim_dat$prob_Gibbs)
+  prob_all[, i] <- get_prob_value(sim_dat$prob_Gibbs, mode = "best")
+}
+
+precision_simu <- rep(0, length(donors))
+for (i in seq_len(length(donors))) {
+  idx <- prob_all[, i] > 0.5
+  precision_simu[i] <- mean(assign_0[idx, i] == assign_1[idx, i])
+}
+```
+
+Read results from real data as well and form a data frame for plotting.
+
+```{r read-real-results}
+all_files <- paste0("cardelino_results_carderelax.", donors, 
+                    ".filt_lenient.cell_coverage_sites.rds")
+n_sites <- rep(0, length(donors))
+n_clone <- rep(0, length(donors))
+recall_all <- rep(0, length(donors))
+for (i in seq_len(length(all_files))) {
+  afile <- all_files[i]
+  carde_dat <- readRDS(file.path("data", "cell_assignment", afile))
+  n_sites[i] <- nrow(carde_dat$D)
+  n_clone[i] <- ncol(carde_dat$prob_mat)
+  recall_all[i] <- mean(get_prob_value(carde_dat$prob_mat, mode = "best") > 0.5)
+}
+
+df <- data.frame(line = donors, n_sites = n_sites, n_clone = n_clone, 
+                 recall_real = recall_all, recall_simu = colMeans(prob_all > 0.5),
+                 precision_simu = precision_simu)
+```
+
+We can now look at the relationship between the number of DE genes detected 
+per line and the assignment accuracy and assignment rate per line.
+
+```{r plot-de-assignment-acc, fig.height=10, fig.width=6.5}
+df <- inner_join(df, dplyr::mutate(df_nbglm_nde, line = donor))
+## n_de (resids) vs assignment accuracy
+p1 <- df %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = precision_simu, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Assignment accuracy (precision) from simulations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_vs_sim_assign_acc.png", 
+       plot = p1, height = 5.5, width = 6.5)
+
+## n_de (resids) vs assignment rate
+p2 <- df %>%
+  dplyr::mutate(selection = factor(
+    selection, levels = c("neutral", "undetermined", "selected"))) %>%
+ggplot(aes(x = recall_simu, y = .resid, fill = selection)) +
+  geom_smooth(aes(group = 1), colour = "firebrick", method = "lm", level = 0.9) +
+  geom_point(size = 3, shape = 21) +
+  ylab("Number of DE genes (residual from NB GLM)") +
+  xlab("Assignment rate (recall) from simulations") +
+  scale_fill_manual(values = c("dodgerblue", "#CCCCCC", "dodgerblue4"))
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_vs_sim_assign_rate.png", 
+       plot = p2, height = 5.5, width = 6.5)
+
+p3 <- plot_grid(p1, p2, labels = "auto", nrow = 2)
+
+ggsave("figures/differential_expression_cardelino-relax/n_de_resid_selection_vs_sim_assign_acc_rate_combined.png", 
+       plot = p3, height = 10, width = 6.5)
+
+p3
+```
+
+
+## Linking DE to multiple explanatory factors
+
+Let us fit a NB GLM to regress number of DE genes observed per line against
+number of cells, goodness of fit of selection models, number of somatic 
+variants, assignment accuracy (from simulations) and assignment rate (observed)
+per line.
+
+First we can look at fitting different combinations of these explanatory 
+variables and do model selection using AIC (Akaike Information Criterion).
+
+
+```{r link-de-expl-factors}
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ n_cells + rsq_negbinfit + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_negbinfit + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ sqrt(n_cells) + rsq_negbinfit + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_negbinfit + rsq_ntrtestr + sqrt(nvars_all)
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_negbinfit + rsq_ntrtestr + log10(nvars_all)
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_ntrtestr + nvars_all
+  + recall_real, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_ntrtestr + nvars_all, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + rsq_negbinfit + nvars_all, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + nvars_all, data = df))
+broom::glance(MASS::glm.nb(
+  n_de_genes ~ log10(n_cells), data = df))
+```
+
+The preferred model based on AIC values is one
+fitting log10-scale number of cells and number of somatic variants as predictor
+variables.
+
+```{r link-de-fit-best}
+nbglm_nde_allfacts <- MASS::glm.nb(
+  n_de_genes ~  log10(n_cells) + rsq_negbinfit + rsq_ntrtestr + nvars_all
+  + recall_real + precision_simu, data = df)
+broom::tidy(nbglm_nde_allfacts)
+nbglm_nde_selectfacts <- MASS::glm.nb(
+  n_de_genes ~ log10(n_cells) + nvars_all, data = df)
+broom::tidy(nbglm_nde_selectfacts)
+broom::glance(nbglm_nde_selectfacts)
+nbglm_nde_allfacts_tbl <- bind_cols(
+  broom::tidy(nbglm_nde_selectfacts),
+  broom::confint_tidy(nbglm_nde_selectfacts, conf.level = 0.9))
+
+
+df_nbglm_nde <- broom::augment(nbglm_nde) %>%
+  left_join(df_donor_info)
+
+```
+
+
+## Linking pathway results to selection
+
+Not yet implemented
+
+```{r, eval=FALSE, include=FALSE} 
+# df_donor_info <- read.table("data/donor_info_070818.txt")
+# df_camera_all_unst$classification <- NA
+# df_camera_all_unst$classification[
+#     df_camera_all_unst$donor %in% df_donor_info$sampleID[df_donor_info$cons_classification == "selection"]
+# ] <- "selection"
+# df_camera_all_unst$classification[
+#     df_camera_all_unst$donor %in% df_donor_info$sampleID[df_donor_info$cons_classification == "undetermined"]
+# ] <- "undetermined"
+# df_camera_all_unst$classification[
+#     df_camera_all_unst$donor %in% df_donor_info$sampleID[df_donor_info$cons_classification == "neutral"]
+# ] <- "neutral"
+# df_camera_all_unst$classification <- factor(df_camera_all_unst$classification, 
+#                                             levels = c("neutral", "undetermined", "selection"))
+# 
+# df_camera_nsig <- df_camera_all_unst %>% dplyr::filter(collection == "H", FDR < 0.05) %>% 
+#     dplyr::filter(geneset %in% c("HALLMARK_E2F_TARGETS", "HALLMARK_G2M_CHECKPOINT", "HALLMARK_MYC_TARGETS_V1")) %>%
+#     group_by(geneset, classification, Direction) %>% 
+#     dplyr::mutate(id = paste0(donor, geneset, Direction)) %>% distinct(id, .keep_all = TRUE) %>%
+#     dplyr::summarise(n_sig = n())
+# df_camera_nsig
+# 
+# 
+# ## test for different proportions of Up/Down sig genesets
+# e2f_select <- df_camera_nsig %>% dplyr::filter(geneset == "HALLMARK_E2F_TARGETS") %>% ungroup() %>% dplyr::select(-geneset) %>%
+#     spread(classification, n_sig)
+# e2f_mat <- as.matrix(e2f_select[, -1])
+# rownames(e2f_mat) <- e2f_select[["e2f_select"]]
+# fisher.test(e2f_mat)
+# g2m_select <- df_camera_nsig %>% dplyr::filter(geneset == "HALLMARK_G2M_CHECKPOINT") %>% ungroup() %>% dplyr::select(-geneset) %>%
+#     spread(classification, n_sig)
+# g2m_mat <- as.matrix(g2m_select[, -1])
+# rownames(g2m_mat) <- g2m_select[["e2f_select"]]
+# fisher.test(g2m_mat)
+# myc_select <- df_camera_nsig %>% dplyr::filter(geneset == "HALLMARK_MYC_TARGETS_V1") %>% ungroup() %>% dplyr::select(-geneset) %>%
+#     spread(classification, n_sig)
+# myc_mat <- as.matrix(myc_select[, -1])
+# rownames(myc_mat) <- myc_select[["e2f_select"]]
+# fisher.test(myc_mat)
+# 
+# df_camera_all_unst %>% dplyr::filter(collection == "H") %>% 
+#     dplyr::filter(geneset %in% c("HALLMARK_E2F_TARGETS", "HALLMARK_G2M_CHECKPOINT", "HALLMARK_MYC_TARGETS_V1")) %>%
+#     group_by(geneset, classification, Direction) %>% 
+#     dplyr::mutate(id = paste0(donor, geneset, Direction)) %>% distinct(id, .keep_all = TRUE) %>%
+#     ungroup() %>%
+#     dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+#     ggplot(aes(y = -log10(FDR), x = classification, colour = Direction)) +
+#     ggbeeswarm::geom_quasirandom(alpha = 0.7, size = 4) +
+#     geom_hline(yintercept = -log10(0.05), linetype = 2) +
+#     facet_wrap(~geneset, nrow = 3) +
+#     scale_colour_manual(values = c("gray40", "firebrick")) +
+#     coord_flip() +
+#     theme_bw(14) +
+#     xlab("Selection classification") + ylab("-log10(False discovery rate)") +
+#     theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+# 
+# ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_H_top_genesets_by_selection.png", 
+#        height = 7, width = 10)
+# ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_H_top_genesets_by_selection.pdf", 
+#        height = 7, width = 10)
+# ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_enrichment_H_top_genesets_by_selection.svg", 
+#        height = 7, width = 10)
+# 
+# df_camera_all_unst %>% dplyr::filter(collection == "H", FDR < 0.05) %>% 
+#     dplyr::filter(geneset %in% c("HALLMARK_E2F_TARGETS", "HALLMARK_G2M_CHECKPOINT")) %>%
+#     group_by(geneset, classification) %>% 
+#     dplyr::mutate(id = paste0(donor, geneset)) %>% distinct(id, .keep_all = TRUE) %>%
+#     dplyr::summarise(n_donors = n()) %>% dplyr::arrange(geneset, n_donors) %>% ungroup() %>%
+#     dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+#     ggplot(aes(y = n_donors, x = geneset)) +
+#     geom_point(alpha = 0.7, size = 4) +
+#     ggthemes::scale_colour_tableau() +
+#     coord_flip() +
+#     theme_bw(14) +
+#     xlab("Gene set") + ylab("Number of significant donors")
+
+
+
+df_e2f <- df_camera_all_unst %>% 
+    dplyr::filter(grepl("HALLMARK_E2F_TARGETS", geneset)) %>%
+    dplyr::mutate(id = paste(donor, contrast, sep = ": "), sig = FDR < 0.05)
+ggplot(df_e2f, aes(x = Direction, y = -log10(PValue), colour = sig, 
+                      label = id)) +
+    geom_violin(aes(group = Direction), fill = "gray90", colour = "gray90") +
+    geom_point(size = 4) +
+    geom_label_repel(show.legend = FALSE, point.padding = 0.5,
+                    data = subset(df_e2f, FDR < 0.05)) +
+    scale_colour_manual(values = c("gray50", "firebrick"), 
+                        label = c("N.S.", "FDR < 5%"), name = "", drop = FALSE) +
+    guides(alpha = FALSE) + 
+    ggtitle("E2F TARGETS") +
+    theme_classic(20)
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_H_e2f_targets.png", height = 8.5, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_H_e2f_targets.pdf", height = 8.5, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_H_e2f_targets.svg", height = 8.5, width = 10)
+
+df_g2m <- df_camera_all_unst %>% 
+    dplyr::filter(grepl("HALLMARK_G2M_CHECKPOINT", geneset)) %>%
+    dplyr::mutate(id = paste(donor, contrast, sep = ": "), sig = FDR < 0.05)
+ggplot(df_g2m, aes(x = Direction, y = -log10(PValue), colour = sig, 
+                      label = id)) +
+    geom_violin(aes(group = Direction), fill = "gray90", colour = "gray90") +
+    geom_point(size = 4) +
+    geom_label_repel(show.legend = FALSE, point.padding = 0.5,
+                    data = subset(df_g2m, FDR < 0.05)) +
+    scale_colour_manual(values = c("gray50", "firebrick"), 
+                        label = c("N.S.", "FDR < 5%"), name = "", drop = FALSE) +
+    guides(alpha = FALSE) + 
+    ggtitle("G2M CHECKPOINT") +
+    theme_classic(20)
+
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_H_g2m_checkpoint.png", height = 8.5, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_H_g2m_checkpoint.pdf", height = 8.5, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/alldonors_camera_H_g2m_checkpoint.svg", height = 8.5, width = 10)
+```
+
+
+## Compare pathway results to clone prevalence
+
+Hallmark gene sets. Not yet implemented.
+
+```{r, eval=FALSE, include=FALSE}
+head(df_camera_nsig)
+head(df_camera_all_unst)
+
+head(de_res$qlf_list$euts$coefficients)
+head(de_res$qlf_list$zoxy$coefficients)
+
+df_clone_prevalence <- list()
+for (don in names(de_res$qlf_list)) {
+    df_clone_prevalence[[don]] <- tibble(
+        donor = don,
+        clone = rownames(cell_assign_list[[don]]$full_tree$P),
+        prevalence = cell_assign_list[[don]]$full_tree$P[, 1])
+}
+df_clone_prevalence <- do.call("bind_rows", df_clone_prevalence)
+    
+df_camera_all_unst <- dplyr::mutate(
+    df_camera_all_unst, 
+    id = paste(donor, collection, geneset, coeff, stat, sep = ".")
+)
+
+## plot clone prevalences across donors
+df_clone_prevalence %>%
+    ggplot(aes(x = prevalence, y = clone)) +
+    geom_density_ridges() +
+    theme_ridges()
+
+
+## assign clone prevalences to camera results
+df_camera_all_unst <- dplyr::mutate(
+    df_camera_all_unst, 
+    up_clone = gsub("(clone[0-9])_clone[0-9]", "\\1", coeff),
+    dn_clone = gsub("clone[0-9]_(clone[0-9])", "\\1", coeff),
+    donor_upclone = paste0(donor, up_clone),
+    donor_dnclone = paste0(donor, dn_clone)) 
+df_clone_prevalence1 <- dplyr::mutate(df_clone_prevalence,
+                                      up_clone = clone,  
+                                      clone = NULL,
+                                      donor_upclone = paste0(donor, up_clone),
+                                      prevalence_upclone = prevalence, 
+                                      prevalence = NULL
+)
+df_clone_prevalence2 <- dplyr::mutate(df_clone_prevalence,
+                                      dn_clone = clone,  
+                                      clone = NULL,
+                                      donor_dnclone = paste0(donor, dn_clone),
+                                      prevalence_dnclone = prevalence, 
+                                      prevalence = NULL
+)
+tmp1 <- dplyr::select(df_camera_all_unst, donor, up_clone, dn_clone, id) %>%
+    left_join(., df_clone_prevalence1)
+tmp2 <- dplyr::select(df_camera_all_unst, donor, up_clone, dn_clone, id) %>%
+    left_join(., df_clone_prevalence2)
+
+tmp3 <- dplyr::inner_join(df_camera_all_unst, tmp1, by = "id")
+tmp4 <- dplyr::inner_join(tmp3, tmp2, by = "id")
+df_camera_all_unst <- tmp4
+df_camera_all_unst <- dplyr::mutate(
+    df_camera_all_unst, 
+    prevalence_relative_up_clone = prevalence_upclone / prevalence_dnclone)
+
+df_camera_all_unst %>% dplyr::filter(collection == "H", FDR < 0.05) %>% 
+    dplyr::filter(geneset %in% c("HALLMARK_E2F_TARGETS", "HALLMARK_G2M_CHECKPOINT",
+                                 "HALLMARK_MYC_TARGETS_V1",
+                                 "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION",
+                                 "HALLMARK_MYC_TARGETS_V2", "HALLMARK_MITOTIC_SPINDLE")) %>%
+    dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+    dplyr::mutate(geneset = factor(geneset, levels = 
+                                       c("MITOTIC SPINDLE", "MYOGENESIS", "ANGIOGENESIS",
+                                         "EPITHELIAL MESENCHYMAL TRANSITION", "MYC TARGETS V2",
+                                        "MYC TARGETS V1", "E2F TARGETS", "G2M CHECKPOINT"))) %>%
+    ggplot(aes(y = prevalence_upclone, x = geneset, fill = Direction)) +
+    geom_boxplot(width = 0.5) +
+    # ggthemes::scale_fill_canva(palette = "Surf and turf") +
+    scale_fill_manual(values = c("lightgoldenrod1", "sienna1")) +
+    coord_flip() +
+    theme_ridges(14) +
+    guides(fill = guide_legend(reverse = TRUE)) +
+    xlab("Gene set") + ylab("Clone prevalence")
+
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_by_direction_prevalence.png", height = 6, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_by_direction_prevalence.pdf", height = 6, width = 10)
+ggsave("figures/differential_expression_cardelino-relax/top_genesets_H_by_direction_prevalence.svg", height = 6, width = 10)
+
+
+df_camera_all_unst %>% dplyr::filter(collection == "H", stat == "logFC", FDR < 0.05) %>% 
+    dplyr::filter(geneset %in% c("HALLMARK_E2F_TARGETS", "HALLMARK_G2M_CHECKPOINT",
+                                 "HALLMARK_MYC_TARGETS_V1",
+                                 "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION",
+                                 "HALLMARK_MYC_TARGETS_V2", "HALLMARK_MITOTIC_SPINDLE")) %>%
+    dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+    dplyr::mutate(geneset = factor(geneset, levels = 
+                                       c("MITOTIC SPINDLE", "MYOGENESIS", "ANGIOGENESIS",
+                                         "EPITHELIAL MESENCHYMAL TRANSITION", "MYC TARGETS V2",
+                                        "MYC TARGETS V1", "E2F TARGETS", "G2M CHECKPOINT"))) %>%
+    ggplot(aes(y = prevalence_relative_up_clone, x = geneset, fill = Direction)) +
+    geom_hline(yintercept = 1) +
+    geom_boxplot(width = 0.5) +
+    # ggthemes::scale_fill_canva(palette = "Surf and turf") +
+    scale_fill_manual(values = c("lightgoldenrod1", "sienna1")) +
+    scale_y_log10() +
+    coord_flip() +
+    theme_ridges(14) +
+    guides(fill = guide_legend(reverse = TRUE)) +
+    xlab("Gene set") + ylab("Clone prevalence relative to base clone")
+
+
+df_camera_all_unst %>% dplyr::filter(collection == "H", stat == "logFC", FDR < 0.05) %>% 
+    dplyr::filter(geneset %in% c("HALLMARK_E2F_TARGETS", "HALLMARK_G2M_CHECKPOINT",
+                                 "HALLMARK_MYC_TARGETS_V1",
+                                 "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION",
+                                 "HALLMARK_ANGIOGENESIS", "HALLMARK_MYOGENESIS",
+                                 "HALLMARK_MYC_TARGETS_V2", "HALLMARK_MITOTIC_SPINDLE")) %>%
+    dplyr::mutate(geneset = gsub("_", " ", gsub("HALLMARK_", "", geneset))) %>%
+    dplyr::mutate(geneset = factor(geneset, levels = 
+                                       c("MITOTIC SPINDLE", "MYOGENESIS", "ANGIOGENESIS",
+                                         "EPITHELIAL MESENCHYMAL TRANSITION", "MYC TARGETS V2",
+                                        "MYC TARGETS V1", "E2F TARGETS", "G2M CHECKPOINT"))) %>%
+    ggplot(aes(y = prevalence_relative_up_clone, x = geneset, fill = Direction)) +
+    geom_hline(yintercept = 1) +
+    ggbeeswarm::geom_quasirandom(pch = 21, size = 5) +
+    # ggthemes::scale_fill_canva(palette = "Surf and turf") +
+    scale_fill_manual(values = c("lightgoldenrod1", "sienna1")) +
+    scale_y_log10() +
+    coord_flip() +
+    theme_ridges(14) +
+    guides(fill = guide_legend(reverse = TRUE)) +
+    xlab("Gene set") + ylab("Clone prevalence relative to base clone")
+
+df_camera_all_unst %>% dplyr::filter(collection == "H", stat == "logFC", FDR < 0.1) %>% 
+    dplyr::filter(geneset %in% c("HALLMARK_E2F_TARGETS", "HALLMARK_G2M_CHECKPOINT",
+                                 "HALLMARK_MITOTIC_SPINDLE")) %>%
+    group_by(geneset) %>%
+  do(broom::tidy(t.test(prevalence_upclone ~ Direction, data = .)))
+
+
+```
+
+
+
+## Write DE and pathway results to file
+
+```{r write-results}
+## Write DE results to file:
+for (don in names(de_res$qlf_list)) {
+  de_res$qlf_list[[don]]$table %>% 
+    dplyr::mutate(gene = rownames(.), FDR = IHW::adj_pvalues(IHW::ihw(PValue, logCPM, alpha = 0.1))) %>%
+    dplyr::arrange(FDR) %>% write_tsv(
+      paste0("output/differential_expression_cardelino-relax/", don, "_qlf_de_results.tsv"))
+}
+
+for (don in names(de_res$camera$H)) {
+  for (cntrst in names(de_res$camera$H[[don]])) {
+    de_res$camera$H[[don]][[cntrst]]$logFC %>% 
+      dplyr::mutate(geneset = rownames(.)) %>%
+      dplyr::arrange(FDR) %>% write_tsv(
+        paste0("output/differential_expression_cardelino-relax/", don, "_camera_hallmark_geneset_results_", cntrst, ".tsv"))    
+  }
+}
+
+```
+
+
+

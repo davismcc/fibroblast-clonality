@@ -100,14 +100,16 @@ Load SingleCellExperiment objects with single-cell gene expression data.
 params <- list()
 params$callset <- "filt_lenient.cell_coverage_sites"
 fls <- list.files("data/sces")
-fls <- fls[grepl(params$callset, fls)]
-lines <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+fls <- fls[grepl(paste0("carderelax.", params$callset), fls)]
+lines <- gsub(".*ce_([a-z]+)_with_clone_assignments_carderelax.*", "\\1", fls)
 
 sce_unst_list <- list()
-for (don in lines) {
-    sce_unst_list[[don]] <- readRDS(file.path("data/sces", 
-        paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
-    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), "cells.\n"))
+for (don in donors) {
+    sce_unst_list[[don]] <- readRDS(file.path("data/sces",
+        paste0("sce_", don, "_with_clone_assignments_carderelax.", 
+               params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), 
+              "unstimulated cells.\n"))
 }
 
 assignments_lst <- list()
@@ -129,7 +131,7 @@ Finally, we load transcriptome-wide differential expression results computed
 using the quasi-likelihood F test method in [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html).
 
 ```{r}
-de_res <- readRDS(paste0("data/de_analysis_FTv62/",
+de_res <- readRDS(paste0("data/de_analysis_FTv62/carderelax.",
                          params$callset, 
                          ".de_results_unstimulated_cells.rds"))
 ```
@@ -143,7 +145,7 @@ are expected to be present in (obtained from the Canopy tree inference).
 cell_assign_list <- list()
 for (don in lines) {
     cell_assign_list[[don]] <- readRDS(file.path("data/cell_assignment", 
-        paste0("cardelino_results.", don, ".", params$callset, ".rds")))
+        paste0("cardelino_results_carderelax.", don, ".", params$callset, ".rds")))
     cat(paste("reading", don, "\n"))
 } 
 

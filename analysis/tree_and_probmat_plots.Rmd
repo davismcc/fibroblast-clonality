@@ -1,0 +1,274 @@
+---
+title: "Tree and probability heatmap plots across all lines"
+author: "Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+
+## Load libraries and data
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.height = 24, fig.width = 24)
+library(tidyverse)
+library(scater)
+library(ggridges)
+library(GenomicRanges)
+library(RColorBrewer)
+library(edgeR)
+library(ggrepel)
+library(rlang)
+library(limma)
+library(org.Hs.eg.db)
+library(ggforce)
+library(cardelino)
+library(cowplot)
+library(IHW)
+library(viridis)
+library(ggthemes)
+library(superheat)
+library(scico)
+options(stringsAsFactors = FALSE)
+```
+
+Load donors and callset.
+
+```{r}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites"
+fls <- list.files("data/sces")
+fls <- fls[grepl(paste0("carderelax.", params$callset), fls)]
+lines <- gsub(".*ce_([a-z]+)_with_clone_assignments_carderelax.*", "\\1", fls)
+```
+
+Load cell-clone assignment results.
+
+```{r load-cell-assign}
+cell_assign_list <- list()
+for (don in lines) {
+    cell_assign_list[[don]] <- readRDS(file.path("data/cell_assignment", 
+        paste0("cardelino_results_carderelax.", don, ".", params$callset, ".rds")))
+    cat(paste("reading", don, "\n"))
+}
+```
+
+
+
+## Tree and probability heatmaps: Cardelino updated trees
+
+We can plot the updated clonal trees after running *Cardelino* (using the tree
+inferred with *Canopy* as a prior) for each line along with the cell-clone 
+assignment results from *cardelino*.
+
+
+```{r plot-tree-cardelino-updated}
+tree_probmat_plot_list <- list()
+
+for (don in lines) {
+  ## produce clonal tree plot
+  fig_tree <- plot_tree(cell_assign_list[[don]]$tree_updated, orient = "v") + 
+    xlab("Clonal tree") +
+    cardelino:::heatmap.theme(size = 16) +
+    ggtitle(don) +
+    theme(axis.text.x = element_blank(), axis.title.y = element_text(size = 20))
+  
+  prob_to_plot <- cell_assign_list[[don]]$prob_mat[
+    colnames(sce_unst_list[[don]])[sce_unst_list[[don]]$well_condition == "unstimulated"], ]
+  hc <- hclust(dist(prob_to_plot))
+  
+  clone_ids <- colnames(prob_to_plot)
+  clone_frac <- colMeans(prob_to_plot[matrixStats::rowMaxs(prob_to_plot) > 0.5,, drop = FALSE])
+  clone_perc <- paste0(clone_ids, ": ", 
+                       round(clone_frac*100, digits = 1), "%")
+  
+  colnames(prob_to_plot) <- clone_perc
+  nba.m <- as_data_frame(prob_to_plot[hc$order,]) %>%
+    dplyr::mutate(cell = rownames(prob_to_plot[hc$order,])) %>%
+    gather(key = "clone", value = "prob", -cell)
+  nba.m <- dplyr::mutate(nba.m, cell = factor(
+    cell, levels = rownames(prob_to_plot[hc$order,])))
+  fig_assign <- ggplot(nba.m, aes(clone, cell, fill = prob)) + 
+    geom_tile(show.legend = TRUE) +
+    # scale_fill_gradient(low = "white", high = "firebrick4",
+    #                     name = "posterior probability of assignment") +
+    scico::scale_fill_scico(palette = "oleron", direction = 1) +
+    ylab(paste("Single cells")) + 
+    cardelino:::heatmap.theme(size = 16) + #cardelino:::pub.theme() +
+    theme(axis.title.y = element_text(size = 20), legend.position = "bottom",
+          legend.text = element_text(size = 12), legend.key.size = unit(0.05, "npc"))
+  
+  p <- plot_grid(fig_tree, fig_assign, nrow = 2, rel_heights = c(0.46, 0.52))
+  #print(p)
+  
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_probmat.png"), height = 10, width = 7.5)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_probmat.pdf"), height = 10, width = 7.5)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_probmat.svg"), height = 10, width = 7.5)
+  # 
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_probmat_wide.png"), height = 9, width = 10)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_probmat_wide.pdf"), height = 9, width = 10)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_probmat_wide.svg"), height = 9, width = 10)
+  tree_probmat_plot_list[[don]] <- p
+}
+
+
+p_tree_grid <- plot_grid(plotlist = tree_probmat_plot_list, align = "hv", 
+                         nrow = 8)
+ggsave(paste0("figures/donor_specific/alldonors_tree_updated_probmat_wide.png"), 
+       height = 45, width = 32, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_tree_updated_probmat_wide.pdf"), 
+       height = 45, width = 32, limitsize = FALSE) 
+
+p_tree_grid
+```
+
+
+## Tree and probability heatmaps: Canopy trees
+
+We can plot the clonal tree inferred with *Canopy* for each donor along with the
+cell-clone assignment results from *cardelino*.
+
+
+```{r plot-tree-canopy}
+tree_canopy_probmat_plot_list <- list()
+
+for (don in lines) {
+  ## produce clonal tree plot
+  fig_tree <- plot_tree(cell_assign_list[[don]]$full_tree, orient = "v") + 
+    xlab("Clonal tree") +
+    cardelino:::heatmap.theme(size = 16) +
+    ggtitle(don) +
+    theme(axis.text.x = element_blank(), axis.title.y = element_text(size = 20))
+  
+  prob_to_plot <- cell_assign_list[[don]]$prob_mat[
+    colnames(sce_unst_list[[don]])[sce_unst_list[[don]]$well_condition == "unstimulated"], ]
+  hc <- hclust(dist(prob_to_plot))
+  
+  clone_ids <- colnames(prob_to_plot)
+  clone_frac <- colMeans(prob_to_plot[matrixStats::rowMaxs(prob_to_plot) > 0.5,, drop = FALSE])
+  clone_perc <- paste0(clone_ids, ": ", 
+                       round(clone_frac*100, digits = 1), "%")
+  
+  colnames(prob_to_plot) <- clone_perc
+  nba.m <- as_data_frame(prob_to_plot[hc$order,]) %>%
+    dplyr::mutate(cell = rownames(prob_to_plot[hc$order,])) %>%
+    gather(key = "clone", value = "prob", -cell)
+  nba.m <- dplyr::mutate(nba.m, cell = factor(
+    cell, levels = rownames(prob_to_plot[hc$order,])))
+  fig_assign <- ggplot(nba.m, aes(clone, cell, fill = prob)) + 
+    geom_tile(show.legend = TRUE) +
+    # scale_fill_gradient(low = "white", high = "firebrick4",
+    #                     name = "posterior probability of assignment") +
+    scico::scale_fill_scico(palette = "oleron", direction = 1) +
+    ylab(paste("Single cells")) + 
+    cardelino:::heatmap.theme(size = 16) + #cardelino:::pub.theme() +
+    theme(axis.title.y = element_text(size = 20), legend.position = "bottom",
+          legend.text = element_text(size = 12), legend.key.size = unit(0.05, "npc"))
+  
+  p <- plot_grid(fig_tree, fig_assign, nrow = 2, rel_heights = c(0.46, 0.52))
+  #print(p)
+  
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_canopy_probmat.png"), height = 10, width = 7.5)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_canopy_probmat.pdf"), height = 10, width = 7.5)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_canopy_probmat.svg"), height = 10, width = 7.5)
+  # 
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_canopy_probmat_wide.png"), height = 9, width = 10)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_canopy_probmat_wide.pdf"), height = 9, width = 10)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_canopy_probmat_wide.svg"), height = 9, width = 10)
+  tree_canopy_probmat_plot_list[[don]] <- p
+}
+
+
+p_tree_grid_canopy <- plot_grid(plotlist = tree_canopy_probmat_plot_list, align = "hv", 
+                         nrow = 8)
+ggsave(paste0("figures/donor_specific/alldonors_tree_canopy_probmat_wide.png"), 
+       height = 50, width = 32, limitsize = FALSE, plot = p_tree_grid_canopy) 
+ggsave(paste0("figures/donor_specific/alldonors_tree_canopy_probmat_wide.pdf"), 
+       height = 50, width = 32, limitsize = FALSE, plot = p_tree_grid_canopy) 
+
+p_tree_grid_canopy
+```
+
+
+## Cardelino updated tree and Canopy tree comparison plots
+
+```{r tree-tree-plots}
+tree_tree_plot_list <- list()
+
+for (don in lines) {
+  ## produce clonal tree plot
+  fig_tree1 <- plot_tree(cell_assign_list[[don]]$tree_updated, orient = "v") + 
+    xlab("Cardelino updated") +
+    cardelino:::heatmap.theme(size = 16) +
+    theme(axis.text.x = element_blank(), axis.title.y = element_text(size = 20))
+  
+  fig_tree2 <- plot_tree(cell_assign_list[[don]]$full_tree, orient = "v") + 
+    xlab("Canopy tree") +
+    cardelino:::heatmap.theme(size = 16) +
+    ggtitle(don) +
+    theme(axis.text.x = element_blank(), axis.title.y = element_text(size = 20))
+  
+  p <- plot_grid(fig_tree2, fig_tree1, nrow = 2, rel_heights = c(0.52, 0.46))
+  #print(p)
+  
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_vs_tree_canopy.png"), height = 10, width = 7.5)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_vs_tree_canopy.pdf"), height = 10, width = 7.5)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_vs_tree_canopy.svg"), height = 10, width = 7.5)
+  # 
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_vs_tree_canopy_wide.png"), height = 9, width = 10)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_vs_tree_canopy_wide.pdf"), height = 9, width = 10)
+  # ggsave(paste0("figures/donor_specific/", don, "_tree_updated_vs_tree_canopy_wide.svg"), height = 9, width = 10)
+  tree_tree_plot_list[[don]] <- p
+}
+
+p_tree_tree_grid <- plot_grid(plotlist = tree_tree_plot_list, align = "hv", 
+                         nrow = 8)
+ggsave(paste0("figures/donor_specific/alldonors_tree_updated_vs_tree_canopy_wide.png"), 
+       height = 45, width = 32, limitsize = FALSE, plot = p_tree_tree_grid) 
+ggsave(paste0("figures/donor_specific/alldonors_tree_updated_vs_tree_canopy_wide.pdf"), 
+       height = 45, width = 32, limitsize = FALSE, plot = p_tree_tree_grid) 
+
+p_tree_tree_grid
+```
+
+
+
+## Configuration-difference plots 
+
+```{r config-diff-plots}
+config_diff_plot_list <- list()
+
+for (don in lines) {
+  ## produce clonal tree plot
+  
+  p <- plot_config_diffs(cell_assign_list[[don]]$Config_prob,
+                         cell_assign_list[[don]]$full_tree$Z) +
+    ggtitle(don) +
+    theme(legend.key.width = unit(0.3, "in")) +
+    scale_fill_gradient2(low = "dodgerblue4", mid = "white",
+                         high = "firebrick4", midpoint = 0, space = "Lab",
+                         na.value = "grey50", guide = "colourbar",
+                         aesthetics = "fill", name = "Config diffs",
+                         limits = c(-1, 1))
+  
+  # ggsave(paste0("figures/donor_specific/", don, "_config-diff_cardelino-canopy.png"), height = 8, width = 6)
+  # ggsave(paste0("figures/donor_specific/", don, "_config-diff_cardelino-canopy.pdf"), height = 8, width = 6)
+  # ggsave(paste0("figures/donor_specific/", don, "_config-diff_cardelino-canopy.svg"), height = 8, width = 6)
+  
+  config_diff_plot_list[[don]] <- p
+}
+
+p_config_diff_grid <- plot_grid(plotlist = config_diff_plot_list, align = "hv",
+                         nrow = 4)
+ggsave(paste0("figures/donor_specific/alldonors_config-diff_cardelino-canopy.png"),
+       height = 20, width = 28, limitsize = FALSE, plot = p_config_diff_grid)
+ggsave(paste0("figures/donor_specific/alldonors_config-diff_cardelino-canopy.pdf"),
+       height = 20, width = 28, limitsize = FALSE, plot = p_config_diff_grid)
+
+p_config_diff_grid
+```
+
+
+
+
+
+

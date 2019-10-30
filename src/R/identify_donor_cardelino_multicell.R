@@ -31,7 +31,6 @@ suppressPackageStartupMessages(library(cardelino))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(pcaMethods))
 
-
 main <- function(input_vcf, output_prefix, donor_vcf) {
     ## Read in VCFs
     cell_vcf <- read_vcf(input_vcf)
@@ -274,4 +273,5 @@ main(opt$input_file, opt$output_prefix, opt$donor_vcf)
 #                 row.names = FALSE)
 #     return("Done.")
 # }
+
 

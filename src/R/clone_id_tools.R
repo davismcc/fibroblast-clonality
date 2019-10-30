@@ -20,14 +20,14 @@
 #'     p <- runif(n_components, 0.0, 1.0)
 #'     psi <- runif(n_components, 0.0, 1.0)
 #'     psi <- psi / sum(psi)
-#'     
+#'
 #'     p_new <- runif(n_components, 0.0, 1.0)
 #'     psi_new <- runif(n_components, 0.0, 1.0)
 #'     psi_new <- psi_new / sum(psi_new)
-#'     
+#'
 #'     prob_mat <- matrix(runif(n_components * S, 0, 1), nrow = S, byrow = TRUE)
 #'     prob_mat <- prob_mat / rowSums(prob_mat)
-#'     
+#'
 #'     ## Iterations
 #'     while (!(all(abs(p - p_new) < tol))) {
 #'         ## E-step:
@@ -36,7 +36,7 @@
 #'                                                 log = FALSE)
 #'         }
 #'         prob_mat <- prob_mat / rowSums(prob_mat)
-#'         
+#'
 #'         ## M-step
 #'         for (j in seq_len(n_components)) {
 #'             p[j] <- p_new[j]
@@ -45,13 +45,13 @@
 #'             psi_new[j] <- sum(prob_mat[,j]) / S
 #'         }
 #'     }
-#'     
+#'
 #'     ## return values
 #'     return_list <- list("p" = p_new, "psi" = psi_new, "prob" = prob_mat)
 #'     return_list
 #'  }
-#' 
-#' 
+#'
+#'
 #'  #' Predicted probability from learned binomial mixture model
 #'  #' @examples
 #'  #' RV <- mixBinom(c(k1,k2), c(n1,n2))
@@ -146,7 +146,7 @@ ggmds <- function(dist_mat, df, colour = "cluster") {
         df, data_frame(MDS_1 = mds_out[, 1], MDS_2 = mds_out[, 2],
                        MDS_3 = mds_out[, 3], MDS_4 = mds_out[, 4],
                        MDS_5 = mds_out[, 5], MDS_6 = mds_out[, 6]))
-    p <- ggplot(df, 
+    p <- ggplot(df,
            aes_string(x = "MDS_1", y = "MDS_2", colour = colour)) +
         geom_point(alpha = 0.5) + theme(legend.position = "bottom") +
         guides(size = FALSE)
@@ -181,7 +181,7 @@ get_ap_clusters <- function(ap) {
 }
 
 
-canopy_post <- function(sampchain, projectname, K, numchain, burnin, thin, 
+canopy_post <- function(sampchain, projectname, K, numchain, burnin, thin,
                         optK, C = NULL, post.config.cutoff = NULL) {
     if (is.null(C)) {
         C = diag(nrow(sampchain[[1]][[1]][[1]]$cna))
@@ -210,7 +210,7 @@ canopy_post <- function(sampchain, projectname, K, numchain, burnin, thin,
     for (treei in 1:length(samptreethin)) {
         samptreethin.lik[treei] = samptreethin[[treei]]$likelihood
     }
-    samptreethin = samptreethin[which((rank(-1 * samptreethin.lik, 
+    samptreethin = samptreethin[which((rank(-1 * samptreethin.lik,
                                             ties.method = "first")) <= 5 * (length(samptreethin)/numchain))]
     samptreethin.lik = rep(NA, length(samptreethin))
     for (treei in 1:length(samptreethin)) {
@@ -243,19 +243,19 @@ canopy_post <- function(sampchain, projectname, K, numchain, burnin, thin,
     }
     z.temp = (samptreethin.lik - mean(samptreethin.lik))/sd(samptreethin.lik)
     samptreethin = samptreethin[z.temp <= 1.5 & z.temp >= -1.5]
-    samptreethin.lik = samptreethin.lik[z.temp <= 1.5 & z.temp >= 
+    samptreethin.lik = samptreethin.lik[z.temp <= 1.5 & z.temp >=
                                         -1.5]
     config = config[z.temp <= 1.5 & z.temp >= -1.5]
     config.summary = matrix(nrow = length(unique(config)), ncol = 3)
-    colnames(config.summary) = c("Configuration", "Post_prob", 
+    colnames(config.summary) = c("Configuration", "Post_prob",
                                  "Mean_post_lik")
     config.summary[, 1] = unique(config)
     for (i in 1:nrow(config.summary)) {
         configi = config.summary[i, 1]
         configi.temp = which(config == configi)
-        config.summary[i, 2] = round(length(configi.temp)/length(config), 
+        config.summary[i, 2] = round(length(configi.temp)/length(config),
                                      3)
-        config.summary[i, 3] = round(max(samptreethin.lik[which(config == 
+        config.summary[i, 3] = round(max(samptreethin.lik[which(config ==
                                                                 configi)]), 2)
     }
     minor.config = which(config.summary[, 2] < post.config.cutoff)
@@ -272,7 +272,7 @@ canopy_post <- function(sampchain, projectname, K, numchain, burnin, thin,
             config[which(config == config.summary[i, 1])] = i
         }
         config.summary[, 1] = 1:nrow(config.summary)
-        config.summary[, 2] = round(config.summary[, 2]/sum(config.summary[, 
+        config.summary[, 2] = round(config.summary[, 2]/sum(config.summary[,
                                                                            2]), 3)
     }
     for (treei in 1:length(samptreethin)) {
@@ -336,8 +336,8 @@ initialsna.bugfix <- function(tree, sna.name) {
     return(sna.mat)
 }
 
-canopy.sample.cluster.nocna.bugfix = function(R, X, sna_cluster, K, numchain, 
-                                       max.simrun, min.simrun, writeskip, 
+canopy.sample.cluster.nocna.bugfix = function(R, X, sna_cluster, K, numchain,
+                                       max.simrun, min.simrun, writeskip,
                                        projectname, cell.line = NULL,
                                        plot.likelihood = NULL) {
     if(length(sna_cluster)!=nrow(R)){
@@ -361,7 +361,7 @@ canopy.sample.cluster.nocna.bugfix = function(R, X, sna_cluster, K, numchain,
     if ( plot.likelihood){
         pdf(file = paste(projectname, "_likelihood.pdf", sep = ""), width = 10, height = 5)
     }
-    
+
     sampname = colnames(R)
     sna.name = rownames(R)
     sampchain = vector("list", length(K))
@@ -374,8 +374,8 @@ canopy.sample.cluster.nocna.bugfix = function(R, X, sna_cluster, K, numchain,
         for (numi in 1:numchain) {  # numi: number of chain
             cat("\tRunning chain", numi, "out of", numchain, "...\n")
             ###################################### Tree initialization #####
-            text = paste(paste(paste(paste("(", 1:(k - 1), ",", sep = ""), 
-                                     collapse = ""), k, sep = ""), paste(rep(")", (k - 1)), 
+            text = paste(paste(paste(paste("(", 1:(k - 1), ",", sep = ""),
+                                     collapse = ""), k, sep = ""), paste(rep(")", (k - 1)),
                                                                          collapse = ""), ";", sep = "")
             runif.temp=runif(1)
             if(k == 5 & runif.temp<0.5){
@@ -394,7 +394,7 @@ canopy.sample.cluster.nocna.bugfix = function(R, X, sna_cluster, K, numchain,
             tree <- read.tree(text = text)
             tree$sna.cluster=initialsna.bugfix(tree,
                 paste('cluster',sort(unique(sna_cluster)),sep=''))
-            sna.mat = cbind(sna=1:nrow(R), 
+            sna.mat = cbind(sna=1:nrow(R),
                 (tree$sna.cluster)[paste0("cluster", sna_cluster),2:3])
             colnames(sna.mat) = c("sna", "sna.st.node", "sna.ed.node")
             rownames(sna.mat) = sna.name
@@ -412,7 +412,7 @@ canopy.sample.cluster.nocna.bugfix = function(R, X, sna_cluster, K, numchain,
             samptree.lik=rep(NA, max.simrun)
             samptree.accept=rep(NA, max.simrun)
             samptree.accept.rate=rep(NA, max.simrun)
-            
+
             while(sampi <= min.simrun){
                 ######### sample sna mutation cluster positions
                 tree.new=tree
@@ -517,14 +517,157 @@ canopy.sample.cluster.nocna.bugfix = function(R, X, sna_cluster, K, numchain,
             par(mfrow=c(1,1))
         }
         sampchain[[ki]] = sampchaink
-        
+
         ki = ki + 1
     }
     if(plot.likelihood) {
         dev.off()
     }
     return(sampchain)
-} 
+}
 
+###################### canopy.cluster #####################################
+canopy.cluster.bugfix <- function(R, X, num_cluster, num_run, Mu.init = NULL,
+                           Tau_Kplus1 = NULL) {
+  if (is.null(Tau_Kplus1)) {
+    Tau_Kplus1 = 0
+  }
+  VAF = R/X
+  s = nrow(R)
+  r = pmax(R, 1)
+  x = pmax(X, 1)
+  Mu_output = Tau_output = pGrank_output = bic_output = vector("list",
+                                                               length(num_cluster))
+  for (K in num_cluster) {
+    cat("Running EM with", K, "clusters...\t")
+    Mu_run = Tau_run = pGrank_run = bic_run = vector("list",
+                                                     num_run)
+    for (run in 1:num_run) {
+      cat(run, "  ")
+      bic.temp = 0
+      Tau = rep(NA, K + 1)
+      Tau[K + 1] = Tau_Kplus1
+      Tau[1:K] = (1 - Tau_Kplus1)/K
+      if (K == 1) {
+        Mu = t(as.matrix(apply(R/X, 2, mean)))
+      }
+      else {
+        if (run == 1 & (!is.null(Mu.init))) {
+          Mu = Mu.init
+        }
+        else if (run <= (num_run/2)) {
+          VAF.pheat = pheatmap(VAF, cluster_rows = TRUE,
+                               cluster_cols = FALSE, kmeans_k = K, silent = TRUE,
+                               clustering_distance_rows = "euclidean")
+          Mu = pmax(VAF.pheat$kmeans$centers, 0.001)
+        }
+        else {
+          if (ncol(R) > 1) {
+            VAF.pheat = pheatmap(VAF, cluster_rows = TRUE,
+                                 cluster_cols = FALSE, kmeans_k = K, silent = TRUE,
+                                 clustering_distance_rows = "correlation")
+            Mu = pmax(VAF.pheat$kmeans$centers, 0.001)
+          }
+          else {
+            VAF.pheat = pheatmap(VAF, cluster_rows = TRUE,
+                                 cluster_cols = FALSE, kmeans_k = K, silent = TRUE,
+                                 clustering_distance_rows = "euclidean")
+            Mu = pmax(VAF.pheat$kmeans$centers, 0.001)
+          }
+        }
+      }
+      diff = 1
+      numiters = 1
+      while (diff > 0.001 || numiters <= 30) {
+        numiters = numiters + 1
+        pG = canopy.cluster.Estep.bugfix(Tau, Mu, r, x)
+        curM = canopy.cluster.Mstep.bugfix(pG, R, X, Tau_Kplus1)
+        curTau = curM$Tau
+        curMu = curM$Mu
+        diff = max(max(abs(Tau - curTau)), max(abs(Mu -
+                                                     curMu)))
+        Mu = curMu
+        Tau = curTau
+      }
+      dim(pG)
+      pGrank = apply(pG, 2, which.max)
+      for (i in 1:s) {
+        if (pGrank[i] <= K) {
+          muk = Mu[pGrank[i], ]
+          for (j in 1:ncol(R)) {
+            bic.temp = bic.temp + log(Tau[pGrank[i]]) +
+              r[i, j] * log(muk[j]) + (x[i, j] - r[i,
+                                                   j]) * log(1 - muk[j])
+          }
+        }
+        if (pGrank[i] == (K + 1)) {
+          for (j in 1:ncol(R)) {
+            bic.temp = bic.temp + log(Tau[pGrank[i]]) +
+              lbeta(r[i, j] + 1, x[i, j] - r[i, j] +
+                      1)
+          }
+        }
+      }
+      bic.temp = 2 * bic.temp - 3 * (length(Tau) - 2 +
+                                       length(Mu)) * log(length(R) + length(X))
+      Mu_run[[run]] = Mu
+      Tau_run[[run]] = Tau
+      pGrank_run[[run]] = pGrank
+      bic_run[[run]] = bic.temp
+    }
+    Mu_output[[which(num_cluster == K)]] = Mu_run[[which.max(bic_run)]]
+    Tau_output[[which(num_cluster == K)]] = Tau_run[[which.max(bic_run)]]
+    pGrank_output[[which(num_cluster == K)]] = pGrank_run[[which.max(bic_run)]]
+    bic_output[[which(num_cluster == K)]] = bic_run[[which.max(bic_run)]]
+    cat("\n")
+  }
+  bic_output = as.numeric(bic_output)
+  Mu = round(Mu_output[[which.max(bic_output)]], 3)
+  Tau = round(Tau_output[[which.max(bic_output)]], 3)
+  pGrank = pGrank_output[[which.max(bic_output)]]
+  sna_cluster = pGrank
+  return(list(bic_output = bic_output, Mu = Mu, Tau = Tau,
+              sna_cluster = sna_cluster))
+}
 
+canopy.cluster.Mstep.bugfix <- function(pG, R, X, Tau_Kplus1) {
+  s = nrow(R)
+  K = nrow(pG) - 1
+  Tau = rep(NA, K + 1)
+  Tau[1:K] = (1 - Tau_Kplus1) * apply(pG[1:K,, drop=FALSE], 1, sum)/(s -
+                                                            sum(pG[K + 1, ]))
+  Tau[K + 1] = Tau_Kplus1
+  pGtemp = pG[1:K,, drop=FALSE]
+  Mu = (pGtemp %*% R)/(pGtemp %*% X)
+  Mu = round(pmax(Mu, 1e-04), 4)
+  return(list(Mu = Mu, Tau = Tau))
+}
 
+canopy.cluster.Estep.bugfix <- function(Tau, Mu, R, X) {
+  s = nrow(R)
+  K = nrow(Mu)
+  Mu = pmax(Mu, 0.001)
+  pG = matrix(nrow = K + 1, ncol = s, data = log(Tau))
+  pG[1:K,] = pG[1:K,] + log(Mu) %*% t(R) + log(1 - Mu) %*%
+    (t(X - R))
+  for (j in 1:ncol(R)) {
+    pG[K + 1, ] = pG[K + 1, ] + lbeta(R[, j] + 1, X[, j] -
+                                        R[, j] + 1)
+  }
+  if (Tau[length(Tau)] != 0) {
+    pGtemp = pG
+    pGtemp = pGtemp - matrix(ncol = ncol(pGtemp), nrow = nrow(pGtemp),
+                             data = apply(pGtemp, 2, max), byrow = TRUE)
+    pGtemp = exp(pGtemp)
+    pGtemp = pGtemp/matrix(nrow = nrow(pG), ncol = ncol(pG),
+                           data = colSums(pGtemp), byrow = TRUE)
+    pG[K + 1, (rank(pGtemp[K + 1, ], ties.method = "random")) <=
+         (ncol(pG) * (1 - Tau[K + 1]))] = -Inf
+  }
+  pG = pG - matrix(ncol = ncol(pG), nrow = nrow(pG), data = apply(pG,
+                                                                  2, max), byrow = TRUE)
+  pG = exp(pG)
+  pG = pG/matrix(nrow = nrow(pG), ncol = ncol(pG), data = colSums(pG),
+                 byrow = TRUE)
+  return(pG)
+}

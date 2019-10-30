@@ -1,0 +1,1812 @@
+# Assess somatic variant calls from Mutect2 fibro-ipsc comparison
+
+# Setup
+
+This analysis uses the following packages available
+from [CRAN](https://cran.r-project.org/)
+and [Bioconductor](http://www.bioconductor.org/).
+
+```{r setup, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(ggthemes)
+library(cowplot)
+library(stringi)
+library(viridis)
+library(ggbeeswarm)
+library(ggridges)
+library(ggtree)
+library(scater)
+library(vcfR)
+library(GenomicRanges)
+library(entropy)
+library(ggtern)
+library(pcaMethods)
+library(future)
+```
+
+
+# Load high-coverage exome site data for all 62 donors from Petr Danecek
+
+We first need to load the exome data that we use to define significant
+mutation sites.
+
+Petr Danecek prepared the exome dataset as follows. For each donor:
+
+* detect all sites where we see a non-reference base in the pileup;
+* require minimum per-sample coverage of 20 reads;
+* require at least 3 alternate reads in either fibroblast or iPS;
+* require allele frequency in ExAC and 1000GP < 5%.
+
+Fishers Exact Test is then performed on these variants to detect
+fibroblast-iPS pairs with significantly changed proportion of REF/ALT
+reads.
+
+On output a tab-delimited text file is produced which includes fields
+shown below (*) and which should be further filtered, depending on the
+purpose of the analysis.
+
+```{r load-exome-sites}
+exome_sites_hicov <- read_tsv(
+    "data/exome-point-mutations/high-vs-low-exomes.v62.ft.txt.gz",
+    col_types = "ciccdcciiiicccccccc", comment = "#",
+    col_names = c("chrom", "pos", "fibro", "ips", "Fisher_Pval", "ref", "alt",
+                  "nREF_fibro", "nALT_fibro",
+                  "nREF_ips", "nALT_ips",
+                    "AF_1000G", "AF_ExAC", "clinsing", "SIFT_Pdel", "PolyPhen_Pdel", "gene_name", "ENSID", "bcftools_csq"))
+exome_sites_hicov <- dplyr::mutate(
+    exome_sites_hicov, 
+    propALT_fibro = (nALT_fibro / (nREF_fibro + nALT_fibro)),
+    propALT_ips = (nALT_ips / (nREF_ips + nALT_ips)),
+    donor_short_id = gsub("HPS.*-", "", fibro),
+    fdr = p.adjust(Fisher_Pval, method = "BH"),
+    var_id = paste0(chrom, ":", pos, "_", ref, "_", alt))
+```
+
+Define a function to calculate Fisher's Exact Test to find somatic variants 
+based on a difference in variant allele frequency between iPSC and fibroblast 
+samples.
+
+```{r}
+fisher_fun <- function(df) {
+    pvals <- rep(NA, nrow(df))
+    for (i in seq_len(nrow(df))) {
+        x <- matrix(c(df[["nREF_fibro_hicov"]][i], df[["nREF_ips_locov"]][i], df[["nALT_fibro_hicov"]][i], df[["nALT_ips_locov"]][i]), nrow = 2)
+        pvals[i] <- fisher.test(x, conf.int = FALSE)$p.value
+    }
+    pvals
+}
+```
+
+For clonal inference, we apply the following filters:
+
+* a Benjamini-Hochberg FDR of less than 10%;
+* a minimum VAF in high-coverage fibroblast of 1%;
+* a maximum VAF in high-coverage fibroblast of 60% (to avoid the rare
+  possibility of a homozygous alternative mutation);
+* a maximum VAF in low-coverage iPSCs of 70% (to avoid the unlikely possibility
+  that a homozygous alternative mutation in the fibroblasts corresponds to what
+  must be a homozygous mutation in some cells in iPSCs);
+* at least 3 alternative alleles observed for the site;
+* a VAF < 0.35 in the fibroblast sample *or* VAF < 0.3 in the iPS sample
+* require uniqueness of sites across donors as it is highly unlikely to observe
+  the same point mutations and they are most likely artefacts of some sort.
+
+
+```{r}
+nonuniq_sites <- exome_sites_hicov %>% group_by(var_id) %>%
+    summarise(n_donors = length(unique(fibro)))
+```
+
+
+```{r}
+exome_sites_hicov <- dplyr::mutate(exome_sites_hicov, uniq_site = (var_id %in% nonuniq_sites[["var_id"]][nonuniq_sites[["n_donors"]] < 1.5]))
+
+exome_sites_hicov <- dplyr::mutate(exome_sites_hicov,
+                                  sig_fdr_0.5pct = (fdr < 0.005 & propALT_fibro > 0.01 & propALT_fibro < 0.6 & nALT_fibro > 2.5 & propALT_ips < 0.7 & uniq_site &
+                                                   (propALT_fibro < 0.35 | propALT_ips < 0.3)),
+                                  sig_fdr_1pct = (fdr < 0.01 & propALT_fibro > 0.01 & propALT_fibro < 0.6 & nALT_fibro > 2.5 & propALT_ips < 0.7 & uniq_site &
+                                                 (propALT_fibro < 0.35 | propALT_ips < 0.3)),
+                                   sig_fdr_5pct = (fdr < 0.05 & propALT_fibro > 0.01 & propALT_fibro < 0.6 & nALT_fibro > 2.5 & propALT_ips < 0.7 & uniq_site &
+                                                  (propALT_fibro < 0.35 | propALT_ips < 0.3)),
+                                   sig_fdr_10pct = (fdr < 0.1 & propALT_fibro > 0.01 & propALT_fibro < 0.6 & nALT_fibro > 2.5 & propALT_ips < 0.7 & uniq_site &
+                                                   (propALT_fibro < 0.35 | propALT_ips < 0.3))
+                                  )
+exome_sites_hicov <- dplyr::mutate(exome_sites_hicov, line = gsub("HPS.*pf-", "", fibro))
+lines_used <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
+            "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
+            "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
+            "ualf", "vass", "vils", "vuna", "wahn", "wetu", "xugn", "zoxy")
+exome_sites_hicov_used <- exome_sites_hicov[exome_sites_hicov[["line"]] %in% lines_used,]
+```
+
+
+Filter to "significant" somatic variants and filter down to lines used in the 
+study.
+
+```{r}
+exome_sites_hicov_sig <- exome_sites_hicov %>%
+    dplyr::filter(fdr < 0.1, propALT_fibro > 0.01,
+                  propALT_fibro < 0.6, nALT_fibro > 1.5, 
+                   (propALT_fibro < 0.45 | propALT_ips < 0.45),
+                  propALT_ips < 0.8)
+
+nonuniq_sites <- exome_sites_hicov_sig %>% group_by(var_id) %>%
+    summarise(n_donors = length(unique(donor_short_id))) %>%
+    dplyr::filter(n_donors > 1.5)
+
+exome_sites_hicov_sig <- dplyr::filter(exome_sites_hicov_sig,
+                          !(var_id %in% nonuniq_sites[["var_id"]]))
+
+exome_sites_hicov_sig <- exome_sites_hicov_sig[exome_sites_hicov_sig[["line"]] %in% lines_used,]
+```
+
+
+The FDR threshold is by far the most important filter for sites here.
+
+```{r}
+options(repr.plot.height = 7, repr.plot.width = 11)
+exome_sites_hicov_sig %>% group_by(donor_short_id) %>% summarise(n_sites = n()) %>%
+    transform(donor_short_id=reorder(donor_short_id, n_sites)) %>%
+ggplot(aes(x = n_sites, y = donor_short_id)) +
+geom_vline(xintercept = 50, colour =  "firebrick", linetype = 2) +
+geom_point() + theme_bw(18) + theme(axis.text.y = element_text(size = 10)) +
+ylab("donor") + xlab("number of somatic mutations") +
+ggtitle("Number of significant somatic mutations (FDR < 10%)")
+```
+
+```{r}
+table(exome_sites_hicov_sig %>% group_by(donor_short_id) %>% summarise(n_sites = n()) %>% .[["n_sites"]] >= 50)
+```
+
+41 donors with at least 50 significant somatic mutations (FDR < 10%), 19 variants with fewer.
+
+```{r}
+exome_sites_hicov %>% dplyr::filter(sig_fdr_10pct) %>% group_by(donor_short_id) %>% summarise(n_sites = n()) %>%
+    transform(donor_short_id=reorder(donor_short_id, n_sites)) %>% DT::datatable(.)
+```
+
+```{r}
+options(repr.plot.height = 14, repr.plot.width = 16)
+exome_sites_hicov_sig %>% 
+  ggplot(aes(x = propALT_fibro, y = propALT_ips)) +
+  geom_point(alpha = 0.4) + 
+  geom_abline(linetype = 2, colour = "dodgerblue3") +
+  scale_colour_manual(values = c("gray60", "firebrick4")) +
+  facet_wrap(~line, ncol = 4) +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  xlab("Variant allele frequency - fibroblast") +
+  ylab("Variant allele frequency - iPSC") +
+  theme_bw()
+ggsave("figures/somatic_variant_calling/vaf-ipsc-vs-fibro-facet-by-donor-01.png",
+       height = 10, width = 7.5)
+
+exome_sites_hicov_sig %>% 
+  dplyr::filter(line == "vass") %>%
+  ggplot(aes(x = propALT_fibro, y = propALT_ips)) +
+  geom_point(alpha = 0.4) + 
+  geom_abline(linetype = 2, colour = "dodgerblue3") +
+  scale_colour_manual(values = c("gray60", "firebrick4")) +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  xlab("Variant allele frequency - fibroblast") +
+  ylab("Variant allele frequency - iPSC") +
+  theme_bw()
+ggsave("figures/somatic_variant_calling/vaf-ipsc-vs-fibro-vass-01.png",
+       height = 4, width = 5.5)
+```
+
+Show this plot with density of points shown with contours.
+
+```{r}
+options(repr.plot.height = 14, repr.plot.width = 16)
+exome_sites_hicov_sig %>% 
+  ggplot(aes(x = propALT_fibro, y = propALT_ips)) +
+  stat_density2d(aes(fill = ..density..^0.1, alpha = ..density..^0.1), geom = 'raster', contour = FALSE, 
+                 exome_sites_hicov_sig) +
+  geom_point(alpha = 0.5) + 
+  geom_abline(linetype = 2, colour = "firebrick") +
+  scale_colour_manual(values = c("gray60", "black")) +
+  #scale_fill_gradient(low = "snow3", high = "firebrick4", trans = "log10") +
+  scale_fill_viridis(option = "B", name = "relative\ndensity") +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  xlab("Variant allele frequency - fibroblast") +
+  ylab("Variant allele frequency - iPSC") +
+  facet_wrap(~line, ncol = 4) +
+  guides(alpha = "none") +
+  theme_bw()
+ggsave("figures/somatic_variant_calling/vaf-ipsc-vs-fibro-facet-by-donor-02.png",
+       height = 10, width = 7.5)
+```
+
+```{r}
+options(repr.plot.height = 14, repr.plot.width = 16)
+p <- exome_sites_hicov_sig %>% 
+    ggplot(aes(x = propALT_fibro, y = line, fill = ips)) +
+    geom_density_ridges(alpha = 0.6) +
+    scale_fill_viridis(option = "B", discrete = TRUE) +
+    ggtitle("ALT allele proportion in iPSCs",
+            subtitle = "Filtered somatic mutation sites") +
+    guides(fill = FALSE) + ylab(NULL) + xlab("VAF in iPSCs")
+p + theme_ridges()
+```
+
+```{r}
+pp <- exome_sites_hicov_sig %>%
+    ggplot(aes(x = propALT_fibro, y = propALT_ips)) +
+    geom_point(size = 0.5, colour = "gray40", alpha = 0.7) +
+    scale_color_viridis(option = "B", name = "Density") +
+    theme_classic() + scale_y_continuous(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0)) +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Filtered mutation sites") +
+    xlab("Variant allele frequency in fibroblasts") +
+    ylab("Variant allele frequency in iPSCs") 
+pp + geom_density_2d(aes(colour = ..level..^0.25), alpha = 0.8, size = 0.5) +
+    facet_wrap(~fibro) + theme_few()
+```
+
+```{r}
+options(repr.plot.height = 14, repr.plot.width = 16)
+exome_sites_hicov_sig %>% 
+# dplyr::filter(propALT_ips > 0.01 & propALT_fibro > 0.01) %>%
+#    transform(propALT_fibro = propALT_fibro + runif(length(propALT_fibro), -0.01, 0.02),
+#            propALT_ips = propALT_ips + runif(length(propALT_ips), -0.01, 0.02)) %>%
+ggplot(aes(x = propALT_fibro, y = propALT_ips)) +
+stat_density2d(aes(fill=..density..^0.1), geom='raster', contour = FALSE, data = dplyr::filter(exome_sites_hicov, propALT_ips > 0.01, propALT_fibro > 0.01)) +
+geom_point(alpha = 0.5, colour = "yellow", data = dplyr::filter(exome_sites_hicov, sig_fdr_10pct)) + 
+geom_abline(linetype = 2, colour = "firebrick") +
+#scale_fill_gradient(low = "snow3", high = "firebrick4", trans = "log10") +
+scale_fill_viridis(option = "B") +
+facet_wrap(~fibro, scales = "free") +
+guides(alpha="none", fill = "none", colour = "none") +
+theme_classic()
+```
+
+```{r}
+exome_sites_hicov_sig %>% 
+  transform(propALT_fibro = propALT_fibro + runif(length(propALT_fibro), -0.01, 0.02),
+            propALT_ips = propALT_ips + runif(length(propALT_ips), -0.01, 0.02)) %>%
+  ggplot(aes(x = propALT_fibro, y = propALT_ips)) +
+  geom_point(alpha = 0.5, colour = "gray60") + 
+  geom_abline(linetype = 2, colour = "dodgerblue3") +
+  #scale_fill_gradient(low = "snow3", high = "firebrick4", trans = "log10") +
+  scale_fill_viridis(option = "B") +
+  facet_wrap(~line, ncol = 4) +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  guides(alpha = "none") +
+  theme_classic()
+ggsave("figures/somatic_variant_calling/vaf-ipsc-vs-fibro-facet-by-donor-03.png",
+       height = 10, width = 7.5)
+
+
+exome_sites_hicov_sig %>% 
+  dplyr::filter(line == "vass") %>%
+  transform(propALT_fibro = propALT_fibro + runif(length(propALT_fibro), -0.01, 0.02),
+            propALT_ips = propALT_ips + runif(length(propALT_ips), -0.01, 0.02)) %>%
+  ggplot(aes(x = propALT_fibro, y = propALT_ips)) +
+  geom_point(alpha = 0.5) + 
+  geom_abline(linetype = 2, colour = "dodgerblue3") +
+  scale_colour_manual(values = c("gray60", "black")) +
+  #scale_fill_gradient(low = "snow3", high = "firebrick4", trans = "log10") +
+  scale_fill_viridis(option = "B") +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  guides(alpha = "none") +
+  theme_classic()
+ggsave("figures/somatic_variant_calling/vaf-ipsc-vs-fibro-vass-03.png",
+       height = 10, width = 7.5)
+
+```
+
+## Write output files for genotyping and tree inference
+
+```{r}
+table(exome_sites_hicov %>% dplyr::filter(sig_fdr_10pct) %>% .[["chrom"]])
+```
+
+```{r}
+getwd()
+```
+
+```{r}
+regions_to_call_df <- exome_sites_hicov %>% dplyr::filter(sig_fdr_10pct) %>% select(chrom, pos) %>% dplyr::mutate(chrom = paste0("chr", chrom))
+colnames(regions_to_call_df) <- toupper(colnames(regions_to_call_df))
+regions_to_call_df <- regions_to_call_df[
+    !duplicated(paste(regions_to_call_df[["CHROM"]], regions_to_call_df[["POS"]])),]
+head(regions_to_call_df)
+nrow(regions_to_call_df)
+```
+
+```{r}
+write_tsv(regions_to_call_df, "../../Data/exome-point-mutations/high-vs-low-exomes.v62.regions_to_call.tsv", col_names = FALSE)
+```
+
+## Write filtered output for downstream analysis
+
+```{r}
+write_tsv(dplyr::filter(exome_sites_hicov, sig_fdr_10pct), "../../Data/exome-point-mutations/high-vs-low-exomes.v62.ft.filtered.txt.gz", col_names = TRUE)
+```
+
+
+# Read Mutect2 variant calls - fibro-ipsc
+
+```{r}
+fls_fi_vcf <- list.files("data/raw/mutect/", pattern = ".*somatic_fibro-ipsc_oncefiltered.vcf.gz$")
+head(fls_fi_vcf)
+
+fls_fi_vcf <- file.path("data/raw/mutect", fls_fi_vcf)
+length(fls_fi_vcf)
+vcf_fi_list <- lapply(fls_fi_vcf, function(x) read.vcfR(x, verbose = TRUE))
+
+pryr::mem_used()
+```
+
+Set up parallel processing of VCFs into tidy representations.
+
+```{r}
+library(foreach)
+library(BiocParallel)
+register(MulticoreParam(workers = 10, progressbar = TRUE))
+library(doParallel)
+registerDoParallel(8)
+register(DoparParam(), default=TRUE)
+```
+
+```{r}
+tidy_fi_list <- foreach(donor = seq_along(vcf_fi_list), .packages = 'vcfR') %dopar% vcfR2tidy(vcf_fi_list[[donor]], format_fields = c("GT", "DP", "AD", "GQ", "AF"))
+names(vcf_fi_list) <- names(tidy_fi_list) <- gsub(".somatic_fibro-ipsc_oncefiltered.vcf.gz", "", gsub("data/raw/mutect/", "", fls_fi_vcf))
+head(names(vcf_fi_list))
+```
+
+```{r}
+neat_fi_list <- foreach(donor = seq_along(tidy_fi_list), .packages = c('dplyr', 'tibble')) %dopar% {
+    ad <- extract.gt(vcf_fi_list[[donor]], element = "AD")
+    ad_ref <- masplit(ad, record = 1L, sort = FALSE)
+    ad_alt <- masplit(ad, record = 2L, sort = FALSE)
+    af <- extract.gt(vcf_fi_list[[donor]], element = "AF")
+    df <- tidy_fi_list[[donor]]$fix
+    df <- add_column(df,
+                     donor = names(vcf_fi_list)[donor],
+                     nREF_ipsc = ad_ref[,1],
+                     nREF_fibro = ad_ref[,2],
+                     nALT_ipsc = ad_alt[,1],
+                     nALT_fibro = ad_alt[,2],
+                     mutect_AF_ipsc = as.numeric(af[,1]),
+                     mutect_AF_fibro = as.numeric(af[,2]))
+    df <- dplyr::mutate(df,
+                         var_id = paste0(CHROM, ":", POS, "_", REF, "_", ALT))
+    df <- dplyr::mutate(df,
+                        raw_AF_ipsc = nALT_ipsc / DP,
+                        raw_AF_fibro = nALT_fibro / DP,
+                        P_GERMLINE = as.numeric(P_GERMLINE),
+                        line = gsub("HPS.*-", "", donor))
+    df[["FILTER2"]] <- "FAIL"
+    df[["FILTER2"]][df[["FILTER"]] == "PASS"] <- "PASS"
+    df
+    }
+```
+
+```{r}
+head(neat_fi_list[[1]])
+neat_fi <- bind_rows(neat_fi_list)
+dim(neat_fi)
+
+
+mutect_nonuniq_sites <- neat_fi %>% group_by(var_id) %>%
+    summarise(n_donors = length(unique(line))) %>%
+    dplyr::filter(n_donors > 1.5)
+
+mutect_filt <- dplyr::filter(neat_fi,
+                             !(var_id %in% nonuniq_sites[["var_id"]]),
+                             FILTER2 == "PASS", line %in% lines_used, 
+                             raw_AF_fibro < 0.6, raw_AF_fibro > 0.01)
+dim(mutect_filt)
+```
+
+
+```{r}
+mutect_filt %>%
+  ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc)) +
+  geom_point(alpha = 0.6) +
+  geom_abline(linetype = 2, colour = "dodgerblue") +
+  facet_wrap(~line, ncol = 4) +
+  ylab("Variant allele frequency - iPSC") +
+  xlab("Variant allele frequency - fibroblast") +
+  ylim(0, 1) +
+  xlim(0, 1) +
+  theme_bw()
+ggsave("figures/somatic_variant_calling/mutect2-vaf-ipsc-vs-fibro-facet-by-donor-01.png",
+       height = 10, width = 7.5)
+```
+
+Show this plot with density of points shown with contours.
+
+```{r}
+mutect_filt %>% 
+  ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc)) +
+  stat_density2d(aes(fill = ..density..^0.1, alpha = ..density..^0.1), geom = 'raster', contour = FALSE) +
+  geom_point(alpha = 0.5) + 
+  geom_abline(linetype = 2, colour = "firebrick") +
+  scale_colour_manual(values = c("gray60", "black")) +
+  scale_fill_viridis(option = "B", name = "relative\ndensity") +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  xlab("Variant allele frequency - fibroblast") +
+  ylab("Variant allele frequency - iPSC") +
+  facet_wrap(~line, ncol = 4) +
+  guides(alpha = "none") +
+  theme_bw()
+ggsave("figures/somatic_variant_calling/mutect2-vaf-ipsc-vs-fibro-facet-by-donor-02.png",
+       height = 10, width = 7.5)
+```
+
+
+```{r}
+mutect_filt %>%
+  ggplot(aes(x = raw_AF_fibro)) +
+  geom_histogram(alpha = 0.6) +
+  facet_wrap(~line, ncol = 4) +
+  theme_bw() 
+ggsave("figures/somatic_variant_calling/mutect2-vaf-fibro-histo-facet-by-donor-02.png",
+       height = 10, width = 7.5)
+```
+
+Save full mutect2 dataframe to file for later use.
+
+```{r}
+saveRDS(neat_fi, "data/raw/mutect/mutect_fibro-ipsc_somatic_variants_dataframe.rds")
+```
+
+
+# Compare Mutect2 and our variant calls on vass
+
+```{r}
+mutect_filt <- dplyr::mutate(
+  mutect_filt, DP_raw = nREF_ipsc + nALT_ipsc + nREF_fibro + nALT_fibro,
+  DP_ipsc = nREF_ipsc + nALT_ipsc, DP_fibro = nREF_fibro + nALT_fibro,
+  DP_ipsc_bin = cut(DP_ipsc, breaks = c(-1, 10, 20, 50, 100, 500, Inf)), 
+  DP_fibro_bin = cut(DP_fibro, breaks = c(-1, 10, 20, 50, 100, 500, Inf)))
+
+gr_mutect_vass <- makeGRangesFromDataFrame(
+  dplyr::filter(mutect_filt, line == "vass"),
+  keep.extra.columns = TRUE,
+  ignore.strand = TRUE,
+  seqinfo = NULL,
+  seqnames.field = c("CHROM"),
+  start.field = "POS",
+  end.field = "POS",
+  strand.field = "strand")
+length(gr_mutect_vass)
+
+gr_petr_vass <- exome_sites_hicov_sig %>% 
+  dplyr::filter(line == "vass") %>%
+  makeGRangesFromDataFrame(keep.extra.columns = TRUE,
+                           ignore.strand = TRUE,
+                           seqinfo=NULL,
+                           start.field="pos",
+                           end.field= "pos")
+length(gr_petr_vass)
+
+# exome_sites %>% dplyr::filter(donor_short_id == "vass")
+# exome_sites_sig %>% dplyr::filter(donor_short_id == "vass")
+
+shared_vars <- findOverlaps(gr_petr_vass, gr_mutect_vass)
+shared_vars
+
+gr_petr_vass$called_mutect <- "not called by Mutect2"
+gr_petr_vass$called_mutect[queryHits(shared_vars)] <- "called by Mutect2"
+
+gr_mutect_vass$called_petr <- "not called by our approach"
+gr_mutect_vass$called_petr[subjectHits(shared_vars)] <- "called by our approach"
+
+table(gr_petr_vass$called_mutect, gr_petr_vass$propALT_ips > 0.05)
+
+table(gr_mutect_vass$called_petr, gr_mutect_vass$raw_AF_ipsc > 0.05)
+
+```
+
+```{r}
+gr_petr_vass %>%
+  as.data.frame %>%
+  ggplot(aes(x = propALT_fibro, y = propALT_ips, colour = called_mutect)) +
+  geom_point() +
+  scale_colour_manual(values = c("firebrick3", "grey60")) +
+  ylim(0, 0.6) + 
+  xlim(0, 0.6) +
+  facet_wrap(~called_mutect, ncol = 2) +
+  theme_bw() +
+  guides(colour = "none") +
+  xlab("Variant allele frequency - fibroblast") +
+  ylab("Variant allele frequency - iPSC") +
+  ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+          subtitle = "Somatic variants in vass called with our approach")
+ggsave("figures/somatic_variant_calling/petr-vaf-ipsc-vs-fibro-vass-compare-mutect-petr-01.png",
+       height = 5, width = 9)
+
+
+gr_mutect_vass %>%
+  as.data.frame %>%
+  ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc, colour = called_petr)) +
+  geom_point() +
+  scale_colour_manual(values = c("firebrick3", "grey60")) +
+  ylim(0, 0.6) + 
+  xlim(0, 0.6) +
+  facet_wrap(~called_petr, ncol = 2) +
+  theme_bw() +
+  guides(colour = "none") +
+  xlab("Variant allele frequency - fibroblast") +
+  ylab("Variant allele frequency - iPSC") +
+  ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+          subtitle = "Somatic variants in vass called by Mutect2")
+ggsave("figures/somatic_variant_calling/mutect-vaf-ipsc-vs-fibro-vass-compare-mutect-petr-01.png",
+       height = 5, width = 9)
+```
+
+Consider coverage depth in Mutect2 variant calls.
+
+
+```{r}
+table(gr_mutect_vass$called_petr, gr_mutect_vass$DP_fibro_bin)
+
+gr_mutect_vass %>%
+  as.data.frame %>%
+  ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc, colour = called_petr)) +
+  geom_point() +
+  scale_colour_manual(values = c("firebrick3", "grey60")) +
+  ylim(0, 0.2) + 
+  xlim(0, 0.6) +
+  facet_grid(DP_fibro_bin~called_petr) +
+  theme_bw() +
+  guides(colour = "none") +
+  xlab("Variant allele frequency - fibroblast") +
+  ylab("Variant allele frequency - iPSC") +
+  ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+          subtitle = "Somatic variants in vass called by Mutect2, faceted by read depth in fibroblast sample")
+ggsave("figures/somatic_variant_calling/mutect-vaf-ipsc-vs-fibro-vass-compare-mutect-petr-facet-fibro-depth-01.png",
+       height = 8, width = 9)
+
+table(gr_mutect_vass$called_petr, gr_mutect_vass$DP_ipsc_bin)
+
+gr_mutect_vass %>%
+  as.data.frame %>%
+  ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc, colour = called_petr)) +
+  geom_point() +
+  scale_colour_manual(values = c("firebrick3", "grey60")) +
+  ylim(0, 0.2) + 
+  xlim(0, 0.6) +
+  facet_grid(DP_ipsc_bin~called_petr) +
+  theme_bw() +
+  guides(colour = "none") +
+  xlab("Variant allele frequency - fibroblast") +
+  ylab("Variant allele frequency - iPSC") +
+  ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+          subtitle = "Somatic variants in vass called by Mutect2, faceted by read depth in iPSC sample")
+ggsave("figures/somatic_variant_calling/mutect-vaf-ipsc-vs-fibro-vass-compare-mutect-petr-facet-ipsc-depth-01.png",
+       height = 8, width = 9)
+
+
+
+```
+
+Across all lines.
+
+```{r}
+gr_mutect <- makeGRangesFromDataFrame(
+  mutect_filt,
+  keep.extra.columns = TRUE,
+  ignore.strand = TRUE,
+  seqinfo = NULL,
+  seqnames.field = c("CHROM"),
+  start.field = "POS",
+  end.field = "POS",
+  strand.field = "strand")
+length(gr_mutect)
+
+gr_petr <- exome_sites_hicov_sig %>% 
+  makeGRangesFromDataFrame(keep.extra.columns = TRUE,
+                           ignore.strand = TRUE,
+                           seqinfo=NULL,
+                           start.field="pos",
+                           end.field= "pos")
+length(gr_petr)
+
+shared_vars <- findOverlaps(gr_petr, gr_mutect)
+shared_vars
+
+gr_petr$called_mutect <- "not called by Mutect2"
+gr_petr$called_mutect[queryHits(shared_vars)] <- "called by Mutect2"
+
+gr_mutect$called_petr <- "not called by our approach"
+gr_mutect$called_petr[subjectHits(shared_vars)] <- "called by our approach"
+
+table(gr_petr$called_mutect)
+table(gr_petr$called_mutect, gr_petr$propALT_ips > 0.05)
+
+table(gr_mutect$called_petr, gr_mutect$raw_AF_ipsc > 0.05)
+
+table(gr_mutect$called_petr, gr_mutect$DP_fibro_bin)
+```
+
+
+
+---------------------------
+
+### Look at effect of coverage
+
+```{r}
+neat_fi <- dplyr::mutate(neat_fi, DP_raw = nREF_ipsc + nALT_ipsc + nREF_fibro + nALT_fibro,
+                        DP_ipsc = nREF_ipsc + nALT_ipsc, DP_fibro = nREF_fibro + nALT_fibro,
+                        DP_ipsc_bin = cut(DP_ipsc, breaks = c(-1, 10, 20, 50, 100, 500, Inf)), DP_fibro_bin = cut(DP_fibro, breaks = c(-1, 10, 20, 50, 100, 500, Inf)))
+
+neat_fi %>% dplyr::filter(FILTER2 == "PASS") %>%
+dplyr::select(var_id, donor, DP, DP_raw, DP_ipsc, DP_ipsc_bin, DP_fibro, DP_fibro_bin, nREF_ipsc, nALT_ipsc, nREF_fibro, nALT_fibro, raw_AF_ipsc, raw_AF_fibro, mutect_AF_fibro) %>% head(n = 20)
+
+table(neat_fi[["FILTER2"]])
+
+sum(!duplicated(dplyr::filter(neat_fi, FILTER2 == "PASS")[["var_id"]]))
+
+sum(duplicated(dplyr::filter(neat_fi, FILTER2 == "PASS")[["var_id"]]))
+
+sum(duplicated(neat_fi[["var_id"]]))
+```
+
+```{r}
+options(repr.plot.height = 8, repr.plot.width = 12)
+neat_fi %>% dplyr::filter(FILTER2 == "PASS") %>%
+ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc, colour = FILTER2)) +
+geom_point(alpha = 0.3) +
+geom_abline(linetype = 2) +
+scale_colour_manual(values = c("gray60", "firebrick4")) +
+facet_wrap(~DP_ipsc_bin) + ggtitle("Variants binned by depth in iPSCs") +
+theme_classic()
+```
+
+```{r}
+options(repr.plot.height = 8, repr.plot.width = 12)
+neat_fi %>% dplyr::filter(FILTER2 == "PASS") %>%
+ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc, colour = FILTER2)) +
+geom_point(alpha = 0.3) +
+geom_abline(linetype = 2) +
+scale_colour_manual(values = c("gray60", "firebrick4")) +
+facet_wrap(~DP_fibro_bin) + ggtitle("Variants binned by depth in Fibroblast") +
+theme_classic()
+```
+
+```{r}
+table(dplyr::filter(neat_fi, FILTER2 == "PASS")[["DP_fibro_bin"]])
+```
+
+```{r}
+table(dplyr::filter(neat_fi, FILTER2 == "PASS")[["DP_ipsc_bin"]])
+```
+
+```{r}
+neat_fi_filt <- dplyr::filter(neat_fi, FILTER2 == "PASS", !(var_id %in% var_id[duplicated(var_id)]))
+```
+
+```{r}
+dim(neat_fi_filt)
+```
+
+```{r}
+table(dplyr::filter(neat_fi_filt)[["DP_ipsc_bin"]])
+```
+
+```{r}
+table(dplyr::filter(neat_fi_filt)[["DP_fibro_bin"]])
+```
+
+### Make GRanges object
+
+```{r}
+```
+
+```{r}
+gr_fi <- dplyr::filter(neat_fi, FILTER2 == "PASS") %>% dplyr::mutate(end = POS + 1) %>% 
+    makeGRangesFromDataFrame(, start.field = "POS", end.field = "end", seqnames.field = "CHROM", keep.extra.columns = TRUE)
+```
+
+```{r}
+gr_fi
+```
+
+```{r}
+median(gr_fi$DP_ipsc)
+```
+
+```{r}
+median(gr_fi$DP_fibro)
+```
+
+```{r}
+source("https://bioconductor.org/biocLite.R")
+biocLite("EnsDb.Hsapiens.v75")
+```
+
+```{r}
+library(EnsDb.Hsapiens.v75)
+```
+
+# Read in vass variant calls - fibro-ipsc
+
+```{r vass-calls}
+vcf_vass_fi <- read.vcfR("../../Data/SS2_2017/mutect/exomeseq/HPSI0114pf-vass.somatic_fibro-ipsc_oncefiltered.vcf.gz",
+                      verbose = TRUE)
+head(vcf_vass_fi)
+vcf_vass_fi[is.biallelic(vcf_vass_fi),]
+## convert to tidy format
+vcf_field_names(vcf_vass_fi, tag = "FORMAT")
+tidy_vass_fi <- vcfR2tidy(vcf_vass_fi,
+                          format_fields = c("GT", "DP", "AD", "GQ", "AF"))
+names(tidy_vass_fi)
+#tidy_vass_fi$meta
+#tidy_vass_fi$fix
+#tidy_vass_fi$gt
+```
+
+```{r}
+ad <- extract.gt(vcf_vass_fi, element = "AD")
+ad_ref <- masplit(ad, record = 1L, sort = FALSE)
+ad_alt <- masplit(ad, record = 2L, sort = FALSE)
+head(ad_ref)
+head(ad_alt)
+af <- extract.gt(vcf_vass_fi, element = "AF")
+
+df_vass <- tidy_vass_fi$fix
+df_vass <- add_column(df_vass,
+                      nREF_ipsc = ad_ref[,1],
+                      nREF_fibro = ad_ref[,2],
+                      nALT_ipsc = ad_alt[,1],
+                      nALT_fibro = ad_alt[,2],
+                      mutect_AF_ipsc = as.numeric(af[,1]),
+                      mutect_AF_fibro = as.numeric(af[,2]))
+df_vass <- dplyr::mutate(df_vass,
+                         var_id = paste0(CHROM, ":", POS, "_", REF, "_", ALT))
+df_vass <- dplyr::mutate(df_vass,
+                         raw_AF_ipsc = nALT_ipsc / DP,
+                         raw_AF_fibro = nALT_fibro / DP,
+                         P_GERMLINE = as.numeric(P_GERMLINE))
+df_vass[["FILTER2"]] <- "FAIL"
+df_vass[["FILTER2"]][df_vass[["FILTER"]] == "PASS"] <- "PASS"
+colnames(exome_sites)
+```
+
+How many variants are filtered for "normal contamination"?
+
+```{r}
+## how many variants are filtered for "normal contamination"?
+sum(grepl("contamination", df_vass[["FILTER"]]))
+sum(grepl("^contamination$", df_vass[["FILTER"]]))
+```
+
+Very small number of variants are filtered for normal contamination alone.
+
+```{r}
+df_vass %>%
+    ggplot(aes(x = mutect_AF_fibro, y = mutect_AF_ipsc)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("Mutect2 ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Mutect2 sites in vass")
+```
+
+```{r}
+df_vass %>%
+    ggplot(aes(x = mutect_AF_fibro, y = P_GERMLINE, fill = FILTER2)) +
+    geom_point(colour = "gray50", shape = 21, alpha = 0.5) +
+    scale_fill_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Mutect2 ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Mutect2 sites in vass") +
+    facet_wrap(~FILTER2)
+```
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 6)
+df_vass %>%
+    ggplot(aes(x = mutect_AF_fibro, y = mutect_AF_ipsc, fill = FILTER2)) +
+    geom_point(colour = "gray50", shape = 21, alpha = 0.5) +
+    scale_fill_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Mutect2 ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Mutect2 sites in vass") +
+    facet_wrap(~FILTER2)
+```
+
+```{r}
+df_vass %>%
+    ggplot(aes(x = mutect_AF_fibro, y = FILTER2, fill = FILTER2)) +
+    geom_density_ridges(alpha = 0.5) +
+    scale_fill_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Mutect2 ALT allele proportion in fibroblasts",
+            subtitle = "Mutect2 sites in vass")
+```
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 6)
+df_vass %>%
+    ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc, fill = FILTER2)) +
+    geom_point(colour = "gray50", shape = 21, alpha = 0.5) +
+    scale_fill_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Raw ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Mutect2 sites in vass") +
+    facet_wrap(~FILTER2)
+```
+
+```{r}
+options(repr.plot.width = 9, repr.plot.height = 6)
+df_vass %>%
+    ggplot(aes(x = raw_AF_fibro, y = mutect_AF_fibro, fill = FILTER2)) +
+    geom_point(colour = "gray50", shape = 21, alpha = 0.5) +
+    geom_smooth(colour = "dodgerblue3") +
+    geom_abline(linetype = 2) + 
+    scale_fill_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Raw ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Mutect2 sites in vass") +
+    facet_wrap(~FILTER2)
+```
+
+```{r}
+df_vass %>%
+    ggplot(aes(x = raw_AF_fibro, y = FILTER2, fill = FILTER2)) +
+    geom_density_ridges(alpha = 0.5) +
+    scale_fill_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Raw ALT allele proportion in fibroblasts",
+            subtitle = "Mutect2 sites in vass")
+```
+
+```{r}
+df_vass %>%
+    ggplot(aes(x = raw_AF_ipsc, y = FILTER2, fill = FILTER2)) +
+    geom_density_ridges(alpha = 0.5) +
+    scale_fill_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Raw ALT allele proportion in iPSCs",
+            subtitle = "Mutect2 sites in vass")
+```
+
+```{r}
+df_vass %>%
+    dplyr::filter(FILTER == "PASS") %>%
+    ggplot(aes(x = mutect_AF_fibro, y = mutect_AF_ipsc)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "PASSing Mutect2 sites in vass")
+```
+
+```{r}
+df_vass %>%
+    ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "All Mutect2 sites in vass")
+```
+
+```{r}
+df_vass %>%
+    dplyr::filter(FILTER == "PASS") %>%
+    ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "PASSing Mutect2 sites in vass")
+```
+
+```{r}
+gr_mutect_vass <- makeGRangesFromDataFrame(df_vass,
+                                           keep.extra.columns = TRUE,
+                                           ignore.strand = TRUE,
+                                           seqinfo=NULL,
+                                           seqnames.field=c("CHROM"),
+                                           start.field="POS",
+                                           end.field= "POS",
+                                           strand.field="strand")
+length(gr_mutect_vass)
+table(gr_mutect_vass$FILTER == "PASS")
+gr_petr_vass <- exome_sites %>% dplyr::filter(donor_short_id == "vass") %>%
+    makeGRangesFromDataFrame(keep.extra.columns = TRUE,
+                             ignore.strand = TRUE,
+                             seqinfo=NULL,
+                             start.field="pos",
+                             end.field= "pos")
+length(gr_petr_vass)
+
+# exome_sites %>% dplyr::filter(donor_short_id == "vass")
+# exome_sites_sig %>% dplyr::filter(donor_short_id == "vass")
+
+shared_vars <- findOverlaps(gr_petr_vass,
+                            gr_mutect_vass[gr_mutect_vass$FILTER == "PASS"])
+shared_vars_mutect_Pass <- findOverlaps(gr_petr_vass,
+                                        gr_mutect_vass[gr_mutect_vass$FILTER == "PASS"])
+```
+
+```{r}
+gr_mutect_vass[subjectHits(shared_vars)] %>%
+    as.data.frame %>%
+    ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Shared Mutect2 and Petr analysis sites in vass")
+```
+
+```{r}
+gr_petr_vass[queryHits(shared_vars)] %>%
+    as.data.frame %>%
+    ggplot(aes(x = propALT_fibro_hicov, y = propALT_ips_locov)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Shared Mutect2 and Petr analysis sites in vass")
+
+data_frame(VAF_fibro_hicov_petr = gr_petr_vass[queryHits(shared_vars)]$propALT_fibro_hicov,
+           VAF_fibro_hicov_mutect = gr_mutect_vass[subjectHits(shared_vars)]$raw_AF_fibro) %>%
+    ggplot(aes(x = VAF_fibro_hicov_mutect, y = VAF_fibro_hicov_petr)) +
+    geom_point(alpha = 0.7) +
+    geom_abline(slope = 1, intercept = 0) +
+    geom_smooth(colour = "firebrick") +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in Petr calling vs Mutect2",
+            subtitle = "Shared Mutect2 and Petr analysis sites in vass")
+
+
+gr_mutect_vass[subjectHits(shared_vars)] %>%
+    as.data.frame %>%
+    ggplot(aes(x = raw_AF_fibro, y = raw_AF_ipsc)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Shared Mutect2 and Petr analysis sites in vass")
+
+
+```
+
+```{r plot-fibro-ipsc-vaf-hex-all, fig.width = 14, fig.height = 9, fig.cap = "Hexbin plot showing density of points for iPSC VAF against fibroblast VAF for all donors with deep exome data processed."}
+exome_sites %>%
+    ggplot(aes(x = propALT_fibro_hicov, y = propALT_ips_locov)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Unfiltered sites") + facet_wrap(~fibro, nrow = 3)
+
+p <- exome_sites_sig %>%
+    ggplot(aes(x = propALT_fibro_hicov, y = propALT_ips_locov)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("ALT allele proportion in iPSCs vs fibroblasts",
+            subtitle = "Filtered sites")
+p + facet_wrap(~fibro, nrow = 3)
+
+```
+
+----------------------
+
+## Read in vass variant calls - fibro-only
+
+```{r}
+plan(multiprocess)
+```
+
+```{r}
+vcf_vass_fo <- read.vcfR("../../Data/SS2_2017/mutect/exomeseq/HPSI0114pf-vass.single_sample_m2_hicov.oncefiltered.vcf.gz",
+                      verbose = TRUE)
+```
+
+```{r}
+head(vcf_vass_fo)
+```
+
+```{r}
+vcf_vass_fo[is.biallelic(vcf_vass_fo),]
+```
+
+```{r vass-calls}
+## convert to tidy format
+tidy_vass_fo <- vcfR2tidy(vcf_vass_fo,
+                          format_fields = c("GT", "DP", "AD", "GQ", "AF"))
+names(tidy_vass_fo)
+```
+
+# Analysis of variants from Monovar
+
+```{r}
+donors <- c("eofe", "fawm", "heja", "jogf", "naju", "oaaz", "oicx", "puie",
+            "rutc", "sebz", "sehl", "sohd", "tixi", "vabj", "vass", "xuja")
+```
+
+```{r read-monovar-results}
+monovar_results <- vector("list", length(donors))
+for (don in donors)
+    monovar_results[[don]] <- read.vcfR(paste0("../../Data/SS2_2017/monovar/", don,
+".monovar.vcf.gz"))
+```
+
+```{r save-convenient-monovar-results}
+saveRDS(monovar_results, "../../Data/SS2_2017/monovar/list_of_vcf_variants.rds")
+```
+
+```{r load-stored-monovar-results}
+monovar_results <- readRDS("../../Data/SS2_2017/monovar/list_of_vcf_variants.rds")
+```
+
+```{r}
+don <- "vass"
+```
+
+```{r}
+df_list <- vector("list", length(donors))
+
+ad <- extract.gt(monovar_results[[don]], element = "AD")
+gt <- extract.gt(monovar_results[[don]], element = "GT")
+gt_ac <- matrix(NA, nrow = nrow(gt), ncol = ncol(gt))
+gt_ac[gt == "0/0"] <- 0
+gt_ac[gt == "0/1" | gt == "1/0"] <- 1
+gt_ac[gt == "1/1"] <- 2
+
+ad_ref <- masplit(ad, record = 1L, sort = FALSE)
+ad_alt <- masplit(ad, record = 2L, sort = FALSE)
+head(ad_ref)
+head(ad_alt)
+df_don <- vcfR2tidy(monovar_results[[don]], info_only = TRUE)
+df_don <- extract_info_tidy(monovar_results[[don]])
+df_don_fix <- as_data_frame(monovar_results[[don]]@fix[, 1:7])
+df_don2 <- bind_cols(df_don_fix, df_don)
+
+af <- extract.gt(monovar_results[[don]], element = "AF")
+af <- as.numeric(af)
+af <- ad_alt / (ad_alt + ad_ref)
+
+df_don2 <- add_column(df_don2,
+                      nREF = rowSums(ad_ref, na.rm = TRUE),
+                      nALT = rowSums(ad_alt, na.rm = TRUE),
+                      mu_AF = rowMeans(af, na.rm = TRUE),
+                      sd_AF = rowSds(af, na.rm = TRUE),
+                        mu_GT = rowMeans(gt_ac, na.rm = TRUE),
+                        sd_GT = rowSds(gt_ac, na.rm = TRUE))
+df_don2 <- dplyr::mutate(df_don2,
+                         var_id = paste0(CHROM, ":", POS, "_", REF, "_", ALT),
+                        DP = nREF + nALT)
+df_don2[["mu_AF"]][!is.finite(df_don2[["mu_AF"]])] <- NA
+df_don2[["DP"]][!is.finite(df_don2[["DP"]])] <- NA
+df_don2[["FILTER2"]] <- "FAIL"
+df_don2[["FILTER2"]][df_don2[["FILTER"]] == "PASS"] <- "PASS"
+df_don2 <- dplyr::mutate(df_don2,
+                         cv_AF = sd_AF / mu_AF)
+df_don2 <- dplyr::mutate(df_don2,
+     n_cells_gt = rowSums(!is.na(gt_ac)),
+     prop_cells_gt = rowMeans(!is.na(gt_ac)),
+    bin_prop_cells_gt = cut(prop_cells_gt, breaks = 6))
+```
+
+Calculate coefficient of variation.
+
+```{r}
+df_don_gt <- vcfR2tidy(monovar_results[[don]],
+                          format_fields = c("GT", "DP", "AD", "GQ", "AF"))
+df_don_gt$gt[["GT"]] <- NA
+df_don_gt$gt[["GT"]][df_don_gt$gt[["gt_GT"]] == "0/0"] <- 0
+df_don_gt[["GT"]][df_don_gt[["gt_GT"]] == "1/1"] <- 2
+df_don_gt[["GT"]][df_don_gt[["gt_GT"]] == "0/1" | df_don_gt[["gt_GT"]] == "1/0"] <- 1
+```
+
+Calculate proportion of genotypes of different type for each SNP.
+
+```{r}
+df_don2 <- dplyr::mutate(df_don2,
+        prop_HomREF = rowSums(gt_ac == 0, na.rm = TRUE) / n_cells_gt,
+        prop_Het = rowSums(gt_ac == 1, na.rm = TRUE) / n_cells_gt,
+        prop_HomALT = rowSums(gt_ac == 2, na.rm = TRUE) / n_cells_gt,
+        med_DP = rowMedians(ad_ref + ad_alt, na.rm = TRUE),
+        bin_med_DP = cut(med_DP, breaks = c(0, 2, 5, 10, 100, 1e05))
+)
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = log10(DP), y = mu_AF, colour = FILTER2)) +
+    geom_point(alpha = 0.5) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("ALT allele frequency vs read depth in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_AF, y = sd_AF, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Standard deviation vs mean of ALT allele frequency in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_AF, y = FILTER2, fill = FILTER2)) +
+    geom_density_ridges(alpha = 0.5) +
+    scale_fill_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("mean of ALT allele frequency in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_AF, y = cv_AF, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Standard deviation vs mean of ALT allele frequency in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_AF, y = mu_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    ggtitle("Mean of Genotype vs mean of ALT allele frequency in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_AF, y = mu_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Mean of Genotype vs mean of ALT allele frequency in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Standard deviation vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT / mu_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() + facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Coeffecient of variation vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT / mu_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() + coord_cartesian(ylim = c(0, 5)) +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Coeffecient of variation vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+fre <- apply(gt_ac, 1, function(x) freqs(x[!is.na(x)]))
+ent <- sapply(fre, entropy)
+```
+
+```{r}
+df_don2[["ent_GT"]] <- ent
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = ent_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() + coord_cartesian(ylim = c(0, 5)) +
+    ggtitle("Entropy vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = ent_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() + coord_cartesian(ylim = c(0, 5)) +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Entropy vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("SD vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT^2, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("SD vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2[["exp_sd_GT"]] <- sqrt(2 * df_don2[["mu_AF"]] * (1 - df_don2[["mu_AF"]]))
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT - exp_sd_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    geom_hline(yintercept = 0, linetype = 2) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Diff in obs. and exp. SD vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2[["exp_sd_GT"]] <- sqrt(2 * df_don2[["mu_AF"]] * (1 - df_don2[["mu_AF"]]))
+df_don2 %>%
+    ggplot(aes(x = mu_AF, y = sd_GT - exp_sd_GT, colour = FILTER2)) +
+    geom_point(alpha = 0.3) +
+    geom_hline(yintercept = 0, linetype = 2) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Diff in obs. and exp. SD vs mean of AF in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+gr_mono_don <- makeGRangesFromDataFrame(df_don2,
+    keep.extra.columns = TRUE,
+    ignore.strand = TRUE,
+    seqinfo=NULL,
+    start.field="POS",
+    end.field= "POS")
+length(gr_mono_don)
+
+seqlevelsStyle(gr_mono_don) <- "UCSC"
+seqlevelsStyle(gr_mutect_vass) <- "UCSC"
+seqlevelsStyle(gr_petr_vass) <- "UCSC"
+
+shared_vars_mono_mute <- findOverlaps(gr_mono_don,
+                            gr_mutect_vass[gr_mutect_vass$FILTER == "PASS"])
+shared_vars_mono_petr <- findOverlaps(gr_mono_don, gr_petr_vass)
+
+df_don2[["in_Mutect_filt"]] <- FALSE
+df_don2[["in_Mutect_filt"]][queryHits(shared_vars_mono_mute)] <- TRUE
+df_don2[["in_Petr_filt"]] <- FALSE
+df_don2[["in_Petr_filt"]][queryHits(shared_vars_mono_petr)] <- TRUE
+```
+
+```{r}
+df_don2[["exp_sd_GT"]] <- sqrt(2 * df_don2[["mu_AF"]] * (1 - df_don2[["mu_AF"]]))
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT - exp_sd_GT, colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    geom_hline(yintercept = 0, linetype = 2) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Diff in obs. and exp. SD vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2[["exp_sd_GT"]] <- sqrt(2 * df_don2[["mu_AF"]] * (1 - df_don2[["mu_AF"]]))
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT - exp_sd_GT, colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    geom_hline(yintercept = 0, linetype = 2) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Diff in obs. and exp. SD vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT - exp_sd_GT, colour = in_Petr_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Petr_filt)) +
+    geom_hline(yintercept = 0, linetype = 2) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    ggtitle("Diff in obs. and exp. SD vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT - exp_sd_GT, colour = in_Petr_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Petr_filt)) +
+    geom_hline(yintercept = 0, linetype = 2) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_bw() +
+    facet_wrap(~bin_med_DP, nrow = 3) +
+    ggtitle("Diff in obs. and exp. SD vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = mu_GT, y = sd_GT - exp_sd_GT, colour = prop_cells_gt)) +
+    geom_point(alpha = 0.3) +
+    geom_hline(yintercept = 0, linetype = 2) +
+    scale_color_viridis(option = "B") +
+    theme_bw() +
+    facet_wrap(~bin_med_DP, nrow = 3) +
+    ggtitle("Diff in obs. and exp. SD vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = log10(med_DP + 1), y = prop_cells_gt, colour = mu_AF)) +
+    geom_point(alpha = 0.3) +
+    scale_color_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("Diff in obs. and exp. SD vs mean of Genotype in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = log2(med_DP + 1), y = bin_prop_cells_gt, fill = bin_prop_cells_gt)) +
+    geom_density_ridges(alpha = 0.3) +
+    scale_fill_viridis(option = "B", discrete = TRUE) +
+    theme_bw() +
+    ggtitle("Median read depth in covered cells fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+df_don2 %>%
+    ggplot(aes(x = prop_cells_gt, y = bin_med_DP, fill = bin_med_DP)) +
+    geom_density_ridges(alpha = 0.3) +
+    scale_fill_viridis(option = "B", discrete = TRUE) +
+    theme_bw() +
+    ggtitle("Prop. cells genotyped in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+ggtern(df_don2, aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = mu_AF)) +
+    geom_point(alpha = 0.3) +
+    scale_colour_viridis(option = "B") +
+    theme_tropical()
+```
+
+```{r}
+ggtern(df_don2, aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = mu_AF)) +
+    geom_point(alpha = 0.3) +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    scale_colour_viridis(option = "B") +
+    theme_tropical()
+```
+
+```{r}
+ggtern(df_don2, aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = mu_AF)) +
+    geom_point(alpha = 0.3) +
+    facet_wrap(~bin_med_DP, nrow = 3) +
+    scale_colour_viridis(option = "B") +
+    theme_tropical()
+```
+
+```{r}
+ggtern(df_don2, aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_tropical()
+```
+
+```{r}
+ggtern(df_don2, aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    facet_wrap(~bin_med_DP, nrow = 3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_tropical()
+```
+
+```{r}
+ggtern(df_don2, aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = log10(DP))) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    scale_colour_viridis(option = "B") +
+    theme_tropical()
+```
+
+```{r}
+ggtern(df_don2, aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_tropical() +
+    ggtitle("Ternary plot of genotype proportions in fibroblast cells",
+            subtitle = paste("Monovar sites in", don))
+```
+
+```{r}
+ggtern(df_don2, aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = in_Petr_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Petr_filt)) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_tropical()
+```
+
+How many variants from Monovar if we insist on l.t. 80% het, g.t. 20% HomRef, l.t. 10% HomAlt?
+
+```{r}
+df_don2 %>% dplyr::filter(prop_HomREF > 0.2, prop_Het < 0.8, prop_HomALT < 0.1) %>% nrow
+```
+
+```{r}
+df_don2 %>% dplyr::filter(prop_HomREF > 0.2, prop_Het < 0.8, prop_HomALT < 0.1) %>%
+ggtern(aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_tropical()
+```
+
+```{r}
+df_don2 %>% dplyr::filter(prop_HomREF > 0.2, prop_Het < 0.8, prop_HomALT < 0.1) %>%
+ggtern(aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    facet_wrap(~bin_med_DP, nrow = 3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_tropical()
+```
+
+Given that %HomALT heads towards zero as median depth increases, this suggests a filtering strategy that is stricter on %HomALT. It looks here like setting a very stricter filter (e.g. <1% HomALT) will get us towards a good set of somatic variants that do not lose many of the overlapping variants detected by Mutect2.
+
+```{r}
+df_don2 %>% dplyr::filter(prop_HomREF > 0.2, prop_Het < 0.8, prop_HomALT < 0.01) %>% nrow
+```
+
+```{r}
+df_don2 %>% dplyr::filter(prop_HomREF > 0.2, prop_Het < 0.8, prop_HomALT < 0.01) %>% select(in_Mutect_filt) %>% table
+```
+
+```{r}
+sum(df_don2[["in_Mutect_filt"]])
+```
+
+```{r}
+df_don2 %>% dplyr::filter(prop_HomREF > 0.2, prop_Het < 0.8, prop_HomALT < 0.01) %>%
+ggtern(aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_tropical()
+```
+
+```{r}
+sum(df_don2[["in_Mutect_filt"]])
+```
+
+```{r}
+gr_mono_don
+```
+
+```{r}
+df_don2 %>% dplyr::filter(prop_HomREF > 0.2, prop_Het < 0.8, prop_HomALT < 0.01) %>%
+ggtern(aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    facet_wrap(~bin_med_DP, nrow = 3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_tropical()
+```
+
+```{r}
+df_don2 %>% dplyr::filter(prop_HomREF > 0.2, prop_Het < 0.8, prop_HomALT < 0.01) %>%
+ggtern(aes(prop_HomREF, prop_Het, prop_HomALT,
+    colour = in_Mutect_filt)) +
+    geom_point(alpha = 0.3) +
+    geom_point(alpha = 0.7, data = dplyr::filter(df_don2, in_Mutect_filt)) +
+    facet_wrap(~bin_prop_cells_gt, nrow = 3) +
+    scale_colour_manual(values = c("gray60", "firebrick4")) +
+    theme_tropical()
+```
+
+```{r}
+ww <- which(df_don2$prop_HomREF > 0.2 & df_don2$prop_Het < 0.8 & df_don2$prop_HomALT < 0.01)
+www <- which(df_don2$prop_HomREF > 0.2 & df_don2$prop_Het < 0.8 & df_don2$prop_HomALT < 0.01 & df_don2$med_DP > 10 & 
+             df_don2$prop_cells_gt > 0.5)
+dim(gt_ac)
+```
+
+```{r}
+length(ww)
+```
+
+```{r}
+length(www)
+```
+
+```{r}
+?pcaMethods::prep
+```
+
+```{r}
+resPPCA <- pca(t(gt_ac[www,]), method="ppca", center=TRUE, scale = "pareto", nPcs=2)
+```
+
+```{r}
+resPPCA
+```
+
+```{r}
+df_don_cells <- data_frame(PPCA_1 = resPPCA@scores[, 1],
+                          PPCA_2 = resPPCA@scores[, 2],
+                          n_vars_gt = colSums(!is.na(gt_ac[www,])),
+                          med_DP = colMedians(ad_ref[www,] + ad_alt[www,], na.rm = TRUE))
+```
+
+```{r}
+ggplot(df_don_cells, aes(x = PPCA_1, y = PPCA_2, colour = n_vars_gt)) +
+    geom_point() +
+    scale_color_viridis(option = "B") +
+    theme_bw()
+```
+
+```{r}
+plotPcs(resPPCA)
+```
+
+Look at AF for shared variants between methods.
+
+```{r}
+data_frame(AF_monovar = (df_don2[["nALT"]][queryHits(shared_vars_mono_mute)] /
+df_don2[["DP"]][queryHits(shared_vars_mono_mute)]),
+AF_mutect = gr_mutect_vass[subjectHits(shared_vars_mono_mute)]$raw_AF_fibro
+) %>%
+ggplot(aes(x = AF_mutect, y = AF_monovar)) +
+geom_point(aes = 0.4) +
+geom_abline(linetype = 2) +
+theme_bw()
+```
+
+## Compare VAF estimates from Monovar and Mutect
+
+```{r}
+vcf_vass_mute_single_sample <- read.vcfR("../../Data/SS2_2017/mutect/exomeseq/HPSI0114pf-vass.single_sample_m2_hicov.oncefiltered.vcf.gz",
+                      verbose = TRUE)
+```
+
+```{r}
+df_vass_single_sample <- extract_info_tidy(vcf_vass_mute_single_sample)
+```
+
+```{r}
+head(vcf_vass_mute_single_sample@fix)
+```
+
+```{r}
+df_vass_single_sample <- bind_cols(as_data_frame(vcf_vass_mute_single_sample@fix), df_vass_single_sample)
+head(df_vass_single_sample)
+```
+
+```{r}
+adss <- extract.gt(vcf_vass_mute_single_sample, element = "AD")
+```
+
+```{r}
+head(adss)
+```
+
+```{r}
+adss_ref <- masplit(adss, record = 1L, sort = FALSE)
+adss_alt <- masplit(adss, record = 2L, sort = FALSE)
+head(adss_ref)
+head(adss_alt)
+afss <- extract.gt(vcf_vass_mute_single_sample, element = "AF")
+```
+
+```{r}
+df_vass_single_sample <- add_column(df_vass_single_sample,
+                      nREF_fibro = adss_ref[,1],
+                      nALT_fibro = adss_alt[,1],
+                      mutect_AF_fibro = as.numeric(afss[,1]))
+df_vass_single_sample <- dplyr::mutate(df_vass_single_sample,
+                         var_id = paste0(CHROM, ":", POS, "_", REF, "_", ALT))
+df_vass_single_sample <- dplyr::mutate(df_vass_single_sample,
+                         raw_AF_fibro = nALT_fibro / (nREF_fibro + nALT_fibro),
+                         P_GERMLINE = as.numeric(P_GERMLINE))
+```
+
+```{r}
+head(df_vass_single_sample)
+```
+
+```{r}
+gr_mutect_vass_single_sample <- makeGRangesFromDataFrame(df_vass_single_sample,
+                                           keep.extra.columns = TRUE,
+                                           ignore.strand = TRUE,
+                                           seqinfo=NULL,
+                                           seqnames.field=c("CHROM"),
+                                           start.field="POS",
+                                           end.field= "POS",
+                                           strand.field="strand")
+```
+
+```{r}
+seqlevelsStyle(gr_mutect_vass_single_sample) <- "UCSC"
+```
+
+```{r}
+length(gr_mutect_vass_single_sample)
+```
+
+```{r}
+length(gr_mono_don)
+```
+
+```{r}
+shared_vars_mono_mute_all_sites <- findOverlaps(gr_mono_don, gr_mutect_vass_single_sample)
+```
+
+```{r}
+shared_vars_mono_mute_all_sites
+```
+
+```{r}
+colnames(mcols(gr_mono_don))
+```
+
+```{r}
+data_frame(AF_monovar = (gr_mono_don[queryHits(shared_vars_mono_mute_all_sites)]$nALT /
+(gr_mono_don[queryHits(shared_vars_mono_mute_all_sites)]$nALT + gr_mono_don[queryHits(shared_vars_mono_mute_all_sites)]$nREF)),
+AF_mutect = gr_mutect_vass_single_sample[subjectHits(shared_vars_mono_mute_all_sites)]$raw_AF_fibro
+) %>%
+    ggplot(aes(x = AF_mutect, y = AF_monovar)) +
+    geom_point(alpha = 0.4) +
+    geom_smooth(colour = "firebrick") +
+    geom_abline(linetype = 2) +
+    theme_bw() +
+    ggtitle("Monovar vs Mutect2 variant allele frequency in fibroblasts",
+            subtitle = "13,000 overlapping sites in vass")
+```
+
+```{r}
+ data_frame(AF_monovar = (gr_mono_don[queryHits(shared_vars_mono_mute_all_sites)]$nALT /
+(gr_mono_don[queryHits(shared_vars_mono_mute_all_sites)]$nALT + gr_mono_don[queryHits(shared_vars_mono_mute_all_sites)]$nREF)),
+AF_mutect = gr_mutect_vass_single_sample[subjectHits(shared_vars_mono_mute_all_sites)]$raw_AF_fibro
+) %>%
+ggplot(aes(x = AF_mutect, y = AF_monovar)) +
+    geom_hex() +
+    scale_fill_viridis(option = "B") +
+    theme_bw() +
+    ggtitle("Monovar vs Mutect2 variant allele frequency in fibroblasts",
+            subtitle = "13,000 overlapping sites in vass")
+```
+
+```{r}
+pryr::mem_used()
+```
+
+----------------------
+
+Read in file with deep exome lines listed and run metadata from single-cell
+assays.
+
+```{r}
+deep_exome <- read_csv("deep_exome_lines.txt", col_names = FALSE)
+colnames(deep_exome) <- "long_id"
+deep_exome <- mutate(deep_exome, short_id = gsub(".*pf-", "", long_id))
+head(deep_exome)
+
+locov_exome <- read_csv("locov_exome_lines.txt", col_names = FALSE)
+colnames(locov_exome) <- "long_id"
+locov_exome <- dplyr::mutate(locov_exome, short_id = gsub(".*-", "", long_id),
+                             donor = gsub("_[0-9]+", "", short_id))
+head(locov_exome)
+table(locov_exome$donor)
+
+sc_meta <- read_csv("metadata.csv", col_names = TRUE)
+head(sc_meta)
+sc_donors <- sort(unique(c(sc_meta[["donor1"]], sc_meta[["donor2"]],
+                           sc_meta[["donor3"]])))
+
+sce <- readRDS("sce_merged_donors_all_qc_filt.rds")
+table(sce$donor)
+length(unique(sce$donor))
+
+sum(unique(sce$donor) %in% deep_exome[["short_id"]])
+sum(unique(sce$donor) %in% locov_exome[["donor"]])
+```
+
+Write out list of QC-passing cells for each donor.
+
+```{r}
+for (i in unique(sce$donor)) {
+    write_csv(as.data.frame(colnames(sce)[sce$donor == i]),
+              col_names = FALSE,
+              path = paste0("donor-cell-lists/", i, ".qc-pass.cells.txt"))
+}
+```
+
+Write out data frame of iPSC and fibro lines per donor.
+
+```{r}
+colnames(deep_exome) <- c("fibro_hicov_long", "donor")
+locov_fibro <- dplyr::filter(locov_exome, grepl("pf", long_id))
+head(locov_fibro)
+locov_ipsc <- dplyr::filter(locov_exome, !grepl("pf", long_id))
+head(locov_ipsc)
+locov_wide <- left_join(locov_fibro, locov_ipsc, by = "donor",
+                        suffix = c("_fibro", "_ipsc"))
+locov_wide <- locov_wide[, -2]
+head(locov_wide)
+colnames(locov_wide) <- c("fibro_locov_long", "donor", "ipsc_locov_long",
+                          "ipsc_line")
+head(deep_exome)
+head(locov_exome)
+joint_exomes <- left_join(deep_exome, locov_wide, by = "donor")
+head(joint_exomes)
+dim(joint_exomes)
+write_csv(joint_exomes,
+          col_names = TRUE,
+          path = "exome_all_samples_name_df.csv")
+dplyr::filter(joint_exomes, !duplicated(fibro_hicov_long)) %>%
+    write_csv(col_names = TRUE,
+              path = "exome_uniq_donors_df.csv")
+
+```

@@ -1,0 +1,623 @@
+---
+title: "Clonal distributions in transcriptional space"
+author: "Davis J. McCarthy"
+site: workflowr::wflow_site
+---
+
+
+## Load libraries and data
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.height = 10, fig.width = 14)
+library(tidyverse)
+library(scater)
+library(ggridges)
+library(GenomicRanges)
+library(RColorBrewer)
+library(edgeR)
+library(ggrepel)
+library(rlang)
+library(limma)
+library(org.Hs.eg.db)
+library(ggforce)
+library(cardelino)
+library(cowplot)
+library(IHW)
+library(viridis)
+library(ggthemes)
+library(superheat)
+library(scico)
+options(stringsAsFactors = FALSE)
+```
+
+Load donors and callset.
+
+```{r}
+params <- list()
+params$callset <- "filt_lenient.cell_coverage_sites"
+fls <- list.files("data/sces")
+fls <- fls[grepl(params$callset, fls)]
+donors <- gsub(".*ce_([a-z]+)_.*", "\\1", fls)
+```
+
+Load cell-clone assignment results.
+
+```{r load-cell-assign}
+cell_assign_list <- list()
+for (don in donors) {
+    cell_assign_list[[don]] <- readRDS(file.path("data/cell_assignment", 
+        paste0("cardelino_results.", don, ".", params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", nrow(cell_assign_list[[don]]$prob_mat), 
+              "cells.\n"))
+}
+```
+
+Load SCE objects.
+
+```{r load-sce}
+sce_unst_list <- list()
+for (don in donors) {
+    sce_unst_list[[don]] <- readRDS(file.path("data/sces", 
+        paste0("sce_", don, "_with_clone_assignments.", params$callset, ".rds")))
+    cat(paste("reading", don, ":   ", ncol(sce_unst_list[[don]]), "cells.\n"))
+}
+
+assignments_lst <- list()
+for (don in donors) {
+    assignments_lst[[don]] <- as_data_frame(
+        colData(sce_unst_list[[don]])[, 
+                                      c("donor_short_id", "highest_prob", 
+                                        "assigned", "total_features",
+                                        "total_counts_endogenous", "num_processed")])
+}
+assignments <- do.call("rbind", assignments_lst)
+```
+
+
+Load DE results (obtained using the *edgeR* quasi-likelihood F test and the 
+camera method from the *limma* package).
+
+```{r load-de}
+de_res <- readRDS("data/de_analysis_FTv62/filt_lenient.cell_coverage_sites.de_results_unstimulated_cells.rds")
+```
+
+
+## Tree and probability heatmaps
+
+We can plot the clonal tree inferred with *Canopy* for each donor along with the
+cell-clone assignment results from *cardelino*.
+
+```{r plot-tree-fun}
+plot_tree <- function(tree, orient="h") {
+  node_total <- max(tree$edge)
+  node_shown <- length(tree$P[, 1])
+  node_hidden <- node_total - node_shown
+  
+  prevalence <- c(tree$P[, 1]*100, rep(0, node_hidden))
+  # node_size <- c(rep(20, node_shown), rep(0, node_hidden))
+  
+  mut_ids <- 0
+  mut_id_all <- tree$Z %*% (2**seq(ncol(tree$Z),1))
+  mut_id_all <- seq(length(unique(mut_id_all)),1)[as.factor(mut_id_all)]
+  
+  branch_ids <- NULL
+  for (i in seq_len(node_total)) {
+    if (i <= node_shown) {
+      tree$tip.label[i] <- paste0("C", i, ": ", round(prevalence[i], 
+                                                      digits = 0), "%")
+    }
+    mut_num <- sum(tree$sna[,3] == i)
+    if (mut_num == 0) {
+      if (i == node_shown + 1) {branch_ids = c(branch_ids, "Root")}
+      else {branch_ids = c(branch_ids, "")} #NA
+    }
+    else {
+      vaf <- mean(tree$VAF[tree$sna[,3] == i])
+      mut_ids <- mut_ids + 1
+      mut_ids <- mean(mut_id_all[tree$sna[,3] == i])
+      branch_ids <- c(branch_ids, paste0(mut_num, " mutations"))
+    }
+  }
+  pt <- ggtree::ggtree(tree)
+  pt <- pt + ggplot2::geom_label(ggplot2::aes_string(x = "branch"), 
+                                 label = branch_ids, color = "firebrick", size = 6)
+  pt <- pt + ggplot2::xlim(-0, node_hidden + 0.5) + ggplot2::ylim(0.8, node_shown + 0.5) #the degree may not be 3
+  if (orient == "v") {
+    pt <- pt + ggtree::geom_tiplab(hjust = 0.39, vjust = 1.0, size = 6) + 
+        ggplot2::scale_x_reverse() + ggplot2::coord_flip() 
+  } else {
+    pt <- pt + ggtree::geom_tiplab(hjust = 0.0, vjust = 0.5, size = 6)
+  }
+  pt
+}
+
+```
+
+
+```{r plot-tree}
+tree_probmat_plot_list <- list()
+
+for (don in donors) {
+  ## produce clonal tree plot
+  fig_tree <- plot_tree(cell_assign_list[[don]]$full_tree, orient = "v") + 
+    xlab("Clonal tree") +
+    cardelino:::heatmap.theme(size = 16) +
+    ggtitle(don) +
+    theme(axis.text.x = element_blank(), axis.title.y = element_text(size = 20))
+  
+  prob_to_plot <- cell_assign_list[[don]]$prob_mat[
+    colnames(sce_unst_list[[don]])[sce_unst_list[[don]]$well_condition == "unstimulated"], ]
+  hc <- hclust(dist(prob_to_plot))
+  
+  clone_ids <- colnames(prob_to_plot)
+  clone_frac <- colMeans(prob_to_plot[matrixStats::rowMaxs(prob_to_plot) > 0.5,])
+  clone_perc <- paste0(clone_ids, ": ", 
+                       round(clone_frac*100, digits = 1), "%")
+  
+  colnames(prob_to_plot) <- clone_perc
+  nba.m <- as_data_frame(prob_to_plot[hc$order,]) %>%
+    dplyr::mutate(cell = rownames(prob_to_plot[hc$order,])) %>%
+    gather(key = "clone", value = "prob", -cell)
+  nba.m <- dplyr::mutate(nba.m, cell = factor(
+    cell, levels = rownames(prob_to_plot[hc$order,])))
+  fig_assign <- ggplot(nba.m, aes(clone, cell, fill = prob)) + 
+    geom_tile(show.legend = TRUE) +
+    # scale_fill_gradient(low = "white", high = "firebrick4",
+    #                     name = "posterior probability of assignment") +
+    scico::scale_fill_scico(palette = "oleron", direction = 1) +
+    ylab(paste("Single cells")) + 
+    cardelino:::heatmap.theme(size = 16) + #cardelino:::pub.theme() +
+    theme(axis.title.y = element_text(size = 20), legend.position = "bottom",
+          legend.text = element_text(size = 12), legend.key.size = unit(0.05, "npc"))
+  
+  p <- plot_grid(fig_tree, fig_assign, nrow = 2, rel_heights = c(0.46, 0.52))
+  #print(p)
+  
+  ggsave(paste0("figures/donor_specific/", don, "_tree_probmat.png"), height = 10, width = 7.5)
+  ggsave(paste0("figures/donor_specific/", don, "_tree_probmat.pdf"), height = 10, width = 7.5)
+  ggsave(paste0("figures/donor_specific/", don, "_tree_probmat.svg"), height = 10, width = 7.5)
+  
+  ggsave(paste0("figures/donor_specific/", don, "_tree_probmat_wide.png"), height = 9, width = 10)
+  ggsave(paste0("figures/donor_specific/", don, "_tree_probmat_wide.pdf"), height = 9, width = 10)
+  ggsave(paste0("figures/donor_specific/", don, "_tree_probmat_wide.svg"), height = 9, width = 10)
+  tree_probmat_plot_list[[don]] <- p
+}
+
+
+p_tree_grid <- plot_grid(plotlist = tree_probmat_plot_list, align = "hv", 
+                         nrow = 8)
+ggsave(paste0("figures/donor_specific/alldonors_tree_probmat_wide.png"), 
+       height = 60, width = 32, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_tree_probmat_wide.pdf"), 
+       height = 60, width = 32, limitsize = FALSE) 
+```
+
+
+
+## PCA plots
+
+Principal component analysis can reveal global structure from single-cell
+transcriptomic profiles.
+
+```{r pca}
+pca_list <- plotlist_pca_c1c2 <- plotlist_pca_c2c3 <- plotlist_pca_c2c4 <- 
+  plotlist_pca_c3c4 <- plotlist_pca_c1c2_cellcycle <- list()
+for (don in donors) {
+  if (sum(sce_unst_list[[don]]$assigned != "unassigned") < 20)
+    next
+  choose_cells <- (sce_unst_list[[don]]$well_condition == "unstimulated" &
+                     sce_unst_list[[don]]$assigned != "unassigned")
+  pca_unst <- reducedDim(runPCA(sce_unst_list[[don]][, choose_cells], 
+                                ntop = 500, ncomponents = 10), "PCA")
+  pca_unst <- data.frame(
+    PC1 = pca_unst[, 1], PC2 = pca_unst[, 2], 
+    PC3 = pca_unst[, 3], PC4 = pca_unst[, 4],
+    PC5 = pca_unst[, 5], PC6 = pca_unst[, 6],
+    clone = sce_unst_list[[don]][, choose_cells]$assigned,
+    nvars_cloneid = sce_unst_list[[don]][, choose_cells]$nvars_cloneid,
+    cyclone_phase = sce_unst_list[[don]][, choose_cells]$cyclone_phase,
+    G1 = sce_unst_list[[don]][, choose_cells]$G1,
+    G2M = sce_unst_list[[don]][, choose_cells]$G2M,
+    S = sce_unst_list[[don]][, choose_cells]$S,
+    clone1_prob = sce_unst_list[[don]][, choose_cells]$clone1_prob,
+    clone2_prob = sce_unst_list[[don]][, choose_cells]$clone2_prob
+  )
+  pca_list[[don]] <- pca_unst
+  
+  plotlist_pca_c1c2[[don]] <- ggplot(pca_unst, aes(x = PC1, y = PC2, 
+                                                   fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+    plotlist_pca_c1c2_cellcycle[[don]] <- ggplot(
+    pca_unst, aes(x = PC1, y = PC2, fill = G2M,
+                  shape = clone)) +
+    geom_point(colour = "gray50", size = 5) +
+    scale_shape_manual(values = c(21, 23, 25, 22, 24), name = "clone") +
+    scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+    scale_size_continuous(range = c(4, 6)) +
+    ggtitle(don) + 
+    theme_classic(14)
+  
+  plotlist_pca_c2c3[[don]] <- ggplot(pca_unst, aes(x = PC2, y = PC3, 
+                                                   fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+  plotlist_pca_c2c4[[don]] <- ggplot(pca_unst, aes(x = PC2, y = PC4, 
+                                                   fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+  
+  plotlist_pca_c3c4[[don]] <- ggplot(pca_unst, aes(x = PC3, y = PC4, 
+                                                   fill = clone)) +
+    geom_point(pch = 21, size = 4, colour = "gray30") +
+    scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+    ggtitle(don) +
+    theme_classic(14)
+}
+
+p_pca1 <- plot_grid(plotlist = plotlist_pca_c1c2, align = "hv", 
+                         nrow = 7)
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_clone.png"), 
+       plot = p_pca1, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_clone.pdf"), 
+       plot = p_pca1, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_clone.svg"), 
+       plot = p_pca1, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca1cc <- plot_grid(plotlist = plotlist_pca_c1c2_cellcycle, align = "hv", 
+                         nrow = 7)
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_g2mscore.png"), 
+       plot = p_pca1cc, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_g2mscore.pdf"), 
+       plot = p_pca1cc, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc2_vs_pc1_colby_g2mscore.svg"), 
+       plot = p_pca1cc, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca2 <- plot_grid(plotlist = plotlist_pca_c2c3, align = "hv", 
+                         nrow = 7)
+ggsave(paste0("figures/donor_specific/alldonors_pc3_vs_pc2_colby_clone.png"), 
+       plot = p_pca2, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc3_vs_pc2_colby_clone.pdf"), 
+       plot = p_pca2, height = 36, width = 36, limitsize = FALSE)
+ggsave(paste0("figures/donor_specific/alldonors_pc3_vs_pc2_colby_clone.svg"), 
+       plot = p_pca2, height = 36, width = 36, limitsize = FALSE)
+
+p_pca3 <- plot_grid(plotlist = plotlist_pca_c2c4, align = "hv", 
+                         nrow = 7)
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc2_colby_clone.png"), 
+       plot = p_pca3, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc2_colby_clone.pdf"), 
+       plot = p_pca3, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc2_colby_clone.svg"), 
+       plot = p_pca3, height = 36, width = 36, limitsize = FALSE) 
+
+p_pca4 <- plot_grid(plotlist = plotlist_pca_c3c4, align = "hv", 
+                         nrow = 7)
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc3_colby_clone.png"), 
+       plot = p_pca4, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc3_colby_clone.pdf"), 
+       plot = p_pca4, height = 36, width = 36, limitsize = FALSE) 
+ggsave(paste0("figures/donor_specific/alldonors_pc4_vs_pc3_colby_clone.svg"), 
+       plot = p_pca4, height = 36, width = 36, limitsize = FALSE) 
+```
+
+Let us also look at PCA with cells coloured by the posterior probability of 
+assignment to the various clones.
+
+```{r pca-clone-prob, fig.height=11, fig.width=9.5}
+ppc1 <- ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone1_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone1\nposterior\nprobability") +
+  ggtitle(don) +
+  theme_classic(14)
+
+ppc2 <- ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone2_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone2\nposterior\nprobability") +
+  ggtitle(don) +
+  theme_classic(14)
+
+ppc3 <- ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone3_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone3\nposterior\nprobability") +
+  ggtitle(don) +
+  theme_classic(14)
+
+plot_grid(ppc1, ppc2, ppc3, labels = "auto", ncol = 1)
+
+ggsave(paste0("figures/donor_specific/", don, "_pca_pc1_pc2_clone_probs.png"), 
+       height = 11, width = 9.5)
+ggsave(paste0("figures/donor_specific/", don, "_pca_pc1_pc2_clone_probs.pdf"), 
+       height = 11, width = 9.5)
+
+ppc1 <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone1_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone1\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc2 <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone2_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone2\nposterior\nprobability") +
+  theme_classic(14)
+
+ppc3 <- ggplot(pca_unst, aes(x = PC2, y = PC3, fill = clone3_prob)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_viridis(option = "A", name = "clone3\nposterior\nprobability") +
+  theme_classic(14)
+
+ppp <- plot_grid(ppc1, ppc2, ppc3, labels = "auto", ncol = 1)
+
+ggsave(paste0("figures/donor_specific/", don, "_pca_pc2_pc3_clone_probs.png"), 
+       plot = ppp, height = 11, width = 9.5)
+ggsave(paste0("figures/donor_specific/", don, "_pca_pc2_pc3_clone_probs.pdf"), 
+       plot = ppp, height = 11, width = 9.5)
+
+```
+
+
+We can also explore how inferred cell cycle phase information relates to the
+PCA components.
+
+```{r pca-cc}
+pca_unst$cyclone_phase <- factor(pca_unst$cyclone_phase, 
+                                 levels = c("G1", "S", "G2M"))
+ggplot(pca_unst, aes(x = PC1, y = PC2, colour = cyclone_phase,
+                     shape = clone)) +
+  geom_point(size = 6) +
+  scale_color_manual(values = magma(6)[c(1, 3, 5)], name = "cell cycle\nphase") +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggsave("figures/donor_specific/joxm_pca.png", height = 6, width = 9.5)
+ggsave("figures/donor_specific/joxm_pca.pdf", height = 6, width = 9.5)
+ggsave("figures/donor_specific/joxm_pca.svg", height = 6, width = 9.5)
+
+
+pca_unst$cyclone_phase <- factor(pca_unst$cyclone_phase, levels = c("G1", "S", "G2M"))
+ggplot(pca_unst, aes(x = PC2, y = PC3, colour = cyclone_phase,
+                     shape = clone)) +
+  geom_point(size = 6) +
+  scale_color_manual(values = magma(6)[c(1, 3, 5)], name = "cell cycle\nphase") +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggplot(pca_unst, aes(x = PC1, y = PC2, fill = G2M,
+                     shape = clone)) +
+  geom_point(colour = "gray50", size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  scale_size_continuous(range = c(4, 6)) +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggsave("figures/donor_specific/joxm_pca_g2m_score.png", height = 6, width = 9.5)
+ggsave("figures/donor_specific/joxm_pca_g2m_score.pdf", height = 6, width = 9.5)
+ggsave("figures/donor_specific/joxm_pca_g2m_score.svg", height = 6, width = 9.5)
+
+ggplot(pca_unst, aes(x = PC1, y = PC2, colour = S,
+                     shape = clone)) +
+  geom_point(size = 5) +
+  scale_color_viridis(option = "B") +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggplot(pca_unst, aes(x = PC1, y = PC2, colour = G1,
+                     shape = clone)) +
+  geom_point(size = 5) +
+  scale_color_viridis(option = "B") +
+  ggtitle(don) +
+  theme_classic(18)
+```
+
+Number of variants used for clone ID looks to have little relationship to 
+global structure in expression PCA space.
+
+```{r pca-nvars}
+ggplot(pca_unst, aes(x = PC1, y = PC2, fill = clone2_prob, size = nvars_cloneid)) +
+  geom_point(pch = 21, colour = "gray30") +
+  scale_fill_viridis(option = "B", name = "clone2\nprobability") +
+  scale_size_continuous(name = "# variants\nfor clone ID") +
+  ggtitle(don) + 
+  theme_classic(14)
+```
+
+
+## UMAP plots
+
+As well as the linear projection method of PCA, let us look at the global 
+population structure among cells using the non-linear dimension reduction method
+UMAP.
+
+```{r umap}
+choose_cells <- (sce_unst_list[[don]]$well_condition == "unstimulated" &
+                   sce_unst_list[[don]]$assigned != "unassigned")
+umap_unst <- reducedDim(runUMAP(sce_unst_list[[don]][, choose_cells], 
+                              ntop = 500, ncomponents = 6), "UMAP")
+umap_unst <- data.frame(
+  UMAP_1 = umap_unst[, 1], UMAP_2 = umap_unst[, 2], 
+  UMAP_3 = umap_unst[, 3], UMAP_4 = umap_unst[, 4],
+  UMAP_5 = umap_unst[, 5], UMAP_6 = umap_unst[, 6],
+  clone = sce_unst_list[[don]][, choose_cells]$assigned,
+  nvars_cloneid = sce_unst_list[[don]][, choose_cells]$nvars_cloneid,
+  cyclone_phase = sce_unst_list[[don]][, choose_cells]$cyclone_phase,
+  G1 = sce_unst_list[[don]][, choose_cells]$G1,
+  G2M = sce_unst_list[[don]][, choose_cells]$G2M,
+  S = sce_unst_list[[don]][, choose_cells]$S,
+  clone1_prob = sce_unst_list[[don]][, choose_cells]$clone1_prob,
+  clone2_prob = sce_unst_list[[don]][, choose_cells]$clone2_prob,
+  clone3_prob = sce_unst_list[[don]][, choose_cells]$clone3_prob
+)
+
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+ggplot(umap_unst, aes(x = UMAP_2, y = UMAP_3, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+ggplot(umap_unst, aes(x = UMAP_2, y = UMAP_4, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+ggplot(umap_unst, aes(x = UMAP_3, y = UMAP_4, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+```
+
+We can also explore how inferred cell cycle phase information relates to the
+UMAP components.
+
+```{r umap-cc}
+umap_unst$cyclone_phase <- factor(umap_unst$cyclone_phase, 
+                                  levels = c("G1", "S", "G2M"))
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = G2M,
+                      shape = clone)) +
+  geom_point(colour = "gray50", size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  scale_size_continuous(range = c(4, 6)) +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggplot(umap_unst, aes(x = UMAP_2, y = UMAP_3, fill = G2M,
+                      shape = clone)) +
+  geom_point(colour = "gray50", size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  scale_size_continuous(range = c(4, 6)) +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggplot(umap_unst, aes(x = UMAP_5, y = UMAP_6, fill = G2M,
+                      shape = clone)) +
+  geom_point(colour = "gray50", size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  scale_size_continuous(range = c(4, 6)) +
+  ggtitle(don) + 
+  theme_classic(18)
+
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = S,
+                      shape = clone)) +
+  geom_point(size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  ggtitle(don) +
+  theme_classic(18)
+
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = G1,
+                      shape = clone)) +
+  geom_point(size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  ggtitle(don) + 
+  theme_classic(18)
+```
+
+Number of variants used for clone ID looks to have little relationship to 
+global structure in expression PCA space.
+
+```{r umap-nvars}
+ggplot(umap_unst, aes(x = UMAP_1, y = UMAP_2, fill = clone2_prob, 
+                      size = nvars_cloneid)) +
+  geom_point(pch = 21, colour = "gray30") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "Clone2 prob") +
+  scale_size_continuous(name = "# variants\nfor clone ID") +
+  theme_classic(14)
+```
+
+
+## Diffusion map plots
+
+Let us also look at diffusion map representations of the cells.
+
+```{r diffmap}
+choose_cells <- (sce_unst_list[[don]]$well_condition == "unstimulated" &
+                   sce_unst_list[[don]]$assigned != "unassigned")
+difmap_unst <- reducedDim(runDiffusionMap(sce_unst_list[[don]][, choose_cells], 
+                              ntop = 500, ncomponents = 6), "DiffusionMap")
+difmap_unst <- data.frame(
+  difmap_1 = difmap_unst[, 1], difmap_2 = difmap_unst[, 2], 
+  difmap_3 = difmap_unst[, 3], difmap_4 = difmap_unst[, 4],
+  difmap_5 = difmap_unst[, 5], difmap_6 = difmap_unst[, 6],
+  clone = sce_unst_list[[don]][, choose_cells]$assigned,
+  nvars_cloneid = sce_unst_list[[don]][, choose_cells]$nvars_cloneid,
+  cyclone_phase = sce_unst_list[[don]][, choose_cells]$cyclone_phase,
+  G1 = sce_unst_list[[don]][, choose_cells]$G1,
+  G2M = sce_unst_list[[don]][, choose_cells]$G2M,
+  S = sce_unst_list[[don]][, choose_cells]$S,
+  clone1_prob = sce_unst_list[[don]][, choose_cells]$clone1_prob,
+  clone2_prob = sce_unst_list[[don]][, choose_cells]$clone2_prob,
+  clone3_prob = sce_unst_list[[don]][, choose_cells]$clone3_prob
+)
+
+p_c1c2 <- ggplot(difmap_unst, aes(x = difmap_1, y = difmap_2, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+difmap_unst$cyclone_phase <- factor(difmap_unst$cyclone_phase, 
+                                  levels = c("G1", "S", "G2M"))
+ggplot(difmap_unst, aes(x = difmap_1, y = difmap_2, fill = G2M,
+                      shape = clone)) +
+  geom_point(colour = "gray50", size = 5) +
+  scale_shape_manual(values = c(21, 23, 25), name = "clone") +
+  scico::scale_fill_scico(palette = "bilbao", name  = "G2/M score") +
+  scale_size_continuous(range = c(4, 6)) +
+  ggtitle(don) + 
+  theme_classic(18)
+
+p_c2c3 <- ggplot(difmap_unst, aes(x = difmap_2, y = difmap_3, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+p_c2c4 <- ggplot(difmap_unst, aes(x = difmap_2, y = difmap_4, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+p_c3c4 <- ggplot(difmap_unst, aes(x = difmap_3, y = difmap_4, fill = clone)) +
+  geom_point(pch = 21, size = 4, colour = "gray30") +
+  scale_fill_brewer(palette = "Accent", name = "assigned\nclone") +
+  ggtitle(don) +
+  theme_classic(14)
+
+
+# extract the legend from one of the plots
+# (clearly the whole thing only makes sense if all plots
+# have the same legend, so we can arbitrarily pick one.)
+legend <- get_legend(p_c1c2)
+prow <- plot_grid(p_c1c2 + theme(legend.position = "none"), 
+                  p_c2c3 + theme(legend.position = "none"), 
+                  p_c2c4 + theme(legend.position = "none"), 
+                  p_c3c4 + theme(legend.position = "none"), nrow = 2)
+# add the legend to the row we made earlier. Give it one-third of the width
+# of one plot (via rel_widths).
+p <- plot_grid(prow, legend, rel_widths = c(3, .3))
+p
+```
+
+
+

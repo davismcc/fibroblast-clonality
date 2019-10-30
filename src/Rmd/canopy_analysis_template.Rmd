@@ -3,11 +3,11 @@ title: "`r params$title`"
 author: "`r params$author`"
 date: "`r Sys.Date()`"
 params:
-    input_file: "MISSING"
+    input_file: "data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-vuna.txt.gz"
     author: "Davis McCarthy"
     title: "Canopy analysis"
-    donor: "MISSING"
-    to_working_dir: "./"
+    donor: "vuna"
+    to_working_dir: "."
     output_file: "MISSING"
 output: 
     html_document:
@@ -229,10 +229,24 @@ component/cluster.
 ```{r, canclust}
 R <- canopy_input$R
 X <- canopy_input$X
-num_cluster <- 2:8
+num_cluster <- 1:8
 num_run <- 5
 tau_kplus1 <- 0.05 # pre-specified proportion of noise component
-canclust <- canopy.cluster(R = R, X = X,
+
+canopy.cluster.Mstep <- function(pG, R, X, Tau_Kplus1) {
+  s = nrow(R)
+  K = nrow(pG) - 1
+  Tau = rep(NA, K + 1)
+  Tau[1:K] = (1 - Tau_Kplus1) * apply(pG[1:K,, drop=FALSE], 1, sum)/(s - 
+                                                            sum(pG[K + 1, ]))
+  Tau[K + 1] = Tau_Kplus1
+  pGtemp = pG[1:K,, drop=FALSE]
+  Mu = (pGtemp %*% R)/(pGtemp %*% X)
+  Mu = round(pmax(Mu, 1e-04), 4)
+  return(list(Mu = Mu, Tau = Tau))
+}
+
+canclust <- canopy.cluster.bugfix(R = R, X = X,
                             num_cluster = num_cluster,
                             num_run = num_run,
                             Tau_Kplus1 = tau_kplus1)

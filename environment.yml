@@ -20,6 +20,7 @@ dependencies:
   - samtools=1.8
   - tabix=0.2.5
   - hisat2=2.1.0
-  - rseqc=2.6.4
   - preseq=2.0.2
   - gatk=3.8
+  - snakemake=5.4.0
+
