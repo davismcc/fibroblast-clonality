@@ -25,6 +25,11 @@ populations, with implications for cancer and ageing.
 
 For a richer overview, see the [About](about.html) page.
 
+## Manuscript
+
+A pre-print describing the work in detail is available:
+
+- McCarthy, D. J.^, Rostom, R.^, Huang, Y.^, Kunz, D. J., Danecek, P., Bonder, M. J., … Stegle, O.#, Teichmann, S. A.# (2018). Cardelino: Integrating whole exomes and single-cell transcriptomes to reveal phenotypic impact of somatic variants (p. 413047). https://doi.org/10.1101/413047.
 
 ## Data pre-processing
 
