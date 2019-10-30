@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Davis J. McCarthy" />
+
+
+<title>Overlap of somatic mutations with CNV regions</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+
+.sourceCode .row {
+  width: 100%;
+}
+.sourceCode {
+  overflow-x: auto;
+}
+.code-folding-btn {
+  margin-right: -30px;
+}
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">fibroblast-clonality</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/davismcc/fibroblast-clonality">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Overlap of somatic mutations with CNV regions</h1>
+<h4 class="author"><em>Davis J. McCarthy</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2019-02-20</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180807)</code> </summary></p>
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/b88285f2b3758a77fc3ed008820c30492c1c724c" target="_blank">b88285f</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    .vscode/
+    Ignored:    code/.DS_Store
+    Ignored:    data/.DS_Store
+    Ignored:    data/raw/
+    Ignored:    src/.DS_Store
+    Ignored:    src/Rmd/.Rhistory
+
+Untracked files:
+    Untracked:  .dropbox
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
+    Untracked:  analysis/.ipynb_checkpoints/
+    Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/selection/
+    Untracked:  code/yuanhua/
+    Untracked:  data/canopy/
+    Untracked:  data/cell_assignment/
+    Untracked:  data/cnv/
+    Untracked:  data/de_analysis_FTv62/
+    Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
+    Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/exome-point-mutations/
+    Untracked:  data/fdr10.annot.txt.gz
+    Untracked:  data/human_H_v5p2.rdata
+    Untracked:  data/human_c2_v5p2.rdata
+    Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
+    Untracked:  data/sces/
+    Untracked:  data/selection/
+    Untracked:  data/simulations/
+    Untracked:  data/variance_components/
+    Untracked:  figures/
+    Untracked:  output/differential_expression/
+    Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
+    Untracked:  output/nvars_by_category_by_donor.tsv
+    Untracked:  output/nvars_by_category_by_line.tsv
+    Untracked:  output/variance_components/
+    Untracked:  references/
+    Untracked:  tree.txt
+
+Unstaged changes:
+    Modified:   docs/.nojekyll
+    Modified:   src/Rmd/#canopy_analysis_template.Rmd#
+    Modified:   src/Rmd/.RDataTmp
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/b88285f2b3758a77fc3ed008820c30492c1c724c/analysis/cnv_overlap.Rmd" target="_blank">b88285f</a>
+</td>
+<td style="text-align:left;">
+Davis McCarthy
+</td>
+<td style="text-align:left;">
+2019-02-20
+</td>
+<td style="text-align:left;">
+Tweaking reports and adding helper functions
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/932a2cb23f0ce039bf22a532758245eaeab460a9/analysis/cnv_overlap.Rmd" target="_blank">932a2cb</a>
+</td>
+<td style="text-align:left;">
+Davis McCarthy
+</td>
+<td style="text-align:left;">
+2019-02-15
+</td>
+<td style="text-align:left;">
+Adding CNV overlap analysis. Setting up repo for use on SVI servers.
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>In this analysis, we look at the overlap of somatic mutations and copy number variant regions in the fibroblast cells lines to check if CNVs in the cell lines could affect inference.</p>
+<p>Filtered CNV regions were produced by Gerda Kildisiute of the Wellcome Sanger Institute. who called and filtered these regions as described in the HipSci Flagship Paper (<a href="https://www.nature.com/articles/nature22403">Kilpinen et al, 2017</a>).</p>
+</div>
+<div id="load-libraries" class="section level2">
+<h2>Load libraries</h2>
+</div>
+<div id="read-copy-number-aberration-data" class="section level2">
+<h2>Read copy-number aberration data</h2>
+<p>First, read in deletion regions for each of the fibroblast lines. We format these regions into <code>GenomicRanges</code> objects for easy overlap with somatic mutation sites.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">deletions_df &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/cnv/filtered_deletions.txt&quot;</span>,
+                          <span class="dt">skip =</span> <span class="dv">1</span>,
+                          <span class="dt">col_names =</span> <span class="kw">c</span>(<span class="st">&quot;ID&quot;</span>, <span class="st">&quot;Chromosome&quot;</span>, <span class="st">&quot;Start&quot;</span>, <span class="st">&quot;End&quot;</span>, 
+                                        <span class="st">&quot;Copy_Number_state&quot;</span>, <span class="st">&quot;Quality&quot;</span>, <span class="st">&quot;nSites&quot;</span>, 
+                                        <span class="st">&quot;nHETs&quot;</span>),
+                          <span class="dt">col_types =</span> <span class="st">&quot;cciiidii&quot;</span>)
+deletions_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(deletions_df, 
+                       <span class="dt">line =</span> <span class="kw">gsub</span>(<span class="st">&quot;summary.&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;.tabRG&quot;</span>, <span class="st">&quot;&quot;</span>, ID)))
+deletions_df</code></pre></div>
+<pre><code># A tibble: 1,265 x 9
+   ID    Chromosome  Start    End Copy_Number_sta… Quality nSites nHETs
+   &lt;chr&gt; &lt;chr&gt;       &lt;int&gt;  &lt;int&gt;            &lt;int&gt;   &lt;dbl&gt;  &lt;int&gt; &lt;int&gt;
+ 1 summ… 4          6.45e7 6.56e7                1    14.4     78     2
+ 2 summ… 13         1.94e7 2.02e7                1    16.4     91     0
+ 3 summ… 8          4.70e7 4.86e7                1     5.2     69     0
+ 4 summ… 9          7.47e7 7.67e7                1    13.1    221     1
+ 5 summ… X          2.86e6 8.85e7                1    24.6   6740     7
+ 6 summ… X          9.24e7 1.55e8                1    34     5502     4
+ 7 summ… X          3.60e6 8.85e7                1    33.6   6559     3
+ 8 summ… 14         4.05e7 4.19e7                1    15.5    117     0
+ 9 summ… 4          1.32e8 1.33e8                1    15      104     1
+10 summ… 8          4.34e7 4.78e7                1     8.1     45     2
+# … with 1,255 more rows, and 1 more variable: line &lt;chr&gt;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">deletions_list &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="kw">length</span>(<span class="kw">unique</span>(deletions_df[[<span class="st">&quot;line&quot;</span>]])))
+<span class="kw">names</span>(deletions_list) &lt;-<span class="st"> </span><span class="kw">unique</span>(deletions_df[[<span class="st">&quot;line&quot;</span>]])
+<span class="cf">for</span> (ln <span class="cf">in</span> <span class="kw">unique</span>(deletions_df[[<span class="st">&quot;line&quot;</span>]])) {
+  deletions_list[[ln]] &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(
+    <span class="kw">filter</span>(deletions_df, line <span class="op">==</span><span class="st"> </span>ln),
+    <span class="dt">start.field =</span> <span class="st">&quot;Start&quot;</span>,
+    <span class="dt">end.field =</span> <span class="st">&quot;End&quot;</span>,
+    <span class="dt">keep.extra.columns =</span> <span class="ot">TRUE</span>
+  )
+  <span class="kw">seqlevelsStyle</span>(deletions_list[[ln]]) &lt;-<span class="st"> &quot;Ensembl&quot;</span>
+}
+deletions_gr_list &lt;-<span class="st"> </span><span class="kw">GRangesList</span>(<span class="dt">list =</span> deletions_list)</code></pre></div>
+<p>Next, we read in insertion regions, again formatting these regions into <code>GenomicRanges</code> objects.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">insertions_df &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="st">&quot;data/cnv/filtered_insertions.txt&quot;</span>,
+                          <span class="dt">skip =</span> <span class="dv">1</span>,
+                          <span class="dt">col_names =</span> <span class="kw">c</span>(<span class="st">&quot;ID&quot;</span>, <span class="st">&quot;Chromosome&quot;</span>, <span class="st">&quot;Start&quot;</span>, <span class="st">&quot;End&quot;</span>, 
+                                        <span class="st">&quot;Copy_Number_state&quot;</span>, <span class="st">&quot;Quality&quot;</span>, <span class="st">&quot;nSites&quot;</span>, 
+                                        <span class="st">&quot;nHETs&quot;</span>),
+                          <span class="dt">col_types =</span> <span class="st">&quot;cciiidii&quot;</span>)
+insertions_df &lt;-<span class="st"> </span><span class="kw">mutate</span>(insertions_df, 
+                       <span class="dt">line =</span> <span class="kw">gsub</span>(<span class="st">&quot;summary.&quot;</span>, <span class="st">&quot;&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;.tabRG&quot;</span>, <span class="st">&quot;&quot;</span>, ID)))
+insertions_df</code></pre></div>
+<pre><code># A tibble: 166 x 9
+   ID    Chromosome  Start    End Copy_Number_sta… Quality nSites nHETs
+   &lt;chr&gt; &lt;chr&gt;       &lt;int&gt;  &lt;int&gt;            &lt;int&gt;   &lt;dbl&gt;  &lt;int&gt; &lt;int&gt;
+ 1 summ… 11         1.34e8 1.35e8                3    15.5     57    37
+ 2 summ… 2          3.26e7 3.33e7                3    20.2    144    14
+ 3 summ… 2          3.26e7 3.33e7                3    22.3    142    14
+ 4 summ… 11         5.03e7 5.12e7                3    12.9     20    10
+ 5 summ… 11         4.85e7 5.12e7                3    15.4    104    16
+ 6 summ… 21         3.90e7 3.98e7                3    23.6    108    54
+ 7 summ… 10         4.76e7 4.80e7                3    14       25    16
+ 8 summ… 10         4.71e7 4.80e7                3    12.6     51    19
+ 9 summ… 1          1.89e8 1.90e8                3    12.7     13    10
+10 summ… 1          1.89e8 1.90e8                3    11.6     14    10
+# … with 156 more rows, and 1 more variable: line &lt;chr&gt;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">insertions_list &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="kw">length</span>(<span class="kw">unique</span>(insertions_df[[<span class="st">&quot;line&quot;</span>]])))
+<span class="kw">names</span>(insertions_list) &lt;-<span class="st"> </span><span class="kw">unique</span>(insertions_df[[<span class="st">&quot;line&quot;</span>]])
+<span class="cf">for</span> (ln <span class="cf">in</span> <span class="kw">unique</span>(insertions_df[[<span class="st">&quot;line&quot;</span>]])) {
+  insertions_list[[ln]] &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(
+    <span class="kw">filter</span>(insertions_df, line <span class="op">==</span><span class="st"> </span>ln),
+    <span class="dt">start.field =</span> <span class="st">&quot;Start&quot;</span>,
+    <span class="dt">end.field =</span> <span class="st">&quot;End&quot;</span>,
+    <span class="dt">keep.extra.columns =</span> <span class="ot">TRUE</span>
+  )
+  <span class="kw">seqlevelsStyle</span>(insertions_list[[ln]]) &lt;-<span class="st"> &quot;Ensembl&quot;</span>
+}
+insertions_gr_list &lt;-<span class="st"> </span><span class="kw">GRangesList</span>(<span class="dt">list =</span> insertions_list)</code></pre></div>
+</div>
+<div id="analysis-of-sites-used-for-canopy-and-downstream-analyses" class="section level2">
+<h2>Analysis of sites used for Canopy and downstream analyses</h2>
+<p>For the data analysis presented in the paper we used a leniently filtered set of somatic variants that, for each fibroblast line, had at least one cell with non-zero read coverage. This “lenient, cell-coverage” ser of variants was used for Canopy tree inference, cell-clone assignment and downstream analysis in the paper.  Here, we read in the leniently-filtered cell-coverage sites that were used in the paper and ee’ll focus on the set of 32 lines (donors) that were analysed in the paper.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">donors &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;euts&quot;</span>, <span class="st">&quot;fawm&quot;</span>, <span class="st">&quot;feec&quot;</span>, <span class="st">&quot;fikt&quot;</span>, <span class="st">&quot;garx&quot;</span>, <span class="st">&quot;gesg&quot;</span>, <span class="st">&quot;heja&quot;</span>, <span class="st">&quot;hipn&quot;</span>, 
+            <span class="st">&quot;ieki&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;kuco&quot;</span>, <span class="st">&quot;laey&quot;</span>, <span class="st">&quot;lexy&quot;</span>, <span class="st">&quot;naju&quot;</span>, <span class="st">&quot;nusw&quot;</span>, <span class="st">&quot;oaaz&quot;</span>, 
+            <span class="st">&quot;oilg&quot;</span>, <span class="st">&quot;pipw&quot;</span>, <span class="st">&quot;puie&quot;</span>, <span class="st">&quot;qayj&quot;</span>, <span class="st">&quot;qolg&quot;</span>, <span class="st">&quot;qonc&quot;</span>, <span class="st">&quot;rozh&quot;</span>, <span class="st">&quot;sehl&quot;</span>, 
+            <span class="st">&quot;ualf&quot;</span>, <span class="st">&quot;vass&quot;</span>, <span class="st">&quot;vils&quot;</span>, <span class="st">&quot;vuna&quot;</span>, <span class="st">&quot;wahn&quot;</span>, <span class="st">&quot;wetu&quot;</span>, <span class="st">&quot;xugn&quot;</span>, <span class="st">&quot;zoxy&quot;</span>)
+exome_ccsites_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+<span class="cf">for</span> (donor <span class="cf">in</span> donors) {
+  sites &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="kw">file.path</span>(<span class="st">&quot;data/exome-point-mutations/&quot;</span>,
+                              <span class="kw">paste0</span>(<span class="st">&quot;high-vs-low-exomes.v62.ft.filt_lenient-&quot;</span>, 
+                                     donor, <span class="st">&quot;.txt.gz&quot;</span>)),
+                    <span class="dt">col_types =</span> <span class="st">&quot;ciccdcciiiiccccccccddcdcll&quot;</span>, <span class="dt">comment =</span> <span class="st">&quot;#&quot;</span>,
+                    <span class="dt">col_names =</span> <span class="ot">TRUE</span>)
+  sites &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">select</span>(sites,
+                         <span class="op">-</span><span class="kw">c</span>(clinsing, SIFT_Pdel, PolyPhen_Pdel, gene_name,
+                            bcftools_csq))
+  sites &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(
+    sites, 
+    <span class="dt">chrom =</span> <span class="kw">paste0</span>(<span class="st">&quot;chr&quot;</span>, <span class="kw">gsub</span>(<span class="st">&quot;chr&quot;</span>, <span class="st">&quot;&quot;</span>, chrom)),
+    <span class="dt">var_id =</span> <span class="kw">paste0</span>(chrom, <span class="st">&quot;:&quot;</span>, pos, <span class="st">&quot;_&quot;</span>, ref, <span class="st">&quot;_&quot;</span>, alt))
+  ## deduplicate sites list
+  sites &lt;-<span class="st"> </span>sites[<span class="op">!</span><span class="kw">duplicated</span>(sites[[<span class="st">&quot;var_id&quot;</span>]]),]
+  sites &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(sites, <span class="dt">end_pos =</span> pos)
+  exome_ccsites_list[[donor]] &lt;-<span class="st"> </span><span class="kw">makeGRangesFromDataFrame</span>(
+          sites,
+          <span class="dt">start.field =</span> <span class="st">&quot;pos&quot;</span>,
+          <span class="dt">end.field =</span> <span class="st">&quot;end_pos&quot;</span>,
+          <span class="dt">keep.extra.columns =</span> <span class="ot">TRUE</span>)
+  <span class="kw">seqlevelsStyle</span>(exome_ccsites_list[[donor]]) &lt;-<span class="st"> &quot;Ensembl&quot;</span>
+}
+exome_ccsites_gr_list &lt;-<span class="st"> </span><span class="kw">GRangesList</span>(exome_ccsites_list)</code></pre></div>
+<div id="overlap-cell-coverage-exome-sites-with-deletion-regions." class="section level3">
+<h3>Overlap cell-coverage exome sites with deletion regions.</h3>
+<p>To determine the extent to which somatic mutation sites fall in CNV deletion regions, we overlap the somatic sites with the deletion regions, as setup above.</p>
+<p>The table output below shows that across all 32 fibroblast lines there is one single somatic SNV that falls in a deletion region.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">overlaps_cc_del_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+lines_cc_no_del_regions &lt;-<span class="st"> </span><span class="kw">c</span>()
+deletions_gr_list_shortnames &lt;-<span class="st"> </span>deletions_gr_list
+<span class="kw">names</span>(deletions_gr_list_shortnames) &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;HPSI.*pf-&quot;</span>, <span class="st">&quot;&quot;</span>, 
+                                            <span class="kw">names</span>(deletions_gr_list))
+<span class="cf">for</span> (ln <span class="cf">in</span> <span class="kw">names</span>(exome_ccsites_gr_list)) {
+  <span class="cf">if</span> (ln <span class="op">%in%</span><span class="st"> </span><span class="kw">names</span>(deletions_gr_list_shortnames))
+    overlaps_cc_del_list[[ln]] &lt;-<span class="st"> </span><span class="kw">findOverlaps</span>(exome_ccsites_gr_list[[ln]], 
+                                               deletions_gr_list_shortnames[[ln]])
+  <span class="cf">else</span> 
+    overlaps_cc_del_list[[ln]] &lt;-<span class="st"> </span><span class="kw">findOverlaps</span>(exome_ccsites_gr_list[[ln]], 
+                                               <span class="kw">GRanges</span>())
+}
+overlaps_cc_del_df &lt;-<span class="st"> </span><span class="kw">tibble</span>(
+  <span class="dt">line =</span> <span class="kw">names</span>(overlaps_cc_del_list),
+  <span class="dt">nSNVs_in_del_region =</span> <span class="kw">sapply</span>(overlaps_cc_del_list, length),
+  <span class="dt">nSNVs =</span> <span class="kw">sapply</span>(overlaps_cc_del_list, queryLength),
+  <span class="dt">n_del_region =</span> <span class="kw">sapply</span>(overlaps_cc_del_list, subjectLength),
+  <span class="dt">prop_SNVs_in_del_region =</span> nSNVs_in_del_region <span class="op">/</span><span class="st"> </span>nSNVs
+)
+overlaps_cc_del_df <span class="op">%&gt;%</span><span class="st"> </span>kable</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">line</th>
+<th align="right">nSNVs_in_del_region</th>
+<th align="right">nSNVs</th>
+<th align="right">n_del_region</th>
+<th align="right">prop_SNVs_in_del_region</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">euts</td>
+<td align="right">0</td>
+<td align="right">49</td>
+<td align="right">6</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">fawm</td>
+<td align="right">0</td>
+<td align="right">19</td>
+<td align="right">6</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">feec</td>
+<td align="right">0</td>
+<td align="right">26</td>
+<td align="right">6</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">fikt</td>
+<td align="right">0</td>
+<td align="right">26</td>
+<td align="right">6</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">garx</td>
+<td align="right">0</td>
+<td align="right">98</td>
+<td align="right">3</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">gesg</td>
+<td align="right">0</td>
+<td align="right">43</td>
+<td align="right">5</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">heja</td>
+<td align="right">0</td>
+<td align="right">28</td>
+<td align="right">7</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">hipn</td>
+<td align="right">1</td>
+<td align="right">14</td>
+<td align="right">7</td>
+<td align="right">0.0714286</td>
+</tr>
+<tr class="odd">
+<td align="left">ieki</td>
+<td align="right">0</td>
+<td align="right">16</td>
+<td align="right">1</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">joxm</td>
+<td align="right">0</td>
+<td align="right">112</td>
+<td align="right">0</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">kuco</td>
+<td align="right">0</td>
+<td align="right">9</td>
+<td align="right">0</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">laey</td>
+<td align="right">0</td>
+<td align="right">65</td>
+<td align="right">1</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">lexy</td>
+<td align="right">0</td>
+<td align="right">11</td>
+<td align="right">5</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">naju</td>
+<td align="right">0</td>
+<td align="right">13</td>
+<td align="right">8</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">nusw</td>
+<td align="right">0</td>
+<td align="right">13</td>
+<td align="right">4</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">oaaz</td>
+<td align="right">0</td>
+<td align="right">27</td>
+<td align="right">5</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">oilg</td>
+<td align="right">0</td>
+<td align="right">39</td>
+<td align="right">8</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">pipw</td>
+<td align="right">0</td>
+<td align="right">53</td>
+<td align="right">5</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">puie</td>
+<td align="right">0</td>
+<td align="right">19</td>
+<td align="right">6</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">qayj</td>
+<td align="right">0</td>
+<td align="right">14</td>
+<td align="right">4</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">qolg</td>
+<td align="right">0</td>
+<td align="right">23</td>
+<td align="right">3</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">qonc</td>
+<td align="right">0</td>
+<td align="right">20</td>
+<td align="right">3</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">rozh</td>
+<td align="right">0</td>
+<td align="right">19</td>
+<td align="right">1</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">sehl</td>
+<td align="right">0</td>
+<td align="right">26</td>
+<td align="right">1</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">ualf</td>
+<td align="right">0</td>
+<td align="right">54</td>
+<td align="right">2</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">vass</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">vils</td>
+<td align="right">0</td>
+<td align="right">9</td>
+<td align="right">1</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">vuna</td>
+<td align="right">0</td>
+<td align="right">33</td>
+<td align="right">2</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">wahn</td>
+<td align="right">0</td>
+<td align="right">115</td>
+<td align="right">2</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">wetu</td>
+<td align="right">0</td>
+<td align="right">19</td>
+<td align="right">1</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">xugn</td>
+<td align="right">0</td>
+<td align="right">18</td>
+<td align="right">11</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">zoxy</td>
+<td align="right">0</td>
+<td align="right">15</td>
+<td align="right">4</td>
+<td align="right">0.0000000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="overlap-exome-sites-with-insertion-regions." class="section level3">
+<h3>Overlap exome sites with insertion regions.</h3>
+<p>To determine the extent to which somatic mutation sites fall in CNV insertion regions, we overlap the somatic sites with the insertion regions, as setup above.</p>
+<p>The table output below shows that across all 32 fibroblast lines there are no somatic SNVs that falls in a deletion region.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">overlaps_cc_ins_list &lt;-<span class="st"> </span><span class="kw">list</span>()
+lines_cc_no_ins_regions &lt;-<span class="st"> </span><span class="kw">c</span>()
+insertions_gr_list_shortnames &lt;-<span class="st"> </span>insertions_gr_list
+<span class="kw">names</span>(insertions_gr_list_shortnames) &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;HPSI.*pf-&quot;</span>, <span class="st">&quot;&quot;</span>, 
+                                            <span class="kw">names</span>(insertions_gr_list))
+<span class="cf">for</span> (ln <span class="cf">in</span> <span class="kw">names</span>(exome_ccsites_gr_list)) {
+  <span class="cf">if</span> (ln <span class="op">%in%</span><span class="st"> </span><span class="kw">names</span>(insertions_gr_list_shortnames))
+    overlaps_cc_ins_list[[ln]] &lt;-<span class="st"> </span><span class="kw">findOverlaps</span>(exome_ccsites_gr_list[[ln]], 
+                                            insertions_gr_list_shortnames[[ln]])
+  <span class="cf">else</span> 
+    overlaps_cc_ins_list[[ln]] &lt;-<span class="st"> </span><span class="kw">findOverlaps</span>(exome_ccsites_gr_list[[ln]], 
+                                               <span class="kw">GRanges</span>())
+}
+overlaps_cc_ins_df &lt;-<span class="st"> </span><span class="kw">tibble</span>(
+  <span class="dt">line =</span> <span class="kw">names</span>(overlaps_cc_ins_list),
+  <span class="dt">nSNVs_in_ins_region =</span> <span class="kw">sapply</span>(overlaps_cc_ins_list, length),
+  <span class="dt">nSNVs =</span> <span class="kw">sapply</span>(overlaps_cc_ins_list, queryLength),
+  <span class="dt">n_ins_region =</span> <span class="kw">sapply</span>(overlaps_cc_ins_list, subjectLength),
+  <span class="dt">prop_SNVs_in_ins_region =</span> nSNVs_in_ins_region <span class="op">/</span><span class="st"> </span>nSNVs
+)
+overlaps_cc_ins_df <span class="op">%&gt;%</span><span class="st"> </span>kable</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">line</th>
+<th align="right">nSNVs_in_ins_region</th>
+<th align="right">nSNVs</th>
+<th align="right">n_ins_region</th>
+<th align="right">prop_SNVs_in_ins_region</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">euts</td>
+<td align="right">0</td>
+<td align="right">49</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">fawm</td>
+<td align="right">0</td>
+<td align="right">19</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">feec</td>
+<td align="right">0</td>
+<td align="right">26</td>
+<td align="right">2</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">fikt</td>
+<td align="right">0</td>
+<td align="right">26</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">garx</td>
+<td align="right">0</td>
+<td align="right">98</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">gesg</td>
+<td align="right">0</td>
+<td align="right">43</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">heja</td>
+<td align="right">0</td>
+<td align="right">28</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">hipn</td>
+<td align="right">0</td>
+<td align="right">14</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">ieki</td>
+<td align="right">0</td>
+<td align="right">16</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">joxm</td>
+<td align="right">0</td>
+<td align="right">112</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">kuco</td>
+<td align="right">0</td>
+<td align="right">9</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">laey</td>
+<td align="right">0</td>
+<td align="right">65</td>
+<td align="right">2</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">lexy</td>
+<td align="right">0</td>
+<td align="right">11</td>
+<td align="right">2</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">naju</td>
+<td align="right">0</td>
+<td align="right">13</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">nusw</td>
+<td align="right">0</td>
+<td align="right">13</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">oaaz</td>
+<td align="right">0</td>
+<td align="right">27</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">oilg</td>
+<td align="right">0</td>
+<td align="right">39</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">pipw</td>
+<td align="right">0</td>
+<td align="right">53</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">puie</td>
+<td align="right">0</td>
+<td align="right">19</td>
+<td align="right">3</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">qayj</td>
+<td align="right">0</td>
+<td align="right">14</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">qolg</td>
+<td align="right">0</td>
+<td align="right">23</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">qonc</td>
+<td align="right">0</td>
+<td align="right">20</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">rozh</td>
+<td align="right">0</td>
+<td align="right">19</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">sehl</td>
+<td align="right">0</td>
+<td align="right">26</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">ualf</td>
+<td align="right">0</td>
+<td align="right">54</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">vass</td>
+<td align="right">0</td>
+<td align="right">100</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">vils</td>
+<td align="right">0</td>
+<td align="right">9</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">vuna</td>
+<td align="right">0</td>
+<td align="right">33</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">wahn</td>
+<td align="right">0</td>
+<td align="right">115</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">wetu</td>
+<td align="right">0</td>
+<td align="right">19</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">xugn</td>
+<td align="right">0</td>
+<td align="right">18</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">zoxy</td>
+<td align="right">0</td>
+<td align="right">15</td>
+<td align="right">2</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="conclusions" class="section level2">
+<h2>Conclusions</h2>
+<p>A reasonable concern in clonal tree inference with Canopy and subsequent assignment of cells to clones with Cardelino is that somatic SNVs in copy-number aberrant regions could result in spurious tree inference and/or incorrect assignment of cells to clones resulting in problems in downstream analyses.</p>
+<p>The analysis here shows that, across the 32 fibroblast lines used for this study, no somatic SNVs fall in CN insertion regions and one single somatic SNV falls in a deletion region (in the <code>hipn</code> line). As such, we can be completely confident that CNVs present in the lines studied here have no effect on the reported results.</p>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">session_info</span>()</code></pre></div>
+<pre><code>─ Session info ──────────────────────────────────────────────────────────
+ setting  value                       
+ version  R version 3.5.2 (2018-12-20)
+ os       Ubuntu 18.04.2 LTS          
+ system   x86_64, linux-gnu           
+ ui       X11                         
+ language (EN)                        
+ collate  en_AU.UTF-8                 
+ ctype    en_AU.UTF-8                 
+ tz       Australia/Melbourne         
+ date     2019-02-20                  
+
+─ Packages ──────────────────────────────────────────────────────────────
+ package          * version   date       lib
+ AnnotationDbi    * 1.44.0    2018-10-30 [1]
+ assertthat         0.2.0     2017-04-11 [1]
+ backports          1.1.3     2018-12-14 [1]
+ bindr              0.1.1     2018-03-13 [1]
+ bindrcpp         * 0.2.2     2018-03-29 [1]
+ Biobase          * 2.42.0    2018-10-30 [1]
+ BiocGenerics     * 0.28.0    2018-10-30 [1]
+ bit                1.1-14    2018-05-29 [1]
+ bit64              0.9-7     2017-05-08 [1]
+ bitops             1.0-6     2013-08-17 [1]
+ blob               1.1.1     2018-03-25 [1]
+ broom              0.5.1     2018-12-05 [1]
+ callr              3.1.1     2018-12-21 [1]
+ cellranger         1.1.0     2016-07-27 [1]
+ cli                1.0.1     2018-09-25 [1]
+ colorspace         1.4-0     2019-01-13 [1]
+ cowplot          * 0.9.4     2019-01-08 [1]
+ crayon             1.3.4     2017-09-16 [1]
+ DBI                1.0.0     2018-05-02 [1]
+ desc               1.2.0     2018-05-01 [1]
+ devtools           2.0.1     2018-10-26 [1]
+ digest             0.6.18    2018-10-10 [1]
+ dplyr            * 0.7.8     2018-11-10 [1]
+ evaluate           0.12      2018-10-09 [1]
+ fansi              0.4.0     2018-10-05 [1]
+ fdrtool            1.2.15    2015-07-08 [1]
+ forcats          * 0.3.0     2018-02-19 [1]
+ fs                 1.2.6     2018-08-23 [1]
+ generics           0.0.2     2018-11-29 [1]
+ GenomeInfoDb     * 1.18.1    2018-11-12 [1]
+ GenomeInfoDbData   1.2.0     2019-01-21 [1]
+ GenomicRanges    * 1.34.0    2018-10-30 [1]
+ ggplot2          * 3.1.0     2018-10-25 [1]
+ ggrepel          * 0.8.0     2018-05-09 [1]
+ git2r              0.24.0    2019-01-07 [1]
+ glue               1.3.0     2018-07-17 [1]
+ gridExtra          2.3       2017-09-09 [1]
+ gtable             0.2.0     2016-02-26 [1]
+ haven              2.0.0     2018-11-22 [1]
+ highr              0.7       2018-06-09 [1]
+ hms                0.4.2     2018-03-10 [1]
+ htmltools          0.3.6     2017-04-28 [1]
+ httr               1.4.0     2018-12-11 [1]
+ IHW              * 1.10.1    2019-01-04 [1]
+ IRanges          * 2.16.0    2018-10-30 [1]
+ jsonlite           1.6       2018-12-07 [1]
+ knitr            * 1.21      2018-12-10 [1]
+ lattice            0.20-38   2018-11-04 [4]
+ lazyeval           0.2.1     2017-10-29 [1]
+ lpsymphony         1.10.0    2018-10-30 [1]
+ lubridate          1.7.4     2018-04-11 [1]
+ magrittr           1.5       2014-11-22 [1]
+ memoise            1.1.0     2017-04-21 [1]
+ modelr             0.1.2     2018-05-11 [1]
+ munsell            0.5.0     2018-06-12 [1]
+ nlme               3.1-137   2018-04-07 [4]
+ org.Hs.eg.db     * 3.7.0     2019-01-30 [1]
+ pillar             1.3.1     2018-12-15 [1]
+ pkgbuild           1.0.2     2018-10-16 [1]
+ pkgconfig          2.0.2     2018-08-16 [1]
+ pkgload            1.0.2     2018-10-29 [1]
+ plyr               1.8.4     2016-06-08 [1]
+ prettyunits        1.0.2     2015-07-13 [1]
+ processx           3.2.1     2018-12-05 [1]
+ ps                 1.3.0     2018-12-21 [1]
+ purrr            * 0.3.0     2019-01-27 [1]
+ R.methodsS3        1.7.1     2016-02-16 [1]
+ R.oo               1.22.0    2018-04-22 [1]
+ R.utils            2.7.0     2018-08-27 [1]
+ R6                 2.3.0     2018-10-04 [1]
+ RColorBrewer     * 1.1-2     2014-12-07 [1]
+ Rcpp               1.0.0     2018-11-07 [1]
+ RCurl              1.95-4.11 2018-07-15 [1]
+ readr            * 1.3.1     2018-12-21 [1]
+ readxl             1.2.0     2018-12-19 [1]
+ remotes            2.0.2     2018-10-30 [1]
+ rlang              0.3.1     2019-01-08 [1]
+ rmarkdown          1.11      2018-12-08 [1]
+ rprojroot          1.3-2     2018-01-03 [1]
+ RSQLite            2.1.1     2018-05-06 [1]
+ rstudioapi         0.9.0     2019-01-09 [1]
+ rvest              0.3.2     2016-06-17 [1]
+ S4Vectors        * 0.20.1    2018-11-09 [1]
+ scales             1.0.0     2018-08-09 [1]
+ sessioninfo        1.1.1     2018-11-05 [1]
+ slam               0.1-44    2018-12-21 [1]
+ stringi            1.2.4     2018-07-20 [1]
+ stringr          * 1.3.1     2018-05-10 [1]
+ superheat        * 0.1.0     2017-02-04 [1]
+ testthat           2.0.1     2018-10-13 [1]
+ tibble           * 2.0.1     2019-01-12 [1]
+ tidyr            * 0.8.2     2018-10-28 [1]
+ tidyselect         0.2.5     2018-10-11 [1]
+ tidyverse        * 1.2.1     2017-11-14 [1]
+ usethis            1.4.0     2018-08-14 [1]
+ utf8               1.1.4     2018-05-24 [1]
+ viridis          * 0.5.1     2018-03-29 [1]
+ viridisLite      * 0.3.0     2018-02-01 [1]
+ whisker            0.3-2     2013-04-28 [1]
+ withr              2.1.2     2018-03-15 [1]
+ workflowr          1.1.1     2019-02-04 [1]
+ xfun               0.4       2018-10-23 [1]
+ xml2               1.2.0     2018-01-24 [1]
+ XVector            0.22.0    2018-10-30 [1]
+ yaml               2.2.0     2018-07-25 [1]
+ zlibbioc           1.28.0    2018-10-30 [1]
+ source                               
+ Bioconductor                         
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ Bioconductor                         
+ Bioconductor                         
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ Bioconductor                         
+ Bioconductor                         
+ Bioconductor                         
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ Bioconductor                         
+ Bioconductor                         
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.1)                       
+ CRAN (R 3.5.2)                       
+ Bioconductor (R 3.5.2)               
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.0)                       
+ Bioconductor                         
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ Bioconductor                         
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ Github (jdblischak/workflowr@ee111e2)
+ CRAN (R 3.5.2)                       
+ CRAN (R 3.5.2)                       
+ Bioconductor                         
+ CRAN (R 3.5.2)                       
+ Bioconductor                         
+
+[1] /home/AD.SVI.EDU.AU/dmccarthy/R/x86_64-pc-linux-gnu-library/3.5
+[2] /usr/local/lib/R/site-library
+[3] /usr/lib/R/site-library
+[4] /usr/lib/R/library</code></pre>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Davis J. McCarthy" />
+
+
+<title>Clone prevalence analysis: Cardelino-relax assignments</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+.sourceCode .row {
+  width: 100%;
+}
+.sourceCode {
+  overflow-x: auto;
+}
+.code-folding-btn {
+  margin-right: -30px;
+}
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">fibroblast-clonality</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/davismcc/fibroblast-clonality">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Clone prevalence analysis: Cardelino-relax assignments</h1>
+<h4 class="author">Davis J. McCarthy</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2019-10-30
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>fibroblast-clonality/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.4.0). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20180807code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20180807)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20180807code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdavismccfibroblastclonalitytreecf8eb558a00bd2e5f605690acb9ecc94c4b40576targetblankcf8eb55a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/davismcc/fibroblast-clonality/tree/cf8eb558a00bd2e5f605690acb9ecc94c4b40576" target="_blank">cf8eb55</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomdavismccfibroblastclonalitytreecf8eb558a00bd2e5f605690acb9ecc94c4b40576targetblankcf8eb55a" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    .vscode/
+    Ignored:    code/.DS_Store
+    Ignored:    code/selection/.DS_Store
+    Ignored:    code/selection/.Rhistory
+    Ignored:    code/selection/figures/
+    Ignored:    data/.DS_Store
+    Ignored:    logs/
+    Ignored:    src/.DS_Store
+    Ignored:    src/Rmd/.Rhistory
+
+Untracked files:
+    Untracked:  .dockerignore
+    Untracked:  .dropbox
+    Untracked:  .snakemake/
+    Untracked:  Rplots.pdf
+    Untracked:  Snakefile_clonality
+    Untracked:  Snakefile_somatic_calling
+    Untracked:  analysis/.ipynb_checkpoints/
+    Untracked:  analysis/assess_mutect2_fibro-ipsc_variant_calls.ipynb
+    Untracked:  analysis/cardelino_fig1b.R
+    Untracked:  analysis/cardelino_fig2b.R
+    Untracked:  code/analysis_for_garx.Rmd
+    Untracked:  code/selection/data/
+    Untracked:  code/selection/fit-dist.nb
+    Untracked:  code/selection/result-figure.R
+    Untracked:  code/yuanhua/
+    Untracked:  data/Melanoma-RegevGarraway-DFCI-scRNA-Seq/
+    Untracked:  data/PRJNA485423/
+    Untracked:  data/canopy/
+    Untracked:  data/cell_assignment/
+    Untracked:  data/cnv/
+    Untracked:  data/de_analysis_FTv62/
+    Untracked:  data/donor_info_070818.txt
+    Untracked:  data/donor_info_core.csv
+    Untracked:  data/donor_neutrality.tsv
+    Untracked:  data/exome-point-mutations/
+    Untracked:  data/fdr10.annot.txt.gz
+    Untracked:  data/human_H_v5p2.rdata
+    Untracked:  data/human_c2_v5p2.rdata
+    Untracked:  data/human_c6_v5p2.rdata
+    Untracked:  data/neg-bin-rsquared-petr.csv
+    Untracked:  data/neutralitytestr-petr.tsv
+    Untracked:  data/raw/
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_qc_filt.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds
+    Untracked:  data/sce_merged_donors_cardelino_donorid_unstim_qc_filt.rds
+    Untracked:  data/sces/
+    Untracked:  data/selection/
+    Untracked:  data/simulations/
+    Untracked:  data/variance_components/
+    Untracked:  figures/
+    Untracked:  output/differential_expression/
+    Untracked:  output/differential_expression_cardelino-relax/
+    Untracked:  output/donor_specific/
+    Untracked:  output/line_info.tsv
+    Untracked:  output/nvars_by_category_by_donor.tsv
+    Untracked:  output/nvars_by_category_by_line.tsv
+    Untracked:  output/variance_components/
+    Untracked:  qolg_BIC.pdf
+    Untracked:  references/
+    Untracked:  reports/
+    Untracked:  src/Rmd/DE_pathways_FTv62_callset_clones_pairwise_vs_base.unst_cells.carderelax.Rmd
+    Untracked:  src/Rmd/Rplots.pdf
+    Untracked:  src/Rmd/cell_assignment_cardelino-relax_template.Rmd
+    Untracked:  tree.txt
+
+Unstaged changes:
+    Modified:   analysis/selection_models.Rmd
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the R Markdown and HTML files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view them.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/davismcc/fibroblast-clonality/blob/550176f57f3f33670ae89659f72e541ad8e8ba41/analysis/clone_prevalences_cardelino-relax.Rmd" target="_blank">550176f</a>
+</td>
+<td>
+Davis McCarthy
+</td>
+<td>
+2019-10-30
+</td>
+<td>
+Updating analysis to reflect accepted ms
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="load-libraries-and-data" class="section level2">
+<h2>Load libraries and data</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">dir.create</span>(<span class="st">&quot;figures/clone_prevalences&quot;</span>, <span class="dt">showWarnings =</span> <span class="ot">FALSE</span>, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">library</span>(tidyverse)</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw">library</span>(viridis)</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="kw">library</span>(cowplot)</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw">theme_set</span>(<span class="kw">theme_cowplot</span>())</a></code></pre></div>
+<p>Load the Canopy clone inference results and the cell assignment results from cardelino for 32 donor fibroblast cell lines.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">params &lt;-<span class="st"> </span><span class="kw">list</span>()</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">params<span class="op">$</span>callset &lt;-<span class="st"> &quot;filt_lenient.cell_coverage_sites&quot;</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">fls &lt;-<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&quot;data/sces&quot;</span>)</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">fls &lt;-<span class="st"> </span>fls[<span class="kw">grepl</span>(<span class="kw">paste0</span>(<span class="st">&quot;carderelax.&quot;</span>, params<span class="op">$</span>callset), fls)]</a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">lines &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;.*ce_([a-z]+)_with_clone_assignments_carderelax.*&quot;</span>, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">1&quot;</span>, fls)</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">cell_assign_list &lt;-<span class="st"> </span><span class="kw">list</span>()</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8"><span class="cf">for</span> (don <span class="cf">in</span> lines) {</a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">    cell_assign_list[[don]] &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="kw">file.path</span>(<span class="st">&quot;data/cell_assignment&quot;</span>, </a>
+<a class="sourceLine" id="cb2-10" data-line-number="10">        <span class="kw">paste0</span>(<span class="st">&quot;cardelino_results_carderelax.&quot;</span>, don, <span class="st">&quot;.&quot;</span>, params<span class="op">$</span>callset, <span class="st">&quot;.rds&quot;</span>)))</a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">    <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">&quot;reading&quot;</span>, don, <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>))</a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">}</a></code></pre></div>
+<pre><code>reading euts 
+reading fawm 
+reading feec 
+reading fikt 
+reading garx 
+reading gesg 
+reading heja 
+reading hipn 
+reading ieki 
+reading joxm 
+reading kuco 
+reading laey 
+reading lexy 
+reading naju 
+reading nusw 
+reading oaaz 
+reading oilg 
+reading pipw 
+reading puie 
+reading qayj 
+reading qolg 
+reading qonc 
+reading rozh 
+reading sehl 
+reading ualf 
+reading vass 
+reading vils 
+reading vuna 
+reading wahn 
+reading wetu 
+reading xugn 
+reading zoxy </code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">canopy_list &lt;-<span class="st"> </span><span class="kw">list</span>()</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">prev_list &lt;-<span class="st"> </span><span class="kw">list</span>()</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="cf">for</span> (don <span class="cf">in</span> lines) {</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">  tmp_df &lt;-<span class="st"> </span><span class="kw">data_frame</span>(</a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">    <span class="dt">line =</span> don,</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">    <span class="dt">clone =</span> <span class="kw">rownames</span>(cell_assign_list[[don]]<span class="op">$</span>tree<span class="op">$</span>P),</a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">    <span class="dt">prev_canopy =</span> cell_assign_list[[don]]<span class="op">$</span>tree<span class="op">$</span>P[, <span class="dv">1</span>],</a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">    <span class="dt">prev_cardelino =</span> <span class="ot">NA</span>,</a>
+<a class="sourceLine" id="cb4-10" data-line-number="10">    <span class="dt">n_cells =</span> <span class="kw">length</span>(cell_assign_list[[don]]<span class="op">$</span>clone_assigned),</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11">    <span class="dt">n_assigned =</span> <span class="kw">sum</span>(cell_assign_list[[don]]<span class="op">$</span>clone_assigned <span class="op">!=</span><span class="st"> &quot;unassigned&quot;</span>),</a>
+<a class="sourceLine" id="cb4-12" data-line-number="12">    <span class="dt">prop_assigned =</span> n_assigned <span class="op">/</span><span class="st"> </span>n_cells</a>
+<a class="sourceLine" id="cb4-13" data-line-number="13">  )</a>
+<a class="sourceLine" id="cb4-14" data-line-number="14">  <span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_len</span>(<span class="kw">nrow</span>(tmp_df))) {</a>
+<a class="sourceLine" id="cb4-15" data-line-number="15">    tmp_df<span class="op">$</span>prev_cardelino[i] &lt;-<span class="st"> </span>(<span class="kw">sum</span>(</a>
+<a class="sourceLine" id="cb4-16" data-line-number="16">      cell_assign_list[[don]]<span class="op">$</span>clone_assigned <span class="op">==</span><span class="st"> </span>tmp_df<span class="op">$</span>clone[i]) <span class="op">/</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb4-17" data-line-number="17"><span class="st">        </span>tmp_df<span class="op">$</span>n_assigned[i])</a>
+<a class="sourceLine" id="cb4-18" data-line-number="18">  }</a>
+<a class="sourceLine" id="cb4-19" data-line-number="19">  prev_list[[don]] &lt;-<span class="st"> </span>tmp_df</a>
+<a class="sourceLine" id="cb4-20" data-line-number="20">}</a></code></pre></div>
+<pre><code>Warning: `data_frame()` is deprecated, use `tibble()`.
+This warning is displayed once per session.</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">df_prev &lt;-<span class="st"> </span><span class="kw">do.call</span>(<span class="st">&quot;rbind&quot;</span>, prev_list)</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">lm_eqn &lt;-<span class="st"> </span><span class="cf">function</span>(df) {</a>
+<a class="sourceLine" id="cb6-4" data-line-number="4">    m &lt;-<span class="st"> </span><span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, df);</a>
+<a class="sourceLine" id="cb6-5" data-line-number="5">    eq &lt;-<span class="st"> </span><span class="kw">substitute</span>(<span class="op">~</span><span class="kw">italic</span>(r)<span class="op">^</span><span class="dv">2</span><span class="op">~</span><span class="st">&quot;=&quot;</span><span class="op">~</span>r2, </a>
+<a class="sourceLine" id="cb6-6" data-line-number="6">         <span class="kw">list</span>(<span class="dt">a =</span> <span class="kw">format</span>(<span class="kw">coef</span>(m)[<span class="dv">1</span>], <span class="dt">digits =</span> <span class="dv">2</span>), </a>
+<a class="sourceLine" id="cb6-7" data-line-number="7">              <span class="dt">b =</span> <span class="kw">format</span>(<span class="kw">coef</span>(m)[<span class="dv">2</span>], <span class="dt">digits =</span> <span class="dv">2</span>), </a>
+<a class="sourceLine" id="cb6-8" data-line-number="8">             <span class="dt">r2 =</span> <span class="kw">format</span>(<span class="kw">summary</span>(m)<span class="op">$</span>r.squared, <span class="dt">digits =</span> <span class="dv">3</span>)))</a>
+<a class="sourceLine" id="cb6-9" data-line-number="9">    <span class="kw">as.character</span>(<span class="kw">as.expression</span>(eq));                 </a>
+<a class="sourceLine" id="cb6-10" data-line-number="10">}</a>
+<a class="sourceLine" id="cb6-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb6-12" data-line-number="12"><span class="co">## Fit weighted regressions</span></a>
+<a class="sourceLine" id="cb6-13" data-line-number="13">fits &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-14" data-line-number="14"><span class="st">  </span><span class="kw">group_by</span>(clone) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb6-15" data-line-number="15"><span class="st">  </span><span class="kw">do</span>(<span class="dt">fit =</span> <span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, <span class="dt">data =</span> .))</a>
+<a class="sourceLine" id="cb6-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb6-17" data-line-number="17">fits_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-18" data-line-number="18"><span class="st">  </span><span class="kw">do</span>(<span class="dt">fit =</span> <span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, <span class="dt">data =</span> .))</a>
+<a class="sourceLine" id="cb6-19" data-line-number="19"></a>
+<a class="sourceLine" id="cb6-20" data-line-number="20">fits_1grp_filt_n_assigned &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-21" data-line-number="21"><span class="st">  </span><span class="kw">filter</span>(n_assigned <span class="op">&gt;</span><span class="st"> </span><span class="dv">37</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-22" data-line-number="22"><span class="st">  </span><span class="kw">do</span>(<span class="dt">fit =</span> <span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, <span class="dt">data =</span> .))</a>
+<a class="sourceLine" id="cb6-23" data-line-number="23"></a>
+<a class="sourceLine" id="cb6-24" data-line-number="24"></a>
+<a class="sourceLine" id="cb6-25" data-line-number="25">lines_high_tree_agreement &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;euts&quot;</span>,  <span class="st">&quot;hipn&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;kuco&quot;</span>, <span class="st">&quot;naju&quot;</span>, <span class="st">&quot;nusw&quot;</span>, </a>
+<a class="sourceLine" id="cb6-26" data-line-number="26">                               <span class="st">&quot;pipw&quot;</span>, <span class="st">&quot;rozh&quot;</span>, <span class="st">&quot;vuna&quot;</span>)</a>
+<a class="sourceLine" id="cb6-27" data-line-number="27">fits_1grp_filt_clonal_tree &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-28" data-line-number="28"><span class="st">  </span><span class="kw">filter</span>(line <span class="op">%in%</span><span class="st"> </span>lines_high_tree_agreement) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-29" data-line-number="29"><span class="st">  </span><span class="kw">do</span>(<span class="dt">fit =</span> <span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, <span class="dt">data =</span> .))</a>
+<a class="sourceLine" id="cb6-30" data-line-number="30"></a>
+<a class="sourceLine" id="cb6-31" data-line-number="31">lines_gt100_vars &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;garx&quot;</span>, <span class="st">&quot;wahn&quot;</span>, <span class="st">&quot;vass&quot;</span>, <span class="st">&quot;ualf&quot;</span>, <span class="st">&quot;euts&quot;</span>, </a>
+<a class="sourceLine" id="cb6-32" data-line-number="32">                           <span class="st">&quot;laey&quot;</span>, <span class="st">&quot;pipw&quot;</span>, <span class="st">&quot;oilg&quot;</span>, <span class="st">&quot;heja&quot;</span>, <span class="st">&quot;sehl&quot;</span>, <span class="st">&quot;feec&quot;</span>, </a>
+<a class="sourceLine" id="cb6-33" data-line-number="33">                           <span class="st">&quot;gesg&quot;</span>, <span class="st">&quot;fikt&quot;</span>, <span class="st">&quot;vuna&quot;</span>, <span class="st">&quot;qonc&quot;</span>, <span class="st">&quot;xugn&quot;</span>, <span class="st">&quot;qolg&quot;</span>, </a>
+<a class="sourceLine" id="cb6-34" data-line-number="34">                           <span class="st">&quot;puie&quot;</span>)</a>
+<a class="sourceLine" id="cb6-35" data-line-number="35">fits_1grp_filt_n_vars &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-36" data-line-number="36"><span class="st">  </span><span class="kw">filter</span>(line <span class="op">%in%</span><span class="st"> </span>lines_gt100_vars, n_assigned <span class="op">&gt;</span><span class="st"> </span><span class="dv">37</span>, prop_assigned <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.9</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-37" data-line-number="37"><span class="st">  </span><span class="kw">do</span>(<span class="dt">fit =</span> <span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, <span class="dt">data =</span> .))</a>
+<a class="sourceLine" id="cb6-38" data-line-number="38"></a>
+<a class="sourceLine" id="cb6-39" data-line-number="39"></a>
+<a class="sourceLine" id="cb6-40" data-line-number="40">le_lin_fit &lt;-<span class="st"> </span><span class="cf">function</span>(dat) {</a>
+<a class="sourceLine" id="cb6-41" data-line-number="41">  the_fit &lt;-<span class="st"> </span><span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, dat)</a>
+<a class="sourceLine" id="cb6-42" data-line-number="42">  <span class="kw">setNames</span>(<span class="kw">data.frame</span>(<span class="kw">t</span>(<span class="kw">coef</span>(the_fit))), <span class="kw">c</span>(<span class="st">&quot;x0&quot;</span>, <span class="st">&quot;x1&quot;</span>))</a>
+<a class="sourceLine" id="cb6-43" data-line-number="43">}</a>
+<a class="sourceLine" id="cb6-44" data-line-number="44"></a>
+<a class="sourceLine" id="cb6-45" data-line-number="45">fits_me &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-46" data-line-number="46"><span class="st">  </span><span class="kw">group_by</span>(clone) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb6-47" data-line-number="47"><span class="st">  </span><span class="kw">do</span>(<span class="kw">le_lin_fit</span>(.))</a>
+<a class="sourceLine" id="cb6-48" data-line-number="48"></a>
+<a class="sourceLine" id="cb6-49" data-line-number="49">fits_me_1grp &lt;-<span class="st"> </span>df_prev <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-50" data-line-number="50"><span class="st">  </span><span class="kw">do</span>(<span class="kw">le_lin_fit</span>(.))</a>
+<a class="sourceLine" id="cb6-51" data-line-number="51"></a>
+<a class="sourceLine" id="cb6-52" data-line-number="52"><span class="kw">summary</span>(fits_1grp<span class="op">$</span>fit[<span class="dv">1</span>][[<span class="dv">1</span>]])</a></code></pre></div>
+<pre><code>
+Call:
+lm(formula = prev_cardelino ~ prev_canopy, data = ., weights = prop_assigned)
+
+Weighted Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.35739 -0.09291 -0.02120  0.08594  0.48897 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  0.13862    0.02470   5.612 2.01e-07 ***
+prev_canopy  0.59119    0.05731  10.316  &lt; 2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 0.1385 on 94 degrees of freedom
+Multiple R-squared:  0.531, Adjusted R-squared:  0.526 
+F-statistic: 106.4 on 1 and 94 DF,  p-value: &lt; 2.2e-16</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">df_prev <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="st">  </span>summary</a></code></pre></div>
+<pre><code>
+Call:
+lm(formula = prev_cardelino ~ prev_canopy, data = .)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-0.3623 -0.1063 -0.0144  0.0952  0.5147 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  0.12545    0.02652   4.730 7.88e-06 ***
+prev_canopy  0.62364    0.06243   9.989  &lt; 2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 0.1611 on 94 degrees of freedom
+Multiple R-squared:  0.5149,    Adjusted R-squared:  0.5097 
+F-statistic: 99.77 on 1 and 94 DF,  p-value: &lt; 2.2e-16</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">df_prev <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="st">  </span><span class="kw">filter</span>(n_assigned <span class="op">&gt;</span><span class="st"> </span><span class="dv">37</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="st">  </span><span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="st">  </span>summary</a></code></pre></div>
+<pre><code>
+Call:
+lm(formula = prev_cardelino ~ prev_canopy, data = ., weights = prop_assigned)
+
+Weighted Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.21085 -0.09442 -0.02174  0.07887  0.25286 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  0.13316    0.02323   5.731 2.69e-07 ***
+prev_canopy  0.60950    0.05265  11.576  &lt; 2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 0.1156 on 66 degrees of freedom
+Multiple R-squared:   0.67, Adjusted R-squared:  0.665 
+F-statistic:   134 on 1 and 66 DF,  p-value: &lt; 2.2e-16</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">df_prev <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="st">  </span><span class="kw">filter</span>(line <span class="op">%in%</span><span class="st"> </span>lines_high_tree_agreement) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb12-3" data-line-number="3"><span class="st">  </span><span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb12-4" data-line-number="4"><span class="st">  </span>summary</a></code></pre></div>
+<pre><code>
+Call:
+lm(formula = prev_cardelino ~ prev_canopy, data = ., weights = prop_assigned)
+
+Weighted Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.20840 -0.06909 -0.01078  0.07378  0.22980 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  0.08087    0.03943   2.051   0.0519 .  
+prev_canopy  0.78076    0.08538   9.145 4.02e-09 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 0.1104 on 23 degrees of freedom
+Multiple R-squared:  0.7843,    Adjusted R-squared:  0.7749 
+F-statistic: 83.63 on 1 and 23 DF,  p-value: 4.017e-09</code></pre>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">df_prev <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="st">  </span><span class="kw">filter</span>(line <span class="op">%in%</span><span class="st"> </span>lines_gt100_vars, n_assigned <span class="op">&gt;</span><span class="st"> </span><span class="dv">37</span>, prop_assigned <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.9</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="st">  </span><span class="kw">lm</span>(prev_cardelino <span class="op">~</span><span class="st"> </span>prev_canopy, <span class="dt">weights =</span> prop_assigned, <span class="dt">data =</span> .) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb14-4" data-line-number="4"><span class="st">  </span>summary</a></code></pre></div>
+<pre><code>
+Call:
+lm(formula = prev_cardelino ~ prev_canopy, data = ., weights = prop_assigned)
+
+Weighted Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.16384 -0.08919 -0.02214  0.08082  0.25590 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  0.14736    0.03191   4.617 5.67e-05 ***
+prev_canopy  0.57032    0.07292   7.821 5.16e-09 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 0.1167 on 33 degrees of freedom
+Multiple R-squared:  0.6496,    Adjusted R-squared:  0.6389 
+F-statistic: 61.17 on 1 and 33 DF,  p-value: 5.162e-09</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">df_prev <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="st">  </span><span class="kw">filter</span>(line <span class="op">%in%</span><span class="st"> </span>lines_gt100_vars, n_assigned <span class="op">&gt;</span><span class="st"> </span><span class="dv">37</span>, prop_assigned <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.9</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="st">  </span><span class="kw">group_by</span>(line) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb16-4" data-line-number="4"><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">corr =</span> <span class="kw">cor</span>(prev_canopy, prev_cardelino), </a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">            <span class="dt">n_assigned =</span> <span class="kw">mean</span>(n_assigned),</a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">            <span class="dt">prop_assigned =</span> <span class="kw">mean</span>(prop_assigned)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb16-7" data-line-number="7"><span class="st">  </span><span class="kw">arrange</span>(corr) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">print</span>(<span class="dt">n =</span> <span class="ot">Inf</span>)</a></code></pre></div>
+<pre><code># A tibble: 12 x 4
+   line   corr n_assigned prop_assigned
+   &lt;chr&gt; &lt;dbl&gt;      &lt;dbl&gt;         &lt;dbl&gt;
+ 1 oilg  0.465         89         0.989
+ 2 garx  0.522         70         1    
+ 3 pipw  0.765        107         1    
+ 4 heja  0.857         50         1    
+ 5 laey  0.944         55         1    
+ 6 joxm  0.956         78         0.987
+ 7 ualf  0.968         89         1    
+ 8 puie  0.972         41         1    
+ 9 wahn  0.979         78         0.951
+10 euts  0.988         79         1    
+11 gesg  0.992        100         0.952
+12 vuna  1             71         1    </code></pre>
+</div>
+<div id="plot-clone-prevalences" class="section level2">
+<h2>Plot clone prevalences</h2>
+<p>Plot the estimated clone fractions from the cells assigned to a clone by cardelino against the estimated clone fractions from Canopy.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">fits_1grp <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb18-2" data-line-number="2"><span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb18-3" data-line-number="3"><span class="st">  </span><span class="kw">inner_join</span>(., df_prev) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb18-4" data-line-number="4"><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino,</a>
+<a class="sourceLine" id="cb18-5" data-line-number="5">                    <span class="dt">fill =</span> prop_assigned)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-6" data-line-number="6"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-7" data-line-number="7"><span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> .fitted <span class="op">-</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit, <span class="dt">ymax =</span> .fitted <span class="op">+</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit),</a>
+<a class="sourceLine" id="cb18-8" data-line-number="8">              <span class="dt">fill =</span> <span class="st">&quot;gray70&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-9" data-line-number="9"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), </a>
+<a class="sourceLine" id="cb18-10" data-line-number="10">              <span class="dt">data =</span> <span class="kw">le_lin_fit</span>(df_prev),</a>
+<a class="sourceLine" id="cb18-11" data-line-number="11">              <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-12" data-line-number="12"><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">shape =</span> clone), <span class="dt">size =</span> <span class="dv">3</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-13" data-line-number="13"><span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-14" data-line-number="14"><span class="st">  </span><span class="kw">geom_text</span>(<span class="dt">x =</span> <span class="fl">0.9</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">label =</span> <span class="kw">lm_eqn</span>(df_prev), </a>
+<a class="sourceLine" id="cb18-15" data-line-number="15">            <span class="dt">size =</span> <span class="dv">5</span>, <span class="dt">parse =</span> <span class="ot">TRUE</span>, <span class="dt">data =</span> df_prev[<span class="dv">1</span>,]) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-16" data-line-number="16"><span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-17" data-line-number="17"><span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-18" data-line-number="18"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb18-19" data-line-number="19"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</a></code></pre></div>
+<pre><code>Joining, by = c(&quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<p><img src="figure/clone_prevalences_cardelino-relax.Rmd/plot-prev-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax.png&quot;</span>, </a>
+<a class="sourceLine" id="cb20-2" data-line-number="2">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a>
+<a class="sourceLine" id="cb20-3" data-line-number="3"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb20-4" data-line-number="4">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a></code></pre></div>
+<p>Add a label for the joxm line to this plot.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">fits_1grp <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb21-2" data-line-number="2"><span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb21-3" data-line-number="3"><span class="st">  </span><span class="kw">inner_join</span>(., df_prev) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb21-4" data-line-number="4"><span class="st">    </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">labs =</span> <span class="kw">ifelse</span>(line <span class="op">==</span><span class="st"> &quot;joxm&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;&quot;</span>)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb21-5" data-line-number="5"><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino,</a>
+<a class="sourceLine" id="cb21-6" data-line-number="6">                    <span class="dt">fill =</span> prop_assigned)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-7" data-line-number="7"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> .fitted <span class="op">-</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit, <span class="dt">ymax =</span> .fitted <span class="op">+</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit),</a>
+<a class="sourceLine" id="cb21-9" data-line-number="9">              <span class="dt">fill =</span> <span class="st">&quot;gray70&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-10" data-line-number="10"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), </a>
+<a class="sourceLine" id="cb21-11" data-line-number="11">              <span class="dt">data =</span> <span class="kw">le_lin_fit</span>(df_prev),</a>
+<a class="sourceLine" id="cb21-12" data-line-number="12">              <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-13" data-line-number="13"><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">shape =</span> clone), <span class="dt">size =</span> <span class="dv">3</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-14" data-line-number="14"><span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> labs), <span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>, <span class="dt">size =</span> <span class="fl">3.5</span>,</a>
+<a class="sourceLine" id="cb21-15" data-line-number="15">                            <span class="dt">box.padding =</span> <span class="fl">0.1</span>, <span class="dt">label.padding =</span> <span class="fl">0.15</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-16" data-line-number="16"><span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-17" data-line-number="17"><span class="st">  </span><span class="kw">geom_text</span>(<span class="dt">x =</span> <span class="fl">0.9</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="dt">label =</span> <span class="kw">lm_eqn</span>(df_prev), </a>
+<a class="sourceLine" id="cb21-18" data-line-number="18">            <span class="dt">size =</span> <span class="dv">5</span>, <span class="dt">parse =</span> <span class="ot">TRUE</span>, <span class="dt">data =</span> df_prev[<span class="dv">1</span>,]) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-19" data-line-number="19"><span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-20" data-line-number="20"><span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-21" data-line-number="21"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb21-22" data-line-number="22"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</a></code></pre></div>
+<pre><code>Joining, by = c(&quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<p><img src="figure/clone_prevalences_cardelino-relax.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax-joxm-label.png&quot;</span>, </a>
+<a class="sourceLine" id="cb23-2" data-line-number="2">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a>
+<a class="sourceLine" id="cb23-3" data-line-number="3"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax-joxm-label.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb23-4" data-line-number="4">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a></code></pre></div>
+<p>We can create the same plot but just using the 75% of cell lines with at least 37 cells assigned.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1">df_prev_filt_n_assigned &lt;-<span class="st"> </span><span class="kw">filter</span>(df_prev, n_assigned <span class="op">&gt;</span><span class="st"> </span><span class="dv">37</span>)</a>
+<a class="sourceLine" id="cb24-2" data-line-number="2">fits_1grp_filt_n_assigned <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb24-3" data-line-number="3"><span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb24-4" data-line-number="4"><span class="st">  </span><span class="kw">inner_join</span>(., df_prev_filt_n_assigned) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb24-5" data-line-number="5"><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino,</a>
+<a class="sourceLine" id="cb24-6" data-line-number="6">                    <span class="dt">fill =</span> prop_assigned)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-7" data-line-number="7"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> .fitted <span class="op">-</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit, <span class="dt">ymax =</span> .fitted <span class="op">+</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit),</a>
+<a class="sourceLine" id="cb24-9" data-line-number="9">              <span class="dt">fill =</span> <span class="st">&quot;gray70&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-10" data-line-number="10"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), </a>
+<a class="sourceLine" id="cb24-11" data-line-number="11">              <span class="dt">data =</span> <span class="kw">le_lin_fit</span>(df_prev_filt_n_assigned),</a>
+<a class="sourceLine" id="cb24-12" data-line-number="12">              <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-13" data-line-number="13"><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">shape =</span> clone), <span class="dt">size =</span> <span class="dv">3</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-14" data-line-number="14"><span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-15" data-line-number="15"><span class="st">  </span><span class="kw">geom_text</span>(<span class="dt">x =</span> <span class="fl">0.9</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, </a>
+<a class="sourceLine" id="cb24-16" data-line-number="16">            <span class="dt">label =</span> <span class="kw">lm_eqn</span>(df_prev_filt_n_assigned), </a>
+<a class="sourceLine" id="cb24-17" data-line-number="17">            <span class="dt">size =</span> <span class="dv">5</span>, <span class="dt">parse =</span> <span class="ot">TRUE</span>, <span class="dt">data =</span> df_prev_filt_n_assigned[<span class="dv">1</span>,]) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-18" data-line-number="18"><span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-19" data-line-number="19"><span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-20" data-line-number="20"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb24-21" data-line-number="21"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</a></code></pre></div>
+<pre><code>Joining, by = c(&quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<p><img src="figure/clone_prevalences_cardelino-relax.Rmd/plot-prev-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax_filt-n-assigned.png&quot;</span>, </a>
+<a class="sourceLine" id="cb26-2" data-line-number="2">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a>
+<a class="sourceLine" id="cb26-3" data-line-number="3"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax_filt-n-assigned.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb26-4" data-line-number="4">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a></code></pre></div>
+<p>If we filter to look at 9 lines with &lt;15% of variants rearranged in the Cardelino clonal tree and at least 37 assigned cells, then we see better agreement again.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1">df_prev_filt_high_tree_agreement &lt;-<span class="st"> </span><span class="kw">filter</span>(df_prev, </a>
+<a class="sourceLine" id="cb27-2" data-line-number="2">                                           line <span class="op">%in%</span><span class="st"> </span>lines_high_tree_agreement)</a>
+<a class="sourceLine" id="cb27-3" data-line-number="3">fits_1grp_filt_clonal_tree  <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb27-4" data-line-number="4"><span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb27-5" data-line-number="5"><span class="st">  </span><span class="kw">inner_join</span>(., df_prev_filt_high_tree_agreement) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb27-6" data-line-number="6"><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino,</a>
+<a class="sourceLine" id="cb27-7" data-line-number="7">                    <span class="dt">fill =</span> prop_assigned)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-9" data-line-number="9"><span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> .fitted <span class="op">-</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit, <span class="dt">ymax =</span> .fitted <span class="op">+</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit),</a>
+<a class="sourceLine" id="cb27-10" data-line-number="10">              <span class="dt">fill =</span> <span class="st">&quot;gray70&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-11" data-line-number="11"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), </a>
+<a class="sourceLine" id="cb27-12" data-line-number="12">              <span class="dt">data =</span> <span class="kw">le_lin_fit</span>(df_prev_filt_high_tree_agreement),</a>
+<a class="sourceLine" id="cb27-13" data-line-number="13">              <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-14" data-line-number="14"><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">shape =</span> clone), <span class="dt">size =</span> <span class="dv">3</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-15" data-line-number="15"><span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-16" data-line-number="16"><span class="st">  </span><span class="kw">geom_text</span>(<span class="dt">x =</span> <span class="fl">0.9</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, </a>
+<a class="sourceLine" id="cb27-17" data-line-number="17">            <span class="dt">label =</span> <span class="kw">lm_eqn</span>(df_prev_filt_high_tree_agreement), </a>
+<a class="sourceLine" id="cb27-18" data-line-number="18">            <span class="dt">size =</span> <span class="dv">5</span>, <span class="dt">parse =</span> <span class="ot">TRUE</span>, <span class="dt">data =</span> df_prev_filt_high_tree_agreement[<span class="dv">1</span>,]) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-19" data-line-number="19"><span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-20" data-line-number="20"><span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-21" data-line-number="21"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb27-22" data-line-number="22"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</a></code></pre></div>
+<pre><code>Joining, by = c(&quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<p><img src="figure/clone_prevalences_cardelino-relax.Rmd/plot-prev43-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax_filt-high-tree-agreement.png&quot;</span>, </a>
+<a class="sourceLine" id="cb29-2" data-line-number="2">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a>
+<a class="sourceLine" id="cb29-3" data-line-number="3"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax_filt-high-tree-agreement.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb29-4" data-line-number="4">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a></code></pre></div>
+<p>If we look at the 12 lines with at least 100 somatic variants, more than 37 assigned cells and at least 90% of cells assigned by cardelino, we also see higher concordance between cardelino assignment fraction and Canopy prevalence.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" data-line-number="1">df_prev_filt_n_vars &lt;-<span class="st"> </span><span class="kw">filter</span>(df_prev, line <span class="op">%in%</span><span class="st"> </span>lines_gt100_vars, </a>
+<a class="sourceLine" id="cb30-2" data-line-number="2">                              n_assigned <span class="op">&gt;</span><span class="st"> </span><span class="dv">37</span>, prop_assigned <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.9</span>)</a>
+<a class="sourceLine" id="cb30-3" data-line-number="3">fits_1grp_filt_n_vars <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb30-4" data-line-number="4"><span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb30-5" data-line-number="5"><span class="st">  </span><span class="kw">inner_join</span>(., df_prev_filt_n_assigned) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb30-6" data-line-number="6"><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino,</a>
+<a class="sourceLine" id="cb30-7" data-line-number="7">                    <span class="dt">fill =</span> prop_assigned)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-9" data-line-number="9"><span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> .fitted <span class="op">-</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit, <span class="dt">ymax =</span> .fitted <span class="op">+</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit),</a>
+<a class="sourceLine" id="cb30-10" data-line-number="10">              <span class="dt">fill =</span> <span class="st">&quot;gray70&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-11" data-line-number="11"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), </a>
+<a class="sourceLine" id="cb30-12" data-line-number="12">              <span class="dt">data =</span> <span class="kw">le_lin_fit</span>(df_prev_filt_n_vars),</a>
+<a class="sourceLine" id="cb30-13" data-line-number="13">              <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-14" data-line-number="14"><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">shape =</span> clone), <span class="dt">size =</span> <span class="dv">3</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-15" data-line-number="15"><span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-16" data-line-number="16"><span class="st">  </span><span class="kw">geom_text</span>(<span class="dt">x =</span> <span class="fl">0.9</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;black&quot;</span>, </a>
+<a class="sourceLine" id="cb30-17" data-line-number="17">            <span class="dt">label =</span> <span class="kw">lm_eqn</span>(df_prev_filt_n_vars), </a>
+<a class="sourceLine" id="cb30-18" data-line-number="18">            <span class="dt">size =</span> <span class="dv">5</span>, <span class="dt">parse =</span> <span class="ot">TRUE</span>, <span class="dt">data =</span> df_prev_filt_n_vars[<span class="dv">1</span>,]) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-19" data-line-number="19"><span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-20" data-line-number="20"><span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-21" data-line-number="21"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-22" data-line-number="22"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</a></code></pre></div>
+<pre><code>Joining, by = c(&quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<p><img src="figure/clone_prevalences_cardelino-relax.Rmd/plot-prev-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax_filt-n-vars.png&quot;</span>, </a>
+<a class="sourceLine" id="cb32-2" data-line-number="2">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a>
+<a class="sourceLine" id="cb32-3" data-line-number="3"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_carderelax_filt-n-vars.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb32-4" data-line-number="4">       <span class="dt">height =</span> <span class="dv">5</span>, <span class="dt">width =</span> <span class="dv">7</span>)</a></code></pre></div>
+<p>We can also look at the same first plot as above, but now faceted by the different clones.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">fits <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb33-2" data-line-number="2"><span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb33-3" data-line-number="3"><span class="st">  </span><span class="kw">inner_join</span>(., df_prev) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb33-4" data-line-number="4"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-5" data-line-number="5"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-6" data-line-number="6"><span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> .fitted <span class="op">-</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit, <span class="dt">ymax =</span> .fitted <span class="op">+</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit),</a>
+<a class="sourceLine" id="cb33-7" data-line-number="7">              <span class="dt">fill =</span> <span class="st">&quot;gray70&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), </a>
+<a class="sourceLine" id="cb33-9" data-line-number="9">              <span class="dt">data =</span> fits_me,</a>
+<a class="sourceLine" id="cb33-10" data-line-number="10">              <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-11" data-line-number="11"><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">fill =</span> prop_assigned), <span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-12" data-line-number="12"><span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-13" data-line-number="13"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>clone) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-14" data-line-number="14"><span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-15" data-line-number="15"><span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-16" data-line-number="16"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb33-17" data-line-number="17"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</a></code></pre></div>
+<pre><code>Joining, by = c(&quot;clone&quot;, &quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<p><img src="figure/clone_prevalences_cardelino-relax.Rmd/plot-prev-facet-clone-1.png" width="864" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_carderelax.png&quot;</span>, </a>
+<a class="sourceLine" id="cb35-2" data-line-number="2">       <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">9</span>)</a>
+<a class="sourceLine" id="cb35-3" data-line-number="3"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_carderelax.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb35-4" data-line-number="4">       <span class="dt">height =</span> <span class="dv">7</span>, <span class="dt">width =</span> <span class="dv">9</span>)</a></code></pre></div>
+<p>Since there are so few lines with four clones we can also make a version of the figure above with just clone1, clone2 and clone3 and fitted a weighted regression line, with points weighted by the fraction of cells assigned for the line.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" data-line-number="1">p &lt;-<span class="st"> </span>fits <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb36-2" data-line-number="2"><span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb36-3" data-line-number="3"><span class="st">  </span><span class="kw">inner_join</span>(., df_prev) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb36-4" data-line-number="4"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb36-5" data-line-number="5"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino, <span class="dt">fill =</span> prop_assigned)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-6" data-line-number="6"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-7" data-line-number="7"><span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> .fitted <span class="op">-</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit, <span class="dt">ymax =</span> .fitted <span class="op">+</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit),</a>
+<a class="sourceLine" id="cb36-8" data-line-number="8">              <span class="dt">fill =</span> <span class="st">&quot;gray70&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-9" data-line-number="9"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), </a>
+<a class="sourceLine" id="cb36-10" data-line-number="10">              <span class="dt">data =</span> dplyr<span class="op">::</span><span class="kw">filter</span>(fits_me, clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>),</a>
+<a class="sourceLine" id="cb36-11" data-line-number="11">              <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-12" data-line-number="12"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-13" data-line-number="13"><span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-14" data-line-number="14"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>clone, <span class="dt">nrow =</span> <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-15" data-line-number="15"><span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-16" data-line-number="16"><span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-17" data-line-number="17"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-18" data-line-number="18"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb36-19" data-line-number="19"><span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>))</a></code></pre></div>
+<pre><code>Joining, by = c(&quot;clone&quot;, &quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb38-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax.png&quot;</span>, </a>
+<a class="sourceLine" id="cb38-2" data-line-number="2">       <span class="dt">plot =</span> p,</a>
+<a class="sourceLine" id="cb38-3" data-line-number="3">       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)</a>
+<a class="sourceLine" id="cb38-4" data-line-number="4"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax.pdf&quot;</span>,</a>
+<a class="sourceLine" id="cb38-5" data-line-number="5">       <span class="dt">plot =</span> p,</a>
+<a class="sourceLine" id="cb38-6" data-line-number="6">       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)</a>
+<a class="sourceLine" id="cb38-7" data-line-number="7">p</a></code></pre></div>
+<p><img src="figure/clone_prevalences_cardelino-relax.Rmd/plot-prev-facet-clone-3clones-1.png" width="816" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_skinny.png&quot;</span>, </a>
+<a class="sourceLine" id="cb39-2" data-line-number="2">       <span class="dt">plot =</span> p <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</a>
+<a class="sourceLine" id="cb39-3" data-line-number="3">                        <span class="dt">legend.key.width =</span> <span class="kw">unit</span>(<span class="fl">0.95</span>, <span class="st">&quot;in&quot;</span>)),</a>
+<a class="sourceLine" id="cb39-4" data-line-number="4">       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)</a>
+<a class="sourceLine" id="cb39-5" data-line-number="5"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_skinny.pdf&quot;</span>,</a>
+<a class="sourceLine" id="cb39-6" data-line-number="6">       <span class="dt">plot =</span> p <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;bottom&quot;</span>, </a>
+<a class="sourceLine" id="cb39-7" data-line-number="7">                        <span class="dt">legend.key.width =</span> <span class="kw">unit</span>(<span class="fl">0.5</span>, <span class="st">&quot;in&quot;</span>)),</a>
+<a class="sourceLine" id="cb39-8" data-line-number="8">       <span class="dt">height =</span> <span class="fl">5.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)</a></code></pre></div>
+<p>Let us also make a version of the plot above with the line <em>joxm</em> highlighted as this line is used as an example in the paper.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" data-line-number="1">pp &lt;-<span class="st"> </span>fits <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-2" data-line-number="2"><span class="st">  </span>broom<span class="op">::</span><span class="kw">augment</span>(fit) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb40-3" data-line-number="3"><span class="st">  </span><span class="kw">inner_join</span>(., df_prev) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-4" data-line-number="4"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-5" data-line-number="5"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">labs =</span> <span class="kw">ifelse</span>(line <span class="op">==</span><span class="st"> &quot;joxm&quot;</span>, <span class="st">&quot;joxm&quot;</span>, <span class="st">&quot;&quot;</span>)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb40-6" data-line-number="6"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino, <span class="dt">fill =</span> prop_assigned)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-7" data-line-number="7"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_ribbon</span>(<span class="kw">aes</span>(<span class="dt">ymin =</span> .fitted <span class="op">-</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit, <span class="dt">ymax =</span> .fitted <span class="op">+</span><span class="st"> </span><span class="fl">1.645</span> <span class="op">*</span><span class="st"> </span>.se.fit),</a>
+<a class="sourceLine" id="cb40-9" data-line-number="9">              <span class="dt">fill =</span> <span class="st">&quot;gray70&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.7</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-10" data-line-number="10"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="kw">aes</span>(<span class="dt">intercept =</span> x0, <span class="dt">slope =</span> x1), </a>
+<a class="sourceLine" id="cb40-11" data-line-number="11">              <span class="dt">data =</span> dplyr<span class="op">::</span><span class="kw">filter</span>(fits_me, clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>),</a>
+<a class="sourceLine" id="cb40-12" data-line-number="12">              <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>, <span class="dt">size =</span> <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-13" data-line-number="13"><span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_label_repel</span>(<span class="kw">aes</span>(<span class="dt">label =</span> labs), <span class="dt">fill =</span> <span class="st">&quot;gray90&quot;</span>, <span class="dt">size =</span> <span class="fl">3.5</span>,</a>
+<a class="sourceLine" id="cb40-14" data-line-number="14">                            <span class="dt">box.padding =</span> <span class="fl">0.1</span>, <span class="dt">label.padding =</span> <span class="fl">0.15</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-15" data-line-number="15"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">shape =</span> <span class="dv">21</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-16" data-line-number="16"><span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-17" data-line-number="17"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>clone, <span class="dt">nrow =</span> <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-18" data-line-number="18"><span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-19" data-line-number="19"><span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-20" data-line-number="20"><span class="st">  </span><span class="kw">scale_colour_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(<span class="st">&quot;black&quot;</span>, <span class="st">&quot;firebrick&quot;</span>), <span class="dt">guide =</span> <span class="ot">FALSE</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-21" data-line-number="21"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-22" data-line-number="22"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb40-23" data-line-number="23"><span class="st">  </span><span class="kw">theme_cowplot</span>(<span class="dt">font_size =</span> <span class="dv">17</span>)</a></code></pre></div>
+<pre><code>Joining, by = c(&quot;clone&quot;, &quot;prev_cardelino&quot;, &quot;prev_canopy&quot;)</code></pre>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1">pp</a></code></pre></div>
+<p><img src="figure/clone_prevalences_cardelino-relax.Rmd/plot-prev-facet-clone-3clones-joxm-1.png" width="816" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_joxmlabel.png&quot;</span>, </a>
+<a class="sourceLine" id="cb43-2" data-line-number="2">       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)</a>
+<a class="sourceLine" id="cb43-3" data-line-number="3"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_joxmlabel.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb43-4" data-line-number="4">       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">8.5</span>)</a>
+<a class="sourceLine" id="cb43-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb43-6" data-line-number="6"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_joxmlabel_skinny.png&quot;</span>, </a>
+<a class="sourceLine" id="cb43-7" data-line-number="7">        <span class="dt">plot =</span> pp <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</a>
+<a class="sourceLine" id="cb43-8" data-line-number="8">                        <span class="dt">legend.key.width =</span> <span class="kw">unit</span>(<span class="fl">0.95</span>, <span class="st">&quot;in&quot;</span>)), </a>
+<a class="sourceLine" id="cb43-9" data-line-number="9">       <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">11</span>)</a>
+<a class="sourceLine" id="cb43-10" data-line-number="10"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_joxmlabel_skinny.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb43-11" data-line-number="11">        <span class="dt">plot =</span> pp <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</a>
+<a class="sourceLine" id="cb43-12" data-line-number="12">                        <span class="dt">legend.key.width =</span> <span class="kw">unit</span>(<span class="fl">0.95</span>, <span class="st">&quot;in&quot;</span>)),</a>
+<a class="sourceLine" id="cb43-13" data-line-number="13">       <span class="dt">height =</span> <span class="dv">6</span>, <span class="dt">width =</span> <span class="dv">11</span>)</a>
+<a class="sourceLine" id="cb43-14" data-line-number="14"></a>
+<a class="sourceLine" id="cb43-15" data-line-number="15"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_joxmlabel_wide.png&quot;</span>, </a>
+<a class="sourceLine" id="cb43-16" data-line-number="16">       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">13.5</span>)</a>
+<a class="sourceLine" id="cb43-17" data-line-number="17"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_joxmlabel_wide.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb43-18" data-line-number="18">       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">13.5</span>)</a></code></pre></div>
+<p>Also look at what happens if we filter out lines that have fewer than 75% of cells assigned (25 lines).</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" data-line-number="1">df_prev <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb44-2" data-line-number="2"><span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(clone <span class="op">!=</span><span class="st"> &quot;clone4&quot;</span>, prop_assigned <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.75</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb44-3" data-line-number="3"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> prev_canopy, <span class="dt">y =</span> prev_cardelino, <span class="dt">shape =</span> clone, </a>
+<a class="sourceLine" id="cb44-4" data-line-number="4">             <span class="dt">fill =</span> prop_assigned)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb44-5" data-line-number="5"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept =</span> <span class="dv">0</span>, <span class="dt">colour =</span> <span class="st">&quot;gray40&quot;</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb44-6" data-line-number="6"><span class="st">  </span><span class="kw">geom_smooth</span>(<span class="kw">aes</span>(<span class="dt">group =</span> <span class="dv">1</span>), <span class="dt">method =</span> <span class="st">&quot;lm&quot;</span>, <span class="dt">colour =</span> <span class="st">&quot;firebrick&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb44-7" data-line-number="7"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">size =</span> <span class="dv">3</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb44-8" data-line-number="8"><span class="st">  </span><span class="kw">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span><span class="st"> </span><span class="kw">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb44-9" data-line-number="9"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>clone, <span class="dt">nrow =</span> <span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb44-10" data-line-number="10"><span class="st">  </span><span class="kw">scale_fill_viridis</span>(<span class="dt">name =</span> <span class="st">&quot;fraction of</span><span class="ch">\n</span><span class="st">cells assigned&quot;</span>, <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb44-11" data-line-number="11"><span class="st">  </span><span class="kw">scale_shape_manual</span>(<span class="dt">values =</span> <span class="dv">21</span><span class="op">:</span><span class="dv">25</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb44-12" data-line-number="12"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Estimated clone prevalence (Canopy)&quot;</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb44-13" data-line-number="13"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Assigned clone fraction (cardelino)&quot;</span>)</a></code></pre></div>
+<p><img src="figure/clone_prevalences_cardelino-relax.Rmd/plot-prev-facet-clone-3clones-linefilt-1.png" width="1008" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" data-line-number="1"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_75pctassigned.png&quot;</span>, </a>
+<a class="sourceLine" id="cb45-2" data-line-number="2">       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">10.5</span>)</a>
+<a class="sourceLine" id="cb45-3" data-line-number="3"><span class="kw">ggsave</span>(<span class="st">&quot;figures/clone_prevalences/clone_prev_scatter_facet_clone_no_clone4_carderelax_75pctassigned.pdf&quot;</span>, </a>
+<a class="sourceLine" id="cb45-4" data-line-number="4">       <span class="dt">height =</span> <span class="fl">4.5</span>, <span class="dt">width =</span> <span class="fl">10.5</span>)</a></code></pre></div>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" data-line-number="1">devtools<span class="op">::</span><span class="kw">session_info</span>()</a></code></pre></div>
+<pre><code>─ Session info ──────────────────────────────────────────────────────────
+ setting  value                       
+ version  R version 3.6.0 (2019-04-26)
+ os       Ubuntu 18.04.3 LTS          
+ system   x86_64, linux-gnu           
+ ui       X11                         
+ language (EN)                        
+ collate  en_AU.UTF-8                 
+ ctype    en_AU.UTF-8                 
+ tz       Australia/Melbourne         
+ date     2019-10-30                  
+
+─ Packages ──────────────────────────────────────────────────────────────
+ package     * version date       lib source        
+ assertthat    0.2.1   2019-03-21 [1] CRAN (R 3.6.0)
+ backports     1.1.4   2019-04-10 [1] CRAN (R 3.6.0)
+ broom         0.5.2   2019-04-07 [1] CRAN (R 3.6.0)
+ callr         3.3.2   2019-09-22 [1] CRAN (R 3.6.0)
+ cellranger    1.1.0   2016-07-27 [1] CRAN (R 3.6.0)
+ cli           1.1.0   2019-03-19 [1] CRAN (R 3.6.0)
+ colorspace    1.4-1   2019-03-18 [1] CRAN (R 3.6.0)
+ cowplot     * 1.0.0   2019-07-11 [1] CRAN (R 3.6.0)
+ crayon        1.3.4   2017-09-16 [1] CRAN (R 3.6.0)
+ desc          1.2.0   2018-05-01 [1] CRAN (R 3.6.0)
+ devtools      2.2.1   2019-09-24 [1] CRAN (R 3.6.0)
+ digest        0.6.21  2019-09-20 [1] CRAN (R 3.6.0)
+ dplyr       * 0.8.3   2019-07-04 [1] CRAN (R 3.6.0)
+ ellipsis      0.3.0   2019-09-20 [1] CRAN (R 3.6.0)
+ evaluate      0.14    2019-05-28 [1] CRAN (R 3.6.0)
+ fansi         0.4.0   2018-10-05 [1] CRAN (R 3.6.0)
+ forcats     * 0.4.0   2019-02-17 [1] CRAN (R 3.6.0)
+ fs            1.3.1   2019-05-06 [1] CRAN (R 3.6.0)
+ generics      0.0.2   2018-11-29 [1] CRAN (R 3.6.0)
+ ggplot2     * 3.2.1   2019-08-10 [1] CRAN (R 3.6.0)
+ ggrepel       0.8.1   2019-05-07 [1] CRAN (R 3.6.0)
+ git2r         0.26.1  2019-06-29 [1] CRAN (R 3.6.0)
+ glue          1.3.1   2019-03-12 [1] CRAN (R 3.6.0)
+ gridExtra     2.3     2017-09-09 [1] CRAN (R 3.6.0)
+ gtable        0.3.0   2019-03-25 [1] CRAN (R 3.6.0)
+ haven         2.1.1   2019-07-04 [1] CRAN (R 3.6.0)
+ hms           0.5.1   2019-08-23 [1] CRAN (R 3.6.0)
+ htmltools     0.3.6   2017-04-28 [1] CRAN (R 3.6.0)
+ httr          1.4.1   2019-08-05 [1] CRAN (R 3.6.0)
+ jsonlite      1.6     2018-12-07 [1] CRAN (R 3.6.0)
+ knitr         1.25    2019-09-18 [1] CRAN (R 3.6.0)
+ labeling      0.3     2014-08-23 [1] CRAN (R 3.6.0)
+ lattice       0.20-38 2018-11-04 [4] CRAN (R 3.5.1)
+ lazyeval      0.2.2   2019-03-15 [1] CRAN (R 3.6.0)
+ lifecycle     0.1.0   2019-08-01 [1] CRAN (R 3.6.0)
+ lubridate     1.7.4   2018-04-11 [1] CRAN (R 3.6.0)
+ magrittr      1.5     2014-11-22 [1] CRAN (R 3.6.0)
+ memoise       1.1.0   2017-04-21 [1] CRAN (R 3.6.0)
+ modelr        0.1.5   2019-08-08 [1] CRAN (R 3.6.0)
+ munsell       0.5.0   2018-06-12 [1] CRAN (R 3.6.0)
+ nlme          3.1-139 2019-04-09 [4] CRAN (R 3.5.3)
+ pillar        1.4.2   2019-06-29 [1] CRAN (R 3.6.0)
+ pkgbuild      1.0.5   2019-08-26 [1] CRAN (R 3.6.0)
+ pkgconfig     2.0.3   2019-09-22 [1] CRAN (R 3.6.0)
+ pkgload       1.0.2   2018-10-29 [1] CRAN (R 3.6.0)
+ prettyunits   1.0.2   2015-07-13 [1] CRAN (R 3.6.0)
+ processx      3.4.1   2019-07-18 [1] CRAN (R 3.6.0)
+ ps            1.3.0   2018-12-21 [1] CRAN (R 3.6.0)
+ purrr       * 0.3.2   2019-03-15 [1] CRAN (R 3.6.0)
+ R6            2.4.0   2019-02-14 [1] CRAN (R 3.6.0)
+ Rcpp          1.0.2   2019-07-25 [1] CRAN (R 3.6.0)
+ readr       * 1.3.1   2018-12-21 [1] CRAN (R 3.6.0)
+ readxl        1.3.1   2019-03-13 [1] CRAN (R 3.6.0)
+ remotes       2.1.0   2019-06-24 [1] CRAN (R 3.6.0)
+ rlang         0.4.0   2019-06-25 [1] CRAN (R 3.6.0)
+ rmarkdown     1.15    2019-08-21 [1] CRAN (R 3.6.0)
+ rprojroot     1.3-2   2018-01-03 [1] CRAN (R 3.6.0)
+ rstudioapi    0.10    2019-03-19 [1] CRAN (R 3.6.0)
+ rvest         0.3.4   2019-05-15 [1] CRAN (R 3.6.0)
+ scales        1.0.0   2018-08-09 [1] CRAN (R 3.6.0)
+ sessioninfo   1.1.1   2018-11-05 [1] CRAN (R 3.6.0)
+ stringi       1.4.3   2019-03-12 [1] CRAN (R 3.6.0)
+ stringr     * 1.4.0   2019-02-10 [1] CRAN (R 3.6.0)
+ testthat      2.2.1   2019-07-25 [1] CRAN (R 3.6.0)
+ tibble      * 2.1.3   2019-06-06 [1] CRAN (R 3.6.0)
+ tidyr       * 1.0.0   2019-09-11 [1] CRAN (R 3.6.0)
+ tidyselect    0.2.5   2018-10-11 [1] CRAN (R 3.6.0)
+ tidyverse   * 1.2.1   2017-11-14 [1] CRAN (R 3.6.0)
+ usethis       1.5.1   2019-07-04 [1] CRAN (R 3.6.0)
+ utf8          1.1.4   2018-05-24 [1] CRAN (R 3.6.0)
+ vctrs         0.2.0   2019-07-05 [1] CRAN (R 3.6.0)
+ viridis     * 0.5.1   2018-03-29 [1] CRAN (R 3.6.0)
+ viridisLite * 0.3.0   2018-02-01 [1] CRAN (R 3.6.0)
+ whisker       0.4     2019-08-28 [1] CRAN (R 3.6.0)
+ withr         2.1.2   2018-03-15 [1] CRAN (R 3.6.0)
+ workflowr     1.4.0   2019-06-08 [1] CRAN (R 3.6.0)
+ xfun          0.9     2019-08-21 [1] CRAN (R 3.6.0)
+ xml2          1.2.2   2019-08-09 [1] CRAN (R 3.6.0)
+ yaml          2.2.0   2018-07-25 [1] CRAN (R 3.6.0)
+ zeallot       0.1.0   2018-01-28 [1] CRAN (R 3.6.0)
+
+[1] /home/AD.SVI.EDU.AU/dmccarthy/R/x86_64-pc-linux-gnu-library/3.6
+[2] /usr/local/lib/R/site-library
+[3] /usr/lib/R/site-library
+[4] /usr/lib/R/library</code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
