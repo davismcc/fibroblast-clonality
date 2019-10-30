@@ -104,7 +104,7 @@ fls <- fls[grepl(paste0("carderelax.", params$callset), fls)]
 lines <- gsub(".*ce_([a-z]+)_with_clone_assignments_carderelax.*", "\\1", fls)
 
 sce_unst_list <- list()
-for (don in donors) {
+for (don in lines) {
     sce_unst_list[[don]] <- readRDS(file.path("data/sces",
         paste0("sce_", don, "_with_clone_assignments_carderelax.", 
                params$callset, ".rds")))
@@ -397,7 +397,7 @@ ggsave("figures/mutated_genes/alllines_mutgenes_volcano_by_simple_vep_anno_allce
 ```{r, fig.height=9, fig.width=10}
 tmp2 <- mut_genes_df_allcells %>%
     group_by(consequence) %>%
-    summarise(med = median(logFC, na.rm = TRUE),
+    dplyr::summarise(med = median(logFC, na.rm = TRUE),
               nvars = n())
 
 mut_genes_df_allcells %>%
@@ -434,7 +434,7 @@ expression in the mutated clone.
 ```{r, fig.height=7, fig.width=10}
 tmp3 <- mut_genes_df_allcells %>%
     group_by(consequence_simplified) %>%
-    summarise(med = median(logFC, na.rm = TRUE),
+    dplyr::summarise(med = median(logFC, na.rm = TRUE),
               nvars = n(),
               t_coef = t.test(logFC, mu = 0)$estimate,
               t_stat = t.test(logFC, mu = 0)$statistic,
@@ -559,7 +559,7 @@ clone, and negative logFC values lower expression in the mutated clone.
 ```{r logfc-box-simple, fig.height=9, fig.width=15}
 tmp5 <- mut_genes_df_allcells_filt %>%
     group_by(consequence_simplified) %>%
-    summarise(med = median(logFC, na.rm = TRUE),
+    dplyr::summarise(med = median(logFC, na.rm = TRUE),
               nvars = n()
     )
 dplyr::arrange(tmp5, med)
@@ -668,7 +668,7 @@ dplyr::arrange(mut_genes_df_allcells_PCreg, FDR) %>%
   dplyr::select(-location) %>% 
    DT::datatable(., options = list(pageLength = 20))
 
-data_frame(PValue_default = mut_genes_df_allcells[["PValue"]],
+tibble(PValue_default = mut_genes_df_allcells[["PValue"]],
            PValue_PCreg = mut_genes_df_allcells_PCreg[["PValue"]],
            sig_default = mut_genes_df_allcells[["FDR"]] < 0.1,
            sig_PCreg = mut_genes_df_allcells_PCreg[["FDR"]] < 0.1) %>%
@@ -752,7 +752,7 @@ dplyr::arrange(mut_genes_df_allcells_CCreg, FDR) %>%
   dplyr::select(-location) %>% 
    DT::datatable(., options = list(pageLength = 20))
 
-data_frame(PValue_default = mut_genes_df_allcells[["PValue"]],
+tibble(PValue_default = mut_genes_df_allcells[["PValue"]],
            PValue_CCreg = mut_genes_df_allcells_CCreg[["PValue"]],
            sig_default = mut_genes_df_allcells[["FDR"]] < 0.1,
            sig_PCreg = mut_genes_df_allcells_CCreg[["FDR"]] < 0.1) %>%
@@ -776,7 +776,7 @@ categories and assigned to combinations of clones, aggregated across all lines.
 
 ```{r, fig.height=12, fig.width=14}
 sites_by_line %>% group_by(Consequence, clone_presence) %>%
-    summarise(n_vars = n()) %>%
+    dplyr::summarise(n_vars = n()) %>%
 ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max), 
        colour = reorder(Consequence, n_vars, max))) +
     geom_point(size = 5) +
@@ -794,7 +794,7 @@ each annotation category for each line separately.
 
 ```{r, fig.height=16, fig.width=16}
 sites_by_line %>% group_by(Consequence, donor_short_id) %>%
-    summarise(n_vars = n()) %>%
+    dplyr::summarise(n_vars = n()) %>%
 ggplot(aes(x = n_vars, y = reorder(Consequence, n_vars, max), 
        colour = reorder(Consequence, n_vars, max))) +
     geom_point(size = 5) +
@@ -817,7 +817,7 @@ line.
 df_genes_multi_vars <- mut_genes_df_allcells %>%
   dplyr::mutate(pos = as.numeric(gsub("chr.+:([0-9]+)_.*", "\\1", var_id))) %>%
   group_by(line, hgnc_symbol) %>%
-  summarise(n_variants_in_gene = n(),
+  dplyr::summarise(n_variants_in_gene = n(),
             max_dist_btw_vars = range(pos)[2] - range(pos)[1])
 df_genes_multi_vars %>%
   dplyr::filter(n_variants_in_gene > 1.5, max_dist_btw_vars > 1.5)
@@ -871,7 +871,7 @@ genes.
 df_cc_vars <- mut_genes_df_allcells %>% 
   dplyr::filter(hgnc_symbol %in% xx) %>%
   group_by(line, consequence_simplified) %>%
-  summarise(n_vars = n())
+  dplyr::summarise(n_vars = n())
 df_cc_vars <- left_join(
   expand.grid(line = levels(as.factor(mut_genes_df_allcells$line)),
               consequence_simplified = levels(as.factor(
@@ -916,7 +916,7 @@ cycle.
 df_prolif_vars <- mut_genes_df_allcells %>% 
   dplyr::filter(hgnc_symbol %in% x2) %>%
   group_by(line, consequence_simplified) %>%
-  summarise(n_vars = n())
+  dplyr::summarise(n_vars = n())
 df_prolif_vars <- left_join(
   expand.grid(line = levels(as.factor(mut_genes_df_allcells$line)),
               consequence_simplified = levels(as.factor(
@@ -949,7 +949,7 @@ colnames(df_cc_vars) <- c("line", "consequence", "n_vars_cellcycle_genes")
 colnames(df_prolif_vars) <- c("line", "consequence", "n_vars_proliferation_genes")
 df_all_vars <- mut_genes_df_allcells %>% 
   group_by(line, consequence_simplified) %>%
-  summarise(n_vars_all_genes = n())
+  dplyr::summarise(n_vars_all_genes = n())
 df_all_vars <- left_join(
   expand.grid(line = levels(as.factor(mut_genes_df_allcells$line)),
               consequence_simplified = levels(as.factor(
@@ -959,7 +959,7 @@ df_all_vars[is.na(df_all_vars)] <- 0
 colnames(df_all_vars) <- c("line", "consequence", "n_vars_all_genes")
 
 df_nvars <- inner_join(inner_join(df_all_vars, df_cc_vars), df_prolif_vars) %>%
-  as_data_frame
+  as_tibble
 
 readr::write_tsv(df_nvars, "output/nvars_by_category_by_line.tsv")
 
@@ -972,7 +972,7 @@ We can also look at the total mutational load for each of the lines.
 ```{r}
 df_nvars %>%
   group_by(line) %>%
-  summarise(nvars = sum(n_vars_all_genes)) %>% print(n = Inf)
+  dplyr::summarise(nvars = sum(n_vars_all_genes)) %>% print(n = Inf)
 ```
 
 
