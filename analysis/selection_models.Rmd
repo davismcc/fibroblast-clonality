@@ -3,27 +3,20 @@ title: "Selection Models"
 author: "Daniel J. Kunz & Davis J. McCarthy"
 site: workflowr::wflow_site
 ---
-
-## Load libraries and data
-
-```{r setup, include=TRUE, results='hide', message=FALSE, warning=FALSE}
+ ## Load libraries and data
+ ```{r setup, include=TRUE, results='hide', message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(viridis)
-library(ggrepel)
-library(neutralitytestr)
 library(cowplot)
 library(plyr)
 dir.create("figures/selection", showWarnings = FALSE, recursive = TRUE)
 ```
-
-Load the call set and extract the allele frequencies which used for the fits of the selection models.
-
-```{r}
+ Load the call set and extract the allele frequencies which are used for the fits of the selection models.
+ ```{r}
 filteredAF = read.table("data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz", 
                         header = TRUE, stringsAsFactors = FALSE)
-
-mut_list = data.frame("sampleID" = filteredAF$donor_short_id,
+ mut_list = data.frame("sampleID" = filteredAF$donor_short_id,
                       "af_fibro" = filteredAF$nALT_fibro/(filteredAF$nREF_fibro + filteredAF$nALT_fibro),
                       "af_ips" = filteredAF$nALT_ips/(filteredAF$nREF_ips + filteredAF$nALT_ips),
                       "chr" = filteredAF$chrom,
@@ -31,295 +24,142 @@ mut_list = data.frame("sampleID" = filteredAF$donor_short_id,
                       "ref" = filteredAF$ref,
                       "mut" = filteredAF$alt,
                       "mutID" = paste(filteredAF$chrom, filteredAF$pos, filteredAF$ref, filteredAF$alt, sep = "_"))
-
 mut_list = mut_list[order(mut_list$sampleID),]
 write.table(mut_list, "data/selection/ips-fibro-AF.tsv", 
             row.names = FALSE, quote = FALSE, sep = "\t")
-
-mut_list = data.frame("sampleID" = filteredAF$donor_short_id,
+ mut_list = data.frame("sampleID" = filteredAF$donor_short_id,
                       "af" = filteredAF$nALT_fibro/(filteredAF$nREF_fibro + filteredAF$nALT_fibro),
                       "chr" = filteredAF$chrom,
                       "pos" = filteredAF$pos,
                       "ref" = filteredAF$ref,
                       "mut" = filteredAF$alt)
 mut_list = mut_list[order(mut_list$sampleID),]
-
-write.table(mut_list, "data/selection/full-AF.tsv", row.names = FALSE, 
+ write.table(mut_list, "data/selection/full-AF.tsv", row.names = FALSE, 
             quote = FALSE, sep = "\t")
-
-dir.create("data/selection/AF", showWarnings = FALSE)
-
-for (sampleID in unique(mut_list$sampleID)) {
+ dir.create("data/selection/AF", showWarnings = FALSE)
+ for (sampleID in unique(mut_list$sampleID)) {
   sub_mut_list = mut_list[mut_list$sampleID == sampleID,]
   sub_mut_list = sub_mut_list[sub_mut_list$af >= 0.03,]
   write.table(sub_mut_list, paste0("data/selection/AF/AF-", sampleID, ".tsv"),
               row.names = FALSE, quote = FALSE, sep = "\t")
 }
 ```
+ ## Fit selection models
 
-## Fit selection models
+For the selection analysis SubConalSelection (http://dx.doi.org/10.1038/s41588-018-0128-6) was used.
+To reproduce the analysis please run the Julia code (`code/selection/subclonal-bayesian-ABC.jl`). 
 
-Please open the Mathematica notebook (`code/selection/fit-dist.nb`) and run it 
-by hand (the outputs generated are used in subsequent cells). The notebook fits
-the negative binomial model for neutral evolution.
+Since the simulations take in the order of days/weeks we provide the outputfiles of the simulation in `data/subclonal-output-1/` and a summary in `data/p1-selection.csv`.
 
-In case you do not have access to Mathematica to run the notebook, we provide 
-its output files in `data/selection/neg-bin-params-fit.csv` and 
-`data/selection/neg-bin-rsquared-fit.csv`.
+ ## Plot selection classification
+ Plot the selection classification from SubConalSelection. The grey background indicates results with high uncertainty due to low numbers of mutations (< 100).
+ 
+ ```{r plot-selection-results, fig.height = 5, fig.width=7, warning=FALSE}
+donors = c("joxm", "garx", "wahn", "vass", "ualf", "euts", "laey", "pipw", "oilg", "heja",
+          "sehl", "feec", "gesg", "fikt", "vuna", "qonc", "xugn", "qolg", "puie", "fawm",
+          "oaaz", "naju", "ieki", "rozh", "wetu", "nusw", "zoxy", "hipn", "lexy", "vils",
+          "qayj", "kuco")
 
-The code below runs the neutralitytestr model.
+dfResults = read.csv("data/p1-selection.csv", stringsAsFactors=F)
 
-```{r}
-fmin = 0.05
-fmax = 0.45
+dfResults$donor = factor(dfResults$donor, levels=rev(donors[donors %in% dfResults$donor]))
 
-petrAF = read.table("data/selection/full-AF.tsv", sep = "\t", header = T)
-donors = unique(as.vector(petrAF$sampleID))
-
-getSampleNtrtest <- function(afDF, sampleID, fmin, fmax){
-  # run neutralitytestr on a single sample
-  VAFsample = afDF[afDF$sampleID == sampleID, "af"]
-  out = neutralitytest(VAFsample, fmin = fmin, fmax = fmax)
-  results = c(sampleID,
-              out$area$metric, out$area$pval,
-              out$Dk$metric, out$Dk$pval,
-              out$meanDist$metric, out$meanDist$pval,
-              out$rsq$metric, out$rsq$pval,
-              out$mutation.rate)
-  names(results) = c("sampleID",
-                     "area", "pval_area",
-                     "Dk", "pval_Dk",
-                     "meanDist", "pval_meanDist",
-                     "rsq", "pval_rsq",
-                     "mutrate")
-  return(results)
-}
-
-ntrtestrPetrout = t(sapply(donors, 
-                           function(sampleID) getSampleNtrtest(
-                             petrAF, sampleID, fmin, fmax)))
-write.table(ntrtestrPetrout, "data/selection/neutralitytestr.tsv", 
-            sep = "\t", quote = FALSE, row.names = FALSE)
-
-```
-
-## Plot selection classification
-
-Plot the selection classification based on the goodness of fit results from neutrality testr and the negative binomial like fit. 
-
-```{r plot-prev, fig.height = 5, fig.width=7, warning=FALSE}
-ntrtestrPetr = read.table("data/selection/neutralitytestr.tsv", 
-                          stringsAsFactors = FALSE, header = TRUE)
-
-negbinfitPetr = read.table("data/selection/neg-bin-rsquared-fit.csv",
-                           stringsAsFactors = FALSE, header = TRUE, sep = ",")
-negbinfitPetr$sampleID = negbinfitPetr$fname
-negbinfitPetr$sampleID = gsub("AF-", "", negbinfitPetr$sampleID)
-negbinfitPetr$sampleID = gsub(".tsv", "", negbinfitPetr$sampleID)
-rownames(negbinfitPetr) = negbinfitPetr$sampleID
-
-dfrsq = data.frame(sampleID = ntrtestrPetr$sampleID,
-                   rsq_ntrtestr = ntrtestrPetr$rsq,
-                   rsq_negbinfit = negbinfitPetr[ntrtestrPetr$sampleID, "rsq"])
-
-cutoff_selection_cummut = 0.85
-cutoff_selection_negbin = 0.25
-cutoff_neutral_cummut = 0.9
-cutoff_neutral_negbin = 0.55
-
-
-donors = c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", "ieki",
-           "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", "oilg", "pipw",
-           "puie", "qayj", "qolg", "qonc", "rozh", "sehl", "ualf", "vass", "vils",
-           "vuna", "wahn", "wetu", "xugn", "zoxy")
-
-dfrsq = dfrsq[(dfrsq$sampleID %in% donors),]
-
-dfrsq$candidatelabel = NA
-dfrsq$candidatelabel[dfrsq$sampleID == "puie"] = "puie"
-
-filter_selection = (dfrsq$rsq_ntrtestr < cutoff_selection_cummut) & (dfrsq$rsq_negbinfit < cutoff_selection_negbin)
-filter_neutral = (dfrsq$rsq_ntrtestr > cutoff_neutral_cummut) & (dfrsq$rsq_negbinfit > cutoff_neutral_negbin)
-
-dfrsq$selection = "undetermined"
-dfrsq$selection[filter_selection] = "selected"
-dfrsq$selection[filter_neutral] = "neutral"
-
-
-plt_scatter = ggplot(dfrsq, aes(x = rsq_negbinfit, y = rsq_ntrtestr)) +
-  scale_colour_manual(values = c("neutral" = "#007536", "selected" = "#5EF288",
-                               "undetermined" = "#CCCCCC")) +
-  geom_point(aes(colour = selection)) +
-  geom_label_repel(aes(label = candidatelabel), color = "white",
-                   size = 2.5,
-                   fill = "black", box.padding = 0.35, point.padding = 0.5,
-                   segment.color = 'grey50') +
-  theme_bw() +
-  theme(text = element_text(size = 9), axis.text = element_text(size = 8),
-        axis.title = element_text(size = 9), 
-        plot.title = element_text(size = 9, hjust = 0.5)) +
-  labs(x = "Goodness of Fit - Negative Binomial Distribution", 
-       y = "Goodness of Fit - Cumulative Mutations") +
-  theme(strip.background = element_blank()) +
-  labs(title = "") +
-  theme(legend.justification = c(1,0), legend.position = c(1,0)) +
-  theme(legend.background = element_rect(fill = "transparent", 
-                                         colour = "transparent"), 
-        legend.key.size = unit(0.25, "cm")) +
-  labs(colour = "Selection")
+plt_scatter = ggplot(dfResults, aes(x=ps1, y=donor)) +
+                geom_point(alpha=0) + # workaround to plot background
+                annotate("rect", xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=12.5, alpha=0.2, fill="grey") +
+                geom_point(aes(colour=selection)) +
+                coord_cartesian(xlim = c(0, 1)) +
+                scale_colour_manual(values = c(neutral="#1283FF", selected="#144E7B", undetermined="#CACACA")) +
+                geom_vline(xintercept=c(0.3, 0.7), colour="#808080") +
+                scale_x_continuous(breaks=c(0, 0.3, 0.5, 0.7, 1.0)) +
+                theme_bw() +
+                theme(text=element_text(size=7), axis.text=element_text(size=6), axis.title=element_text(size=7), plot.title=element_text(size=7, hjust=0.5)) +
+                labs(x="Probability of Selection", y="") +
+                theme(legend.position="none") +
+                # remove unnecessary facet
+                theme(strip.background = element_blank()) +
+                theme(legend.position="top") +
+                labs(title="") +
+                labs(colour="Selection")
 
 plt_scatter
 ```
+ ## Plot fit of selection models
+ Plot the fit of the models to the allele frequency distribution.
+ 
+ ```{r plot-nodel-fit, fig.height = 20, fig.width=17}
 
+selection_class = read.csv("data/p1-selection.csv", stringsAsFactors=F)
 
-## Visualise negative binomial model
+# histograms
+library(ggplot2)
 
-Results from the negative binomial model for neutral evolution.
+fout = list.files(path = "data/subclonal-output-1", pattern="*histogram-clone1[.]*",
+                  full.names=T, recursive=T)
+donors_neutral = selection_class[selection_class$selection == "neutral", "donor"]
 
-```{r plot-neg-bin-fit, fig.height = 20, fig.width=17}
-dfAFpetr = read.table("data/selection/full-AF.tsv", sep = "\t", 
-                      stringsAsFactors = FALSE, header = TRUE)
-dfAFpetr = dfAFpetr[dfAFpetr$sampleID %in% donors,]
-
-fitparamspetr = read.csv("data/selection/neg-bin-params-fit.csv", 
-                         stringsAsFactors = FALSE, header = TRUE)
-fitparamspetr$sampleID = gsub("AF-", "", fitparamspetr$fname)
-fitparamspetr$sampleID = gsub(".tsv", "", fitparamspetr$sampleID)
-
-a = 1
-b = 1
-fun.1 <- function(x, a=1, b=1) 1/(a*x)*exp(-x/b)
-args = list(mean = 2, sd = .5)
-
-dd <- data.frame(
-  predicted = rnorm(72, mean = 2, sd = 2),
-  state = rep(c("A", "B", "C"), each = 24)
-)
-
-# save generate plotting points
-grid = seq(0.01, 0.6, length = 500)
-
-normaldens <- ddply(fitparamspetr, "sampleID", function(df) {
-  data.frame(
-    predicted = grid,
-    density = fun.1(grid, df$a, df$b)
-  )
-})
-
-normaldens = normaldens[normaldens$sampleID %in% donors,]
-
-dfAFpetr$id = sapply(dfAFpetr$sampleID, 
-                     function(sampleID) paste0(
-                       sampleID, " (rsq ",
-                       round(fitparamspetr$rsq[fitparamspetr$sampleID ==
-                                                 sampleID],2),")"))
-normaldens$id = sapply(normaldens$sampleID, 
-                       function(sampleID) dfAFpetr$id[dfAFpetr$sampleID ==
-                                                        sampleID][1])
-
-plt_hist = ggplot(dfAFpetr, aes(x = af)) +
-  geom_vline(xintercept = fmin, colour = "grey") +
-  geom_vline(xintercept = fmax, colour = "grey") +
-  geom_histogram(binwidth = (fmax - fmin)/40) +
-  geom_line(aes(x = predicted, y = density), data = normaldens, colour = "red") +
-  facet_wrap(~ id, scales = "free_y", ncol = 4) +
-  theme_bw() +
-  theme(text = element_text(size = 9), axis.text = element_text(size = 8), axis.title = element_text(size = 9), plot.title = element_text(size = 9, hjust = 0.5)) +
-  labs(x = paste0("Allele Frequency"), y = "# Mutations") +
-  theme(legend.position = "none") +
-  labs(colour = "") +
-  theme(strip.background = element_blank()) +
-  labs(title = "")
-
-
-pname = paste0("selection-neg-bin-fit")
-ppath = paste0("figures/selection/", pname, ".pdf")
-ggsave(ppath, plot = plt_hist, width = 17, height = 20, units  =  "cm")
-ppath  =  paste0("figures/selection/", pname, ".png")
-ggsave(ppath, plot = plt_hist, width = 17, height = 20, dpi = 300, units = "cm", limitsize = FALSE)
-plt_hist
-```
-
-
-## Visualise results from neutralitytestr
-
-Results from the cumulative mutations model for neutral evolution.
-
-```{r plot-neutralitytestr, fig.height = 25, fig.width=17}
-dfntrtestr = read.table("data/selection/neutralitytestr.tsv", 
-                        stringsAsFactors = FALSE, header = TRUE)
-
-plotSampleCumMut <- function(afDF, dfntrtestr, sampleID, fmin, fmax) {
-  # plot cummulative mutations as per Sottoriva & Graham
-  afDFsample = afDF[afDF$sampleID == sampleID, ]
-  rsq = dfntrtestr$rsq[dfntrtestr$sampleID == sampleID]
-  # cumsum with decreasing frequency
-  afDFsample = afDFsample[order(afDFsample$af, decreasing = TRUE), ]
-  afDFsample$cumsum = 1:length(afDFsample$af)
-  afDFsample$inverse_af = 1/afDFsample$af
-  plt_cummut = ggplot(afDFsample, aes(x = inverse_af, y = cumsum)) +
-    geom_vline(xintercept = c(1/fmin, 1/fmax), colour = "darkgrey") +
-    geom_point(size = 0.5) +
-    geom_line(data = subset(afDFsample, 
-                            (inverse_af < 1/fmin) & (inverse_af > 1/fmax)),
-              stat = "smooth", method = 'lm', formula = y ~ x, se = FALSE, 
-              colour = "red", alpha = 0.5, size = 0.8) +
-    coord_cartesian(xlim = c(0, 1/0.01)) +
-    theme_bw() +
-    theme(text = element_text(size = 9), axis.text = element_text(size = 8),
-          axis.title = element_text(size = 9), 
-          plot.title = element_text(size = 9, hjust = 0.5)) +
-    labs(x = paste0("Inverse AF"), y = "# Cum Mut") +
-    theme(legend.position = "none") +
-    # remove unnecessary facet
-    theme(strip.background = element_blank()) +
-    labs(title = paste0(sampleID, " (rsq ", round(rsq,2), ")"))
-  return(plt_cummut)
+for (donor in donors_neutral){
+  fout[grepl(donor, fout)] = gsub("clone1", "clone0", fout[grepl(donor, fout)])
 }
 
 
-pltsCumMut = cowplot::plot_grid(
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[1], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[2], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[3], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[4], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[5], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[6], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[7], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[8], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[9], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[10], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[11], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[12], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[13], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[14], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[15], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[16], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[17], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[18], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[19], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[20], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[21], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[22], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[23], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[24], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[25], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[26], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[27], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[28], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[29], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[30], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[31], fmin, fmax),
-  plotSampleCumMut(dfAFpetr, dfntrtestr, donors[32], fmin, fmax),
-  ncol = 4)
+modelstats = read.csv(fout[1])
+modelstats$donor = strsplit(basename(fout[1]), "-")[[1]][3]
+modelstats$selection_model = gsub(".csv", "" , strsplit(basename(fout[1]), "-")[[1]][5])
 
-pname = paste0("selection-neutralitytestr")
-ppath = paste0("figures/selection/", pname, ".pdf")
-ggsave(ppath, plot = pltsCumMut, width = 17, height = 25, units = "cm")
-ppath = paste0("figures/selection/", pname, ".png")
-ggsave(ppath, plot = pltsCumMut, width = 17, height = 25, dpi = 300, 
-       units = "cm", limitsize = FALSE)
-pltsCumMut
+for (i in 2:length(fout)){
+  modelstats_donor = read.csv(fout[i])
+  modelstats_donor$donor = strsplit(basename(fout[i]), "-")[[1]][3]
+  modelstats_donor$selection_model = gsub(".csv", "" , strsplit(basename(fout[i]), "-")[[1]][5])
+  modelstats = rbind(modelstats, modelstats_donor)
+}
+
+modelstats$selection_model = gsub("clone0", "neutral", modelstats$selection_model)
+modelstats$selection_model = gsub("clone1", "selected", modelstats$selection_model)
+
+selection_class$donor_class = paste0(selection_class$donor, " (", selection_class$selection, ")")
+
+# add to modelstats
+modelstats$donor_class = NA
+modelstats$selection = NA
+
+for (donor in selection_class$donor){
+  modelstats[modelstats$donor == donor, "donor_class"] = selection_class[selection_class$donor == donor, "donor_class"]
+  modelstats[modelstats$donor == donor, "selection"] = selection_class[selection_class$donor == donor, "selection"]
+}
+
+
+fmin = 0.05
+fmax = 0.45
+
+
+# remove model fit for undetermined donors
+modelstats[modelstats$selection == "undetermined", c("mean", "lowerq95", "upperq95")] = NA
+
+plt_hist = ggplot(modelstats, aes(x=VAF, y=truecounts)) +
+                facet_wrap(~donor_class, ncol=4, scales = "free_y") +
+                geom_bar(stat="identity") +
+                geom_line(aes(x=VAF, y=mean, colour=selection_model)) +
+                geom_ribbon(aes(x=VAF, ymax=upperq95, ymin=lowerq95, fill=selection_model), alpha=0.2) +
+                geom_vline(xintercept=c(fmin, fmax), colour="#808080") +
+                # scale_x_continuous(limits = c(0, 0.47), breaks=c(0, fmin, 0.1, 0.2, 0.3, 0.4, fmax), expand=c(0,0)) +
+                coord_cartesian(xlim = c(0, 0.47), ylim=c(0, max(modelstats$truecounts)), expand=0) +
+                scale_colour_manual(values = c(neutral="#1283FF", selected="#144E7B", undetermined="#CACACA"), guide=FALSE) +
+                scale_fill_manual(values = c(neutral="#1283FF", selected="#144E7B", undetermined="#CACACA")) +
+                scale_x_continuous(breaks=c(0, fmin, 0.1, 0.2, 0.3, 0.4, fmax), labels=c("0", paste0(fmin), "0.1", "0.2", "0.3", "0.4", paste0(fmax))) +
+                theme_bw() +
+                theme(text=element_text(size=7), axis.text=element_text(size=6), axis.title=element_text(size=7), plot.title=element_text(size=7, hjust=0.5)) +
+                labs(x="VAF", y="# Mutations") +
+                # remove unnecessary facet
+                theme(strip.background = element_blank()) +
+                theme(legend.position="bottom") +
+                labs(title="") +
+                labs(fill="Selection Model")
+                # coord_fixed()
+
+ppath = paste0("figures/selection-hist-SubClonalSelection.png")
+ggsave(ppath, plot=plt_hist, width=18.3, height=20, dpi=300, units = "cm")
+ppath = paste0("plots/selection-hist-SubClonalSelection.pdf")
+ggsave(ppath, plot=plt_hist, width=18.3, height=20, units = "cm")
+plt_hist
 ```
-
-

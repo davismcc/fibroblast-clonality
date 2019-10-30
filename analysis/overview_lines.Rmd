@@ -134,97 +134,6 @@ for (i in unique(donor_info$donor_short)) {
 ```
 
 
-## Goodness of fit of neutral evolution models
-
-Add donor level mutation selection info (Daniel Kunz). We produce a scatter 
-plot of goodness of fit for each line for the cumulative mutations 
-(Williams et al, 2016) and the negative binomial (Simons, 2016) models of 
-neutral evolution. We label the example line `joxm`, which is analysed in more
-depth in other scripts.
-
-```{r donor-mutation-selection, fig.height=5, fig.width=6}
-ntrtestrPetr <- read.table("data/neutralitytestr-petr.tsv", 
-                           stringsAsFactors = FALSE, header = TRUE)
-negbinfitPetr = read.table("data/neg-bin-rsquared-petr.csv", 
-                           stringsAsFactors = FALSE, header = TRUE, sep = ",")
-negbinfitPetr$sampleID <- negbinfitPetr$fname
-negbinfitPetr$sampleID <- gsub("petr-AF-", "", negbinfitPetr$sampleID)
-negbinfitPetr$sampleID <- gsub(".tsv", "", negbinfitPetr$sampleID)
-rownames(negbinfitPetr) <- negbinfitPetr$sampleID
-
-dfrsq <- data.frame(sampleID = ntrtestrPetr$sampleID,
-                    rsq_ntrtestr = ntrtestrPetr$rsq,
-                    rsq_negbinfit = negbinfitPetr[ntrtestrPetr$sampleID, "rsq"])
-
-cutoff_selection_cummut <- 0.85
-cutoff_selection_negbin <- 0.25
-cutoff_neutral_cummut <- 0.9
-cutoff_neutral_negbin <- 0.55
-
-dfrsq$candidatelabel <- NA
-dfrsq$candidatelabel[dfrsq$sampleID == "joxm"] <- "joxm"
-
-filter_selection <- (dfrsq$rsq_ntrtestr < cutoff_selection_cummut) &
-  (dfrsq$rsq_negbinfit < cutoff_selection_negbin)
-filter_neutral <- (dfrsq$rsq_ntrtestr > cutoff_neutral_cummut) &
-  (dfrsq$rsq_negbinfit > cutoff_neutral_negbin)
-
-dfrsq$selection <- "undetermined"
-dfrsq$selection[filter_selection] <- "selected"
-dfrsq$selection[filter_neutral] <- "neutral"
-
-colnames(dfrsq)[1] <- "donor_short"
-donor_info <- merge(donor_info, dfrsq, by = "donor_short")
-donor_info$selection_colour <- "#CCCCCC"
-for (i in 1:nrow(donor_info)) {
-  if (donor_info$selection[i] == "neutral") 
-    donor_info$selection_colour[i] <- "dodgerblue"
-  if (donor_info$selection[i] == "selected") 
-    donor_info$selection_colour[i] <- "dodgerblue4"
-}
-
-donors <- c("euts", "fawm", "feec", "fikt", "garx", "gesg", "heja", "hipn", 
-            "ieki", "joxm", "kuco", "laey", "lexy", "naju", "nusw", "oaaz", 
-            "oilg", "pipw", "puie", "qayj", "qolg", "qonc", "rozh", "sehl", 
-            "ualf", "vass", "vils", "vuna", "wahn", "wetu", "xugn", "zoxy")
-
-dfrsq_filt <- dfrsq[(dfrsq$donor_short %in% donors),]
-
-plt_scatter <- ggplot(dfrsq_filt, aes(x = rsq_negbinfit, y = rsq_ntrtestr)) +
-  scale_fill_manual(values = c("neutral" = "dodgerblue",
-                                 "selected" = "dodgerblue4",
-                                 "undetermined" = "#CCCCCC")) +
-  geom_point(aes(fill = selection), size = 3, shape = 21) +
-  geom_label_repel(aes(label = candidatelabel), color = "black", size = 4,
-                   fill = "gray90", box.padding = 0.35, point.padding = 0.5,
-                   segment.color = "grey50") +
-  # theme_bw() +
-  # theme(text = element_text(size = 11, face = "plain"), 
-  #       axis.text = element_text(size = 11, face = "plain"),
-  #       axis.title = element_text(size = 12, face = "plain"),
-  #       plot.title = element_text(size = 11, hjust = 0.5)) +
-  labs(x = "Goodness of fit - negative binomial distribution", 
-       y = "Goodness of fit - cumulative mutations") +
-  theme_cowplot(font_size = 16) +
-  theme(strip.background = element_blank()) +
-  theme(legend.justification = c(1,0), legend.position = c(1,0)) +
-  theme(legend.background = element_rect(fill = "white", linetype = 1, 
-                                         colour = "black", size = 0.2),
-        legend.key.size = unit(0.25, "cm")) +
-  theme(panel.grid.major = element_line(colour = "gray90", size = 0.25)) +
-  labs(fill = "Selection") #+
-# coord_fixed()
-
-ggsave("figures/overview_lines/neutral_selection_models_gof_scatter.png", 
-       plot = plt_scatter, width = 12, height = 12, dpi = 300, units = "cm")
-
-ggsave("figures/overview_lines/neutral_selection_models_gof_scatter_wide.png", 
-       plot = plt_scatter, width = 6.5, height = 4.5, dpi = 300, units = "in")
-
-
-plt_scatter
-```
-
 
 ## Mutational signatures
 
@@ -535,10 +444,15 @@ We make a large combined plot stitching together individual plots showing:
 
 * donor age;
 * number of somatic mutations;
-* signature 7 (UV) exposure; and
+* signature 7 (UV) exposure;
+* probablility of selection (Williams et al, 2018); and
 * number of mutations per clone
 
 for each line.
+
+
+
+
 
 ```{r donor-info-summary-plot, fig.height=14, fig.width=30}
 donor_info_filt <- donor_info[which(donor_info$donor_short %in% donors), ]
@@ -553,22 +467,22 @@ donor_info_filt_melt <- reshape2::melt(donor_info_filt[,selected_vars],
 donor_info_filt_melt <- donor_info_filt[,selected_vars]
 
 age_plot_filt <- ggplot(
-  donor_info_filt_melt, 
-  aes(x = "Age", y = factor(donor_short, levels = rev(donor_filt_order)), 
-      fill = age_decade)) + 
+  donor_info_filt_melt,
+  aes(x = "Age", y = factor(donor_short, levels = rev(donor_filt_order)),
+      fill = age_decade)) +
   geom_tile() +
-  labs(x = "", y = "Donor", fill = "") + 
+  labs(x = "", y = "Donor", fill = "") +
   scale_fill_manual(values = rev(c(magma(8)[-c(1,8)])))  +
   guides(fill = guide_legend(nrow = 3,byrow = TRUE)) +
-  theme(axis.text.x = element_text(size = 32, face = "plain"), 
-        axis.line = element_blank(), 
-        legend.position = "top", legend.direction = "horizontal", 
-        legend.text = element_text(size = 28, face = "plain"), 
+  theme(axis.text.x = element_text(size = 32, face = "plain"),
+        axis.line = element_blank(),
+        legend.position = "top", legend.direction = "horizontal",
+        legend.text = element_text(size = 28, face = "plain"),
         legend.key.size = unit(0.3,"in"),
         axis.ticks.x = element_blank(),
         legend.margin = margin(unit(0.01, "cm")),
-        axis.text.y = element_text(size = 30, face = "plain"), 
-        axis.title.y = element_text(size = 36, face = "plain"), 
+        axis.text.y = element_text(size = 30, face = "plain"),
+        axis.title.y = element_text(size = 36, face = "plain"),
         axis.title.x = element_text(size = 36, face = "plain"))
 
 # Plot number of mutations
@@ -576,78 +490,110 @@ selected_vars <- c("donor_short", "num_mutations")
 donor_info_filt_melt <- reshape2::melt(donor_info_filt[,selected_vars],
                                        "donor_short")
 num_mut_plot_filt <- ggplot(
-  donor_info_filt_melt, 
-  aes(x = value, y = factor(donor_short, levels = rev(donor_filt_order)))) + 
-  geom_point(size = 4, alpha = 0.7) + 
-  scale_shape_manual(values = c(4, 19)) + 
+  donor_info_filt_melt,
+  aes(x = value, y = factor(donor_short, levels = rev(donor_filt_order)))) +
+  geom_point(size = 4, alpha = 0.7) +
+  scale_shape_manual(values = c(4, 19)) +
   scale_x_log10(breaks = c(50, 100, 500)) +
-  theme_bw(16) + 
-  ggtitle(" ") + 
-  labs(x = "Number of mutations", y = "") + 
-  theme(axis.text.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.line = element_blank(), 
-        legend.position = "top", 
-        axis.text.x = element_text(size = 32, face = "plain"), 
-        title = element_text(colour="black",size = 30, face = "plain"), 
+  theme_bw(16) +
+  ggtitle(" ") +
+  labs(x = "Number of mutations", y = "") +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line = element_blank(),
+        legend.position = "top",
+        axis.text.x = element_text(size = 32, face = "plain"),
+        title = element_text(colour="black",size = 30, face = "plain"),
         axis.title.x = element_text(size = 36, face = "plain"))
 
-# Plot signature 7 
+# Plot signature 7
 donor_info_filt_melt <- reshape2::melt(
   donor_info_filt[,c(1,grep("Sig7_mean",colnames(donor_info_filt)))])
 donor_info_filt_melt$signature <- substr(donor_info_filt_melt$variable, 1, 5)
-donor_info_filt_melt <- 
+donor_info_filt_melt <-
   donor_info_filt_melt[, c("donor_short", "signature", "value")]
 sig_decomp_plot_filt <- ggplot(
-  donor_info_filt_melt, 
-  aes(y = value, x = factor(donor_short, levels = rev(donor_filt_order)), 
-      fill = factor(signature))) + 
-  geom_bar(stat = "identity") + 
-  coord_flip() + 
+  donor_info_filt_melt,
+  aes(y = value, x = factor(donor_short, levels = rev(donor_filt_order)),
+      fill = factor(signature))) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
   scale_fill_manual(values = rev(c(magma(10)[-c(1,10)]))) +
-  theme_bw(16) + 
-  ggtitle(" ") + 
+  theme_bw(16) +
+  ggtitle(" ") +
   labs(x = "",y = "Signature 7 exposure", fill = "") +
-  theme(axis.text.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.line = element_blank(), 
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line = element_blank(),
         axis.text.x = element_text(size = 32, face = "plain"),
         title = element_text(colour = "black", size = 30, face = "plain"),
         axis.title.x = element_text(size = 36, face = "plain")) +
   guides(fill = FALSE)
 
+
+
+# Plot selection results
+donor_selection_info <- read.csv("data/p1-selection.csv", row.names=1)
+# add missing donor (simulation failed)
+donor_selection_info <- rbind(donor_selection_info, c("puie", NA, "undetermined"))
+donor_selection_info$ps1 = as.numeric(donor_selection_info$ps1)
+donor_selection_info$selection = factor(donor_selection_info$selection, levels=c("neutral", "undetermined", "selected"))
+
+selection_plot <- ggplot(donor_selection_info, aes(x=ps1, y=factor(donor, levels=rev(donor_filt_order)), colour=selection)) +
+                geom_point(size = 4, alpha = 0.7) +
+                coord_cartesian(xlim = c(0, 1)) +
+                scale_colour_manual(values = c(neutral="#1283FF", selected="#144E7B", undetermined="#CACACA")) +
+                geom_vline(xintercept=c(0.3, 0.7), colour="#808080") +
+                scale_x_continuous(breaks=c(0, 0.3, 0.5, 0.7, 1.0)) +
+                theme_bw(16) +
+		labs(x = "Probability of Selection", y = "", colour = "Selection") +
+    # guides(colour=guide_legend(title.position="top",
+    #                                  title.hjust =0.5)) +
+    guides(colour = guide_legend(ncol = 1)) +
+		theme(axis.ticks.y = element_blank(),
+		axis.line = element_blank(),
+			legend.position = "top",
+			legend.key.size = unit(0.3,"in"),
+			axis.title.x = element_text(size = 36, face = "plain"),
+			axis.text.x = element_text(size = 32, face = "plain"),
+			axis.text.y = element_blank(),
+			legend.justification = "center",
+			legend.text = element_text(size = 28, face = "plain"),
+			legend.title = element_text(size = 30, face = "plain"))
+
+
 # Plot total number of mutations per clone
 donor_info_filt_subset <-
   donor_info_filt[,c(1,grep("clone",colnames(donor_info_filt)))]
-# Remove columns that do not relate to number of mutations per clone: 
+# Remove columns that do not relate to number of mutations per clone:
 donor_info_filt_subset <- donor_info_filt_subset[,c(-2,-7)]
 donor_info_filt_melt <- reshape2::melt(donor_info_filt_subset, "donor_short")
 donor_info_filt_melt$variable <- substr(donor_info_filt_melt$variable, 6, 6)
 num_clones_plot_filt <- ggplot(
-  donor_info_filt_melt, 
+  donor_info_filt_melt,
   aes(variable, factor(donor_short, levels = rev(donor_filt_order)))) +
-  geom_tile(aes(fill = value), colour = "white") + 
+  geom_tile(aes(fill = value), colour = "white") +
   scale_fill_distiller(palette = "BuPu", values = c(0,0.05,0.1,0.15,0.25,0.5,1),
-                       na.value = "white", breaks = c(0,25,50,75), 
+                       na.value = "white", breaks = c(0,25,50,75),
                        direction = 1) +
-  labs(x = "Clone", y = "", fill = "Number of mutations per clone") +  
-  theme(axis.ticks.y = element_blank(), 
-        axis.line = element_blank(), 
+  labs(x = "Clone", y = "", fill = "Number of mutations") +
+  theme(axis.ticks.y = element_blank(),
+        axis.line = element_blank(),
         legend.position = "top",
-        legend.key.size = unit(0.5,"in"), 
+        legend.key.size = unit(0.3,"in"),
         axis.title.x = element_text(size = 36, face = "plain"),
         axis.text.x = element_text(size = 32, face = "plain"),
-        axis.text.y = element_blank(), 
-        legend.justification = "center", 
-        legend.text = element_text(size = 30, face = "plain"), 
+        axis.text.y = element_blank(),
+        legend.justification = "center",
+        legend.text = element_text(size = 28, face = "plain"),
         legend.title = element_text(size = 30, face = "plain"))
 
 ## Combine above plots into Fig 2a
 fig_2a <- cowplot::plot_grid(age_plot_filt, num_mut_plot_filt,
-                             sig_decomp_plot_filt, num_clones_plot_filt, 
-                             nrow = 1, rel_widths = c(3, 4, 4, 6), align = "h",
+                             sig_decomp_plot_filt, selection_plot, num_clones_plot_filt,
+                             nrow = 1, rel_widths = c(3, 4, 4, 4, 4), align = "h",
                              axis = "t", scale =  c(1, 0.988, 0.988, 0.988))
-ggsave("figures/overview_lines/overview_lines_BuPu.png", 
+ggsave("figures/overview_lines/overview_lines_BuPu.png",
        plot = fig_2a, width = 30, height = 14)
 
 fig_2a
