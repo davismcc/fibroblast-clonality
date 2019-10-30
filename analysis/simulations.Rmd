@@ -206,16 +206,13 @@ for (mm in seq_len(length(value_list))) {
     
     for (d_tmp in simu_data) {
       prob_all <- list()
-      methods_use <- c("demuxlet", "Bern_EM", "Binom_EM", "Binom_Gibbs",
+      methods_use <- c("demuxlet", "Binom_EM", "Binom_Gibbs",
                        "Binom_gmline")
       prob_all[[1]] <- demuxlet(d_tmp$A_sim, d_tmp$D_sim, d_tmp$Config, 
                                 theta0 = mean(d_tmp$theta0_binom, na.rm = TRUE))
       prob_all[[2]] <- clone_id_EM(d_tmp$A_sim, d_tmp$D_sim, d_tmp$Config, 
-                                      Psi = NULL, verbose = F)$prob
-      prob_all[[3]] <- clone_id_EM(d_tmp$A_sim, d_tmp$D_sim, d_tmp$Config, 
-                                      Psi = NULL, model = "binomial",
-                                      verbose = FALSE)$prob
-      prob_all[[4]] <- clone_id_Gibbs(d_tmp$A_sim, d_tmp$D_sim,
+                                      Psi = NULL, verbose = FALSE)$prob
+      prob_all[[3]] <- clone_id_Gibbs(d_tmp$A_sim, d_tmp$D_sim,
                                          d_tmp$Config, Psi = NULL,
                                          min_iter = 1000, wise = "variant", 
                                          prior1 = c(2.11, 2.69), 
