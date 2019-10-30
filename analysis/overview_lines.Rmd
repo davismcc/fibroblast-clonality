@@ -451,9 +451,6 @@ We make a large combined plot stitching together individual plots showing:
 for each line.
 
 
-
-
-
 ```{r donor-info-summary-plot, fig.height=14, fig.width=30}
 donor_info_filt <- donor_info[which(donor_info$donor_short %in% donors), ]
 donor_filt_order <- dplyr::arrange(donor_info_filt, desc(num_mutations))
@@ -461,7 +458,7 @@ donor_filt_order <- donor_filt_order$donor_short
 rownames(donor_info_filt) <- donor_info_filt$donor_short
 
 # Plot age
-selected_vars <- c("donor_short", "age_decade", "selection_colour")
+selected_vars <- c("donor_short", "age_decade")
 donor_info_filt_melt <- reshape2::melt(donor_info_filt[,selected_vars],
                                        "donor_short")
 donor_info_filt_melt <- donor_info_filt[,selected_vars]
@@ -534,10 +531,11 @@ sig_decomp_plot_filt <- ggplot(
 
 # Plot selection results
 donor_selection_info <- read.csv("data/p1-selection.csv", row.names=1)
+donor_selection_info <- read_csv("data/p1-selection.csv")
+
 # add missing donor (simulation failed)
-donor_selection_info <- rbind(donor_selection_info, c("puie", NA, "undetermined"))
-donor_selection_info$ps1 = as.numeric(donor_selection_info$ps1)
-donor_selection_info$selection = factor(donor_selection_info$selection, levels=c("neutral", "undetermined", "selected"))
+donor_selection_info$ps1 <- as.numeric(donor_selection_info$ps1)
+donor_selection_info$selection <- factor(donor_selection_info$selection, levels=c("neutral", "undetermined", "selected"))
 
 selection_plot <- ggplot(donor_selection_info, aes(x=ps1, y=factor(donor, levels=rev(donor_filt_order)), colour=selection)) +
                 geom_point(size = 4, alpha = 0.7) +
