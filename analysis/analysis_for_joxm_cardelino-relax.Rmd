@@ -439,7 +439,7 @@ knitr::opts_chunk$set(fig.height = 6, fig.width = 8)
 summary(decideTests(de_res$qlf_list$joxm, p.value = 0.1))
 ```
 
-```{r summary-de}
+```{r summary-de-2}
 summary(decideTests(de_res$qlf_list$joxm, p.value = 0.05))
 ```
 

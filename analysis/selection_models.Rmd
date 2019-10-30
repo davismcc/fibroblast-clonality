@@ -3,8 +3,9 @@ title: "Selection Models"
 author: "Daniel J. Kunz & Davis J. McCarthy"
 site: workflowr::wflow_site
 ---
+
  ## Load libraries and data
- ```{r setup, include=TRUE, results='hide', message=FALSE, warning=FALSE}
+```{r setup, include=TRUE, results='hide', message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(viridis)
@@ -12,8 +13,9 @@ library(cowplot)
 library(plyr)
 dir.create("figures/selection", showWarnings = FALSE, recursive = TRUE)
 ```
- Load the call set and extract the allele frequencies which are used for the fits of the selection models.
- ```{r}
+
+Load the call set and extract the allele frequencies which are used for the fits of the selection models.
+```{r}
 filteredAF = read.table("data/exome-point-mutations/high-vs-low-exomes.v62.ft.filt_lenient-alldonors.txt.gz", 
                         header = TRUE, stringsAsFactors = FALSE)
  mut_list = data.frame("sampleID" = filteredAF$donor_short_id,
@@ -54,7 +56,7 @@ Since the simulations take in the order of days/weeks we provide the outputfiles
  ## Plot selection classification
  Plot the selection classification from SubConalSelection. The grey background indicates results with high uncertainty due to low numbers of mutations (< 100).
  
- ```{r plot-selection-results, fig.height = 5, fig.width=7, warning=FALSE}
+```{r plot-selection-results, fig.height = 5, fig.width=7, warning=FALSE}
 donors = c("joxm", "garx", "wahn", "vass", "ualf", "euts", "laey", "pipw", "oilg", "heja",
           "sehl", "feec", "gesg", "fikt", "vuna", "qonc", "xugn", "qolg", "puie", "fawm",
           "oaaz", "naju", "ieki", "rozh", "wetu", "nusw", "zoxy", "hipn", "lexy", "vils",
@@ -84,10 +86,11 @@ plt_scatter = ggplot(dfResults, aes(x=ps1, y=donor)) +
 
 plt_scatter
 ```
+
  ## Plot fit of selection models
  Plot the fit of the models to the allele frequency distribution.
  
- ```{r plot-nodel-fit, fig.height = 20, fig.width=17}
+```{r plot-nodel-fit, fig.height = 20, fig.width=17}
 
 selection_class = read.csv("data/p1-selection.csv", stringsAsFactors=F)
 
@@ -159,7 +162,7 @@ plt_hist = ggplot(modelstats, aes(x=VAF, y=truecounts)) +
 
 ppath = paste0("figures/selection-hist-SubClonalSelection.png")
 ggsave(ppath, plot=plt_hist, width=18.3, height=20, dpi=300, units = "cm")
-ppath = paste0("plots/selection-hist-SubClonalSelection.pdf")
+ppath = paste0("figures/selection-hist-SubClonalSelection.pdf")
 ggsave(ppath, plot=plt_hist, width=18.3, height=20, units = "cm")
 plt_hist
 ```
